@@ -24,6 +24,10 @@ class ProductController extends Controller
         if(!empty($request->status)) {
             $categories = $categories->where('isActive', ($request->status == 'in-active')?false:true);
         }
+
+        if(!empty($request->orderCol) && !empty($request->orderType)) {
+            $categories = $categories->orderBy($request->orderCol, $request->orderType);
+        }
         $currentPage = $request->pageNumber;
         if(!empty($currentPage)){
             Paginator::currentPageResolver(function () use ($currentPage) {
@@ -129,6 +133,9 @@ class ProductController extends Controller
         if(!empty($request->status)) {
             $products = $products->where('isActive', ($request->status == 'in-active')?false:true);
         }
+        if(!empty($request->orderCol) && !empty($request->orderType)) {
+            $products = $products->orderBy($request->orderCol, $request->orderType);
+        }
         $currentPage = $request->pageNumber;
         if(!empty($currentPage)){
             Paginator::currentPageResolver(function () use ($currentPage) {
@@ -216,7 +223,19 @@ class ProductController extends Controller
     }
 
     public function deleteProduct(Request $request, $id) {
-
+        return \DB::transaction(function() use($request, $id) {
+            try {
+                $product = Product::find($id);
+                if($product instanceof Product) {
+                    $product->delete();
+                    return ['data' => $product, 'msg'=> "Product deleted successfully"];
+                }else {
+                    return response()->json(['msg' => 'Product Does not exist'], 400);
+                }
+            }catch(\Exception $e) {
+                return response()->json(['msg' => 'Can not delete product', 'error'=> $e], 400);
+            }
+        });
     }
 
     public function changeProductStatus(Request $request, $id) {

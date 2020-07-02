@@ -22,6 +22,10 @@ class BranchController extends Controller
         if(!empty($request->status)) {
             $branches = $branches->where('isActive', ($request->status == 'in-active')?false:true);
         }
+
+        if(!empty($request->orderCol) && !empty($request->orderType)) {
+            $branches = $branches->orderBy($request->orderCol, $request->orderType);
+        }
         $currentPage = $request->pageNumber;
         if(!empty($currentPage)){
             Paginator::currentPageResolver(function () use ($currentPage) {
@@ -46,7 +50,7 @@ class BranchController extends Controller
                 $branch->description = $request->description;
                 $branch->branchAddress = $request->branchAddress;
                 $branch->branchCode = $request->branchCode;
-                $branch->isActive = true;
+                $branch->isActive = $request->isAcive;
                 $branch->save();
                 return $branch;
             }catch(\Exception $e) {

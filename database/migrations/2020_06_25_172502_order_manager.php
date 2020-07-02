@@ -76,7 +76,7 @@ class OrderManager extends Migration
             $table->boolean('isReserved')->default(true);
             $table->boolean('isActive')->default(true);
             $table->unsignedBigInteger('orderTypeId')->nullable(true);
-            $table->foreign('orderTypeId')->references('id')->on('order_types');  
+            $table->foreign('orderTypeId')->references('id')->on('order_types')->onDelete('cascade');  
             $table->unique(['tableId', 'orderTypeId']);
             $table->timestamps();
         });

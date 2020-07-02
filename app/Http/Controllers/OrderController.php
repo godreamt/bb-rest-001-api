@@ -113,7 +113,7 @@ class OrderController extends Controller
                     return response()->json(['msg' => 'Order Type Does not exist'], 400);
                 }
             }catch(\Exception $e) {
-                return response()->json(['msg' => 'Can not delete order type'], 400);
+                return response()->json(['msg' => 'Can not delete order type', 'error'=> $e], 400);
             }
         });
     }
