@@ -72,8 +72,9 @@ class OrderManager extends Migration
             $table->id();
             $table->string('tableId');
             $table->string('noOfChair');
+            $table->string('bookedChairs')->nullable();
             $table->text('description')->nullable();
-            $table->boolean('isReserved')->default(true);
+            $table->boolean('isReserved')->default(false);
             $table->boolean('isActive')->default(true);
             $table->unsignedBigInteger('orderTypeId')->nullable(true);
             $table->foreign('orderTypeId')->references('id')->on('order_types')->onDelete('cascade');  
@@ -126,13 +127,15 @@ class OrderManager extends Migration
             $table->id();
             $table->unsignedBigInteger('customerId')->nullable(true);
             $table->foreign('customerId')->references('id')->on('customers');  
-            $table->unsignedBigInteger('branchId')->nullable(true);
-            $table->foreign('branchId')->references('id')->on('branches'); 
+            $table->unsignedBigInteger('branch_id')->nullable(true);
+            $table->foreign('branch_id')->references('id')->on('branches'); 
             $table->unsignedBigInteger('orderTypeId')->nullable(true);
             $table->foreign('orderTypeId')->references('id')->on('order_types');  
             $table->string('cgst')->nullable();
+            $table->text('relatedInfo')->nullable();
             $table->string('sgst')->nullable();
             $table->string('igst')->nullable();
+            // $table->string('orderItemTotal');
             $table->string('orderAmount');
             $table->string('packingCharge')->nullable();
             $table->string('extraCharge')->nullable();
@@ -148,19 +151,21 @@ class OrderManager extends Migration
             $table->id();
             $table->string('price');
             $table->string('quantity')->nullable();
+            $table->string('packagingCharges')->nullable();
             $table->string('totalPrice')->nullable();
             $table->unsignedBigInteger('orderId');
-            $table->foreign('orderId')->references('id')->on('order_types');  
+            $table->foreign('orderId')->references('id')->on('orders');  
             $table->unsignedBigInteger('productId');
             $table->foreign('productId')->references('id')->on('products');  
+            $table->enum('itemStatus', ['new', 'completed', 'cancelled'])->default('new');
             $table->timestamps();
         });
         
-        Schema::create('order_table', function (Blueprint $table) {
+        Schema::create('order_tables', function (Blueprint $table) {
             $table->id();
-            $table->string('selectedTable')->nullable();
+            $table->string('selectedChairs')->nullable();
             $table->unsignedBigInteger('orderId');
-            $table->foreign('orderId')->references('id')->on('order_types');  
+            $table->foreign('orderId')->references('id')->on('orders');  
             $table->unsignedBigInteger('tableId');
             $table->foreign('tableId')->references('id')->on('table_managers');  
             $table->timestamps();
@@ -171,7 +176,7 @@ class OrderManager extends Migration
             $table->string('rating');
             $table->string('comments')->nullable();
             $table->unsignedBigInteger('orderId');
-            $table->foreign('orderId')->references('id')->on('order_types');  
+            $table->foreign('orderId')->references('id')->on('orders');  
             $table->unsignedBigInteger('customerId');
             $table->foreign('customerId')->references('id')->on('customers');  
             $table->timestamps();

@@ -120,6 +120,11 @@ class ProductController extends Controller
         }
         $products = Product::select($fields)->with('branch');
 
+        if($request->needPricing=='detailed') {
+            $products = $products->with('pricings');
+        }
+
+
         if(!empty($request->searchString)) {
             $products = $products->where(function($q) use ($request) {
                 $q->where('productNumber', 'LIKE', '%'.$request->searchString.'%')
@@ -163,7 +168,7 @@ class ProductController extends Controller
                 $product->taxPercent = $request->taxPercent;
                 $product->packagingCharges = $request->packagingCharges;
                 $product->isActive = $request->isActive ?? true;
-                $product->isOrderTypePricing = $request->isOrderTypePricing ?? true;
+                $product->isOrderTypePricing = $request->isOrderTypePricing ?? false;
                 $product->isVeg = $request->isVeg ?? true;
                 $product->branch_id = $request->branch_id;
                 $product->save();
@@ -194,7 +199,7 @@ class ProductController extends Controller
                 $product->taxPercent = $request->taxPercent;
                 $product->packagingCharges = $request->packagingCharges;
                 $product->isActive = $request->isActive ?? true;
-                $product->isOrderTypePricing = $request->isOrderTypePricing ?? true;
+                $product->isOrderTypePricing = $request->isOrderTypePricing ?? false;
                 $product->isVeg = $request->isVeg ?? true;
                 $product->branch_id = $request->branch_id;
                 if($product->isOrderTypePricing) {

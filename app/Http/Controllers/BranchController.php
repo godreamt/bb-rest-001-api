@@ -50,15 +50,15 @@ class BranchController extends Controller
                 $branch->description = $request->description;
                 $branch->branchAddress = $request->branchAddress;
                 $branch->branchCode = $request->branchCode;
-                $branch->isActive = $request->isAcive;
+                $branch->isActive = $request->isActive;
                 $branch->save();
                 return $branch;
             }catch(\Exception $e) {
-                return response()->json(['msg' => ' Can not able to create branch'], 404);
+                return response()->json(['msg' => ' Can not able to create branch', 'error'=>$e], 404);
             }
         });
     }
-
+ 
     public function updateBranch(Request $request, $id) {
         return \DB::transaction(function() use($request, $id) {
             try {

@@ -11,6 +11,11 @@ class ProductOrderTypePricing extends Model
     ];
 
     
+    protected $hidden = [
+        'created_at', 'updated_at', 'taxPercent', 'productId'
+    ];
+
+    
     // public function branch()
     // {
     //     return $this->belongsTo('App\Branch', 'branch_id');

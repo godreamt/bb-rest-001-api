@@ -32,4 +32,9 @@ class Branch extends Model
     {
         return $this->hasMany('App\Product', 'branch_id');
     }
+    
+    public function orders()
+    {
+        return $this->hasMany('App\Order', 'branch_id');
+    }
 }

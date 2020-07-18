@@ -25,6 +25,14 @@ Route::group(['middleware' => ['jwt.verify']], function() {
 
     
     Route::group(['prefix'=>'order-manager'], function(){
+        
+        Route::group(['prefix'=>'user'], function(){
+            Route::get('', 'UserController@getUsers');
+            Route::get('{id}', 'UserController@getUser');
+            Route::post('', 'UserController@createUser');
+            Route::put('{id}', 'UserController@updateUser');
+            Route::delete('{id}', 'UserController@deleteUser');
+        });
 
         Route::group(['prefix'=>'category'], function(){
             Route::get('', 'ProductController@getCategories');
@@ -55,6 +63,9 @@ Route::group(['middleware' => ['jwt.verify']], function() {
             Route::put('status/{id}', 'OrderController@changeOrderTypeStatus');
         });
 
+        Route::group(['prefix'=>'tables'], function(){
+            Route::get('', 'OrderController@getOrderTypeWithTableOccupy');
+        });
         
         Route::group(['prefix'=>'product'], function(){
             Route::get('', 'ProductController@getProducts');
@@ -63,6 +74,15 @@ Route::group(['middleware' => ['jwt.verify']], function() {
             Route::put('{id}', 'ProductController@updateProduct');
             Route::delete('{id}', 'ProductController@deleteProduct');
             Route::put('status/{id}', 'ProductController@changeProductStatus');
+        });
+
+        Route::group(['prefix'=>'order'], function(){
+            Route::get('', 'OrderController@getOrderList');
+            Route::get('{id}', 'OrderController@getOrderDetails');
+            Route::post('', 'OrderController@makeNewOrder');
+            Route::put('{id}', 'OrderController@updateOrder');
+            // Route::delete('{id}', 'ProductController@deleteProduct');
+            // Route::put('status/{id}', 'ProductController@changeProductStatus');
         });
     });
 });

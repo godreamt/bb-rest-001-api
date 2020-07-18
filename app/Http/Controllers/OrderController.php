@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Order;
+use App\Customer;
+use App\OrderItem;
 use App\OrderType;
+use App\OrderTable;
 use App\TableManager;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\Paginator;
 
 class OrderController extends Controller
@@ -22,7 +27,7 @@ class OrderController extends Controller
         }
 
         if(!empty($request->status)) {
-            $orderTypes = $orderTypes->where('isActive', $request->status);
+            $orderTypes = $orderTypes->where('isActive', ($request->status == 'active')?true:false);
         }
         $currentPage = $request->pageNumber;
         if(!empty($currentPage)){
@@ -51,7 +56,7 @@ class OrderController extends Controller
                 $orderType->enableDeliverCharge = $request->enableDeliverCharge?true:false;
                 $orderType->enableExtraCharge = $request->enableExtraCharge?true:false;
                 $orderType->branch_id = $request->branch_id;
-                $orderType->isActive = true;
+                $orderType->isActive =$request->isActive?true:false;
                 $orderType->save();
                 foreach ($request->tables as $table) {
                     $table['isActive'] = true;
@@ -75,7 +80,7 @@ class OrderController extends Controller
                 $orderType->enableDeliverCharge = $request->enableDeliverCharge?true:false;
                 $orderType->enableExtraCharge = $request->enableExtraCharge?true:false;
                 $orderType->branch_id = $request->branch_id;
-                $orderType->isActive = $orderType->isActive?true:false;
+                $orderType->isActive = $request->isActive?true:false;
                 foreach ($request->tables as $table) {
                     if($table['deletedFlag'] == true) {
                         $t = TableManager::find($table['id']);
@@ -133,5 +138,218 @@ class OrderController extends Controller
                 return response()->json(['msg' => 'Order type status can not changed'], 400);
             }
         });
+    }
+
+    public function getOrderTypeWithTableOccupy(Request $request) {
+        $result = null;
+        if(!empty($request->orderTypeId)) {
+            $result = $this->handleTableOccupy(OrderType::find($request->orderTypeId), $request->orderId);
+        }else {
+            $orderTypes = OrderType::where('isActive', true)->where('enableTables', true)->get();
+            foreach($orderTypes as $orderType) {
+                $orderType['tables'] = $this->handleTableOccupy($orderType, $request->orderTypeId);
+            }
+            $result = $orderTypes;
+        }
+
+        return $result;
+    }
+
+    public function handleTableOccupy($orderType, $orderId=null) {
+        
+        $orderTables = OrderTable::leftJoin('orders', 'orders.id', 'order_tables.orderId')
+            ->where(function($q) use ($orderId) {
+                $q->where('orders.orderStatus', 'new')
+                    ->orWhere('orders.orderStatus', 'prepairing')
+                    ->orWhere('orders.id', $orderId);
+            })
+            ->where('orders.orderTypeId', $orderType->id)
+            ->select('order_tables.selectedChairs', 'order_tables.orderId', 'order_tables.tableId')
+            ->distinct()->get();
+
+        $tables = TableManager::where('isActive', true)
+                ->where('orderTypeId', $orderType->id)
+                ->get();
+                
+        foreach($tables as $table) {
+            $selectedChairs="";
+            $orderSelectedChairs="";
+            foreach($orderTables as $ot) {
+                if($ot->tableId == $table->id) {
+                    if($ot->orderId == $orderId) {
+                        $orderSelectedChairs = $orderSelectedChairs.$ot->selectedChairs.",";
+                    }
+
+                    $selectedChairs = $selectedChairs.$ot->selectedChairs.",";
+                    
+                }
+            }
+
+            $table['orderSelectedChairs']=$orderSelectedChairs;
+            $table['selectedChairs']=$selectedChairs;
+        }
+
+        return $tables;
+    }
+
+    public function getOrderList(Request $request) {
+        $fields = $request->get('fields', '*');
+        if($fields != '*'){
+            $fields = explode(',',$fields);
+        }
+        $orders = Order::with('customer')->select($fields)->with('branch')->with('orderType');
+
+        if(!empty($request->searchString)) {
+            $orders = $orders->where(function($q) use ($request) {
+                $q->where('productNumber', 'LIKE', '%'.$request->searchString.'%')
+                  ->orWhere('productName', 'LIKE', '%'.$request->searchString.'%');
+    //               whereHas('categories', function($q) use ($category_id){
+    // $q->where('id', $category_id);
+// });
+            });
+        }
+
+        if(!empty($request->status)) {
+            $orders = $orders->where('isActive', $request->status);
+        }
+        $currentPage = $request->pageNumber;
+        if(!empty($currentPage)){
+            Paginator::currentPageResolver(function () use ($currentPage) {
+                return $currentPage;
+            });
+
+            return $orders->paginate(10);
+        }else {
+            return $orders->get();
+        }
+    }
+
+    public function getOrderDetails(Request $request, $id) {
+        return Order::with('branch')->with('customer')->with('orderType')->with('orderTables')->with('orderItems')
+                    ->where('id', $id)->first();
+    }
+
+    public function makeNewOrder(Request $request) {
+        try {
+                return DB::transaction(function() use ($request) {
+                        $order = new Order();
+                        $orderType = OrderType::find($request->orderTypeId);
+                        $order->orderTypeId = $orderType->id;
+                        $order->branch_id = $orderType->branch_id;
+                        if(!empty($request->mobileNumber)) {
+                            $customer = $this->handleCustomerCreation($request->all(), $orderType->branch_id);
+                            $order->customerId = $customer->id;
+                        }
+                        $order->relatedInfo = $request->relatedInfo;
+                        $order->cgst = $request->cgst;
+                        $order->sgst = $request->sgst;
+                        $order->igst = 0;
+                        $order->packingCharge = $request->packingCharge;
+                        $order->deliverCharge = $request->deliverCharge;
+                        $order->orderStatus = $request->orderStatus;
+                        $order->orderItemTotal = $request->orderItemTotal;
+                        $order->orderAmount = $request->orderAmount;
+
+
+                        $order->save();
+
+
+                        foreach($request->items as $item) {
+                            $orderItem = new OrderItem();
+                            $orderItem->quantity = $item['quantity'];
+                            $orderItem->price = $item['price'];
+                            $orderItem->packagingCharges = $item['packagingCharges'];
+                            $orderItem->totalPrice = $item['totalPrice'];
+                            $orderItem->productId = $item['productId'];
+                            $orderItem->orderId = $order->id;
+                            $orderItem->itemStatus = 'new';
+                            $orderItem->save();
+                        }
+                        foreach($request->tables as $table) {
+                            $orderTable = new OrderTable();
+                            $orderTable->tableId = $table['id'];
+                            $orderTable->selectedChairs = $table['chairs'];
+                            $orderTable->orderId = $order->id;
+                            $orderTable->save();
+                        }
+
+                        return $order;
+                });
+        }catch(\Exception $e) {
+            return response()->json(['error'=>$e], 400);
+        }
+    }
+
+    public function updateOrder(Request $request, $orderId) {
+        try {
+                return DB::transaction(function() use ($request, $orderId) {
+                        $order = Order::find($orderId);
+                        $orderType = OrderType::find($request->orderTypeId);
+                        $order->orderTypeId = $orderType->id;
+                        $order->branch_id = $orderType->branch_id;
+                        if(!empty($request->mobileNumber)) {
+                            $customer = $this->handleCustomerCreation($request->all(), $orderType->branch_id);
+                            $order->customerId = $customer->id;
+                        }
+                        $order->relatedInfo = $request->relatedInfo;
+                        $order->cgst = $request->cgst;
+                        $order->sgst = $request->sgst;
+                        $order->igst = 0;
+                        $order->packingCharge = $request->packingCharge;
+                        $order->deliverCharge = $request->deliverCharge;
+                        $order->orderStatus = $request->orderStatus;
+                        // $order->orderItemTotal = $request->orderItemTotal;
+                        $order->orderAmount = $request->orderAmount;
+                        
+                        
+                        $order->save();
+                        
+                        
+                        foreach($request->items as $item) {
+                            if(!empty($item['quantity']) && !empty($item['productId'])){
+                                if(empty($item['id'])) {
+                                    $orderItem = new OrderItem();
+                                }else {
+                                    $orderItem = OrderItem::find($item['id']);
+                                }
+                                $orderItem->quantity = $item['quantity'];
+                                $orderItem->price = $item['price'];
+                                $orderItem->packagingCharges = $item['packagingCharges'];
+                                $orderItem->totalPrice = $item['totalPrice'];
+                                $orderItem->productId = $item['productId'];
+                                $orderItem->orderId = $order->id;
+                                $orderItem->itemStatus = 'new';
+                                $orderItem->save();
+                            }
+                        }
+                        $order->orderTables()->delete();
+                        // return $orderType;
+                        foreach($request->tables as $table) {
+                            $orderTable = new OrderTable();
+                            $orderTable->tableId = $table['id'];
+                            $orderTable->selectedChairs = $table['chairs'];
+                            $orderTable->orderId = $order->id;
+                            $orderTable->save();
+                        }
+
+                        return $order;
+                });
+        }catch(\Exception $e) {
+            return response()->json(['error'=>$e], 400);
+        }
+    }
+
+    public function handleCustomerCreation($request, $branch_id) {
+        $mobileNumber = $request['mobileNumber'];
+        $customer = Customer::where('mobileNumber', $mobileNumber)->first();
+        if(!$customer instanceof Customer) {
+            $customer = new Customer();
+            $customer->branch_id = $branch_id;
+            $customer->mobileNumber = $mobileNumber;
+        }
+        $customer->customerName = $request['customerName'];
+        $customer->emailId = $request['emailId'] ?? "";
+        $customer->save();
+        return $customer;
     }
 }
