@@ -165,6 +165,16 @@ class ProductController extends Controller
                 $product->productName = $request->productName;
                 $product->description = $request->description;
                 $product->price = $request->price;
+                
+                if(!empty($request->image)) {
+                    $data = $request->image;
+                    $base64_str = substr($data, strpos($data, ",")+1);
+                    $image = base64_decode($base64_str);
+                    $png_url = "user-".time().".png";
+                    $path = '/img/products/' . $png_url;
+                    \Storage::disk('public')->put($path, $image);
+                    $product->featuredImage = '/uploads'.$path;
+                }
                 $product->taxPercent = $request->taxPercent;
                 $product->packagingCharges = $request->packagingCharges;
                 $product->isActive = $request->isActive ?? true;
@@ -196,6 +206,15 @@ class ProductController extends Controller
                 $product->productName = $request->productName;
                 $product->description = $request->description;
                 $product->price = $request->price;
+                if(!empty($request->image)) {
+                    $data = $request->image;
+                    $base64_str = substr($data, strpos($data, ",")+1);
+                    $image = base64_decode($base64_str);
+                    $png_url = "user-".time().".png";
+                    $path = '/img/products/' . $png_url;
+                    \Storage::disk('public')->put($path, $image);
+                    $product->featuredImage = '/uploads'.$path;
+                }
                 $product->taxPercent = $request->taxPercent;
                 $product->packagingCharges = $request->packagingCharges;
                 $product->isActive = $request->isActive ?? true;

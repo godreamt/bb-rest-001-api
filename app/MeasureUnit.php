@@ -5,17 +5,12 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 
-class Customer extends Model
+class MeasureUnit extends Model
 {
+    public $timestamps = false;
     protected $fillable = [
-        'customerName', 'mobileNumber', 'emailId', 'branch_id'
+        'unitLabel', 'description', 'branch_id'
     ];
-
-    public function orders()
-    {
-        return $this->belongsTo('App\Order', 'customerId');
-    }
-
     
     protected static function boot()
     {
@@ -25,6 +20,14 @@ class Customer extends Model
             $user = \Auth::user();
             if($user->roles != 'Super Admin') {
                 $builder->where('branch_id',  $user->branch_id);
+            }
+        });
+
+        
+        static::creating(function ($item) {
+            $user = \Auth::user();
+            if($user->roles != 'Super Admin') {
+                $item->branch_id = $user->branch_id;
             }
         });
     }

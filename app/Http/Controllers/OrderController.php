@@ -193,6 +193,7 @@ class OrderController extends Controller
     }
 
     public function getOrderList(Request $request) {
+        $currentUser = \Auth::user();
         $fields = $request->get('fields', '*');
         if($fields != '*'){
             $fields = explode(',',$fields);
@@ -203,15 +204,19 @@ class OrderController extends Controller
             $orders = $orders->where(function($q) use ($request) {
                 $q->where('productNumber', 'LIKE', '%'.$request->searchString.'%')
                   ->orWhere('productName', 'LIKE', '%'.$request->searchString.'%');
-    //               whereHas('categories', function($q) use ($category_id){
-    // $q->where('id', $category_id);
-// });
             });
         }
 
         if(!empty($request->status)) {
             $orders = $orders->where('isActive', $request->status);
         }
+
+
+        if($request->showAll != 'active' && $currentUser->roles == "Order Manager") {
+            $orders = $orders->where('takenBy', $currentUser->id);
+        }
+
+
         $currentPage = $request->pageNumber;
         if(!empty($currentPage)){
             Paginator::currentPageResolver(function () use ($currentPage) {
@@ -247,8 +252,8 @@ class OrderController extends Controller
                         $order->packingCharge = $request->packingCharge;
                         $order->deliverCharge = $request->deliverCharge;
                         $order->orderStatus = $request->orderStatus;
-                        $order->orderItemTotal = $request->orderItemTotal;
-                        $order->orderAmount = $request->orderAmount;
+                        $order->orderItemTotal = $request->orderItemTotal ?? '0'; 
+                        $order->orderAmount = $request->orderAmount ?? '0';
 
 
                         $order->save();
@@ -276,7 +281,7 @@ class OrderController extends Controller
                         return $order;
                 });
         }catch(\Exception $e) {
-            return response()->json(['error'=>$e], 400);
+            return response()->json(['msg' => 'Can not able to create', 'error'=>$e], 400);
         }
     }
 
@@ -335,7 +340,7 @@ class OrderController extends Controller
                         return $order;
                 });
         }catch(\Exception $e) {
-            return response()->json(['error'=>$e], 400);
+            return response()->json(['msg' => 'Can not able to update', 'error'=>$e], 400);
         }
     }
 

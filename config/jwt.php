@@ -153,7 +153,7 @@ return [
         'exp',
         'nbf',
         'sub',
-        'jti',
+        'jti'
     ],
 
     /*

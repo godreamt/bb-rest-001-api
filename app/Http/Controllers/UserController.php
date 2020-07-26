@@ -64,7 +64,15 @@ class UserController extends Controller
                 $user = new User();
                 $user->firstName =  $request->firstName;
                 $user->lastName =  $request->lastName;
-                $user->profilePic =  '';
+                if(!empty($request->image)) {
+                    $data = $request->image;
+                    $base64_str = substr($data, strpos($data, ",")+1);
+                    $image = base64_decode($base64_str);
+                    $png_url = "user-".time().".png";
+                    $path = '/img/users/' . $png_url;
+                    \Storage::disk('public')->put($path, $image);
+                    $user->profilePic = '/uploads'.$path;
+                }
                 $user->email =  $request->email;
                 $user->mobileNumber =  $request->mobileNumber;
                 $user->password =  Hash::make($request->password);
@@ -85,7 +93,15 @@ class UserController extends Controller
                 $user = User::find($id);
                 $user->firstName =  $request->firstName;
                 $user->lastName =  $request->lastName;
-                $user->profilePic =  '';
+                if(!empty($request->image)) {
+                    $data = $request->image;
+                    $base64_str = substr($data, strpos($data, ",")+1);
+                    $image = base64_decode($base64_str);
+                    $png_url = "user-".time().".png";
+                    $path = '/img/users/' . $png_url;
+                    \Storage::disk('public')->put($path, $image);
+                    $user->profilePic = '/uploads'.$path;
+                }
                 $user->email =  $request->email;
                 $user->mobileNumber =  $request->mobileNumber;
                 if(!empty($request->password)) {
@@ -98,6 +114,43 @@ class UserController extends Controller
             });
         }catch(\Exception $e) {
             return response()->json(['msg' => ' Can not able to update user', 'error'=>$e], 400);
+        }
+    }
+
+    public function uploadCurrentUserImage(Request $request) {
+        try {
+            return \DB::transaction(function() use ($request) {
+                $user = \Auth::user();
+                $data = $request->image;
+                $base64_str = substr($data, strpos($data, ",")+1);
+                $image = base64_decode($base64_str);
+                $png_url = "user-".time().".png";
+                $path = '/img/users/' . $png_url;
+                \Storage::disk('public')->put($path, $image);
+                $user->profilePic = '/uploads'.$path;
+                $user->save();
+                return $user;
+            });
+        }catch(\Exception $e) {
+            return response()->json(['msg' => ' Can not able to update user pic', 'error'=>$e], 400);
+        }
+    }
+    
+
+    public function changeCurrentUserPassword(Request $request) {
+        try {
+            return \DB::transaction(function() use ($request) {
+                $user = \Auth::user();
+                if(Hash::check($request->oldPassword,$user->password)) {
+                    $user->password = Hash::make($request->password);
+                    $user->save();
+                    return $user;
+                } else {
+                    return response()->json(['msg' => 'Invalid old password.'], 400);
+                }
+            });
+        }catch(\Exception $e) {
+            return response()->json(['msg' => ' Can not able to update password', 'error'=>$e], 400);
         }
     }
 

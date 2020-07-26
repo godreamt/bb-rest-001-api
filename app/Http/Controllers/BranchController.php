@@ -91,7 +91,7 @@ class BranchController extends Controller
                     return response()->json(['msg' => 'Branch Does not exist'], 404);
                 }
             }catch(\Exception $e) {
-                return response()->json(['msg' => 'Can not delete branch'], 404);
+                return response()->json(['msg' => 'Can not delete branch', 'error'=>$e], 404);
             }
         });
     }

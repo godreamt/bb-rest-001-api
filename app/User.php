@@ -6,6 +6,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Database\Eloquent\Builder;
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -17,8 +18,22 @@ class User extends Authenticatable implements JWTSubject
      * @var array
      */
     protected $fillable = [
-        'firstName', 'lastName', 'profilePic', 'isActive', 'email', 'mobileNumber', 'roles', 'password',
+        'firstName', 'lastName', 'profilePic', 'isActive', 'email', 'mobileNumber', 'roles', 'password', 'branch_id'
     ];
+
+    
+
+    // protected static function boot()
+    // {
+    //     parent::boot();
+
+    //     static::addGlobalScope('role_handler', function (Builder $builder) {
+    //         $user = \Auth::user();
+    //         if($user->roles != 'Super Admin') {
+    //             $builder->where('branch_id',  $user->branch_id);
+    //         }
+    //     });
+    // }
 
     /**
      * The attributes that should be hidden for arrays.
@@ -50,6 +65,6 @@ class User extends Authenticatable implements JWTSubject
 
     public function getJWTCustomClaims()
     {
-        return [];
+        return ['user_id' => $this->id, 'roles' => $this->roles];
     }
 }

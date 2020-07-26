@@ -3,6 +3,8 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class Branch extends Model
 {
@@ -11,7 +13,8 @@ class Branch extends Model
     ];
 
         //we can also use hasManyThrough https://www.itsolutionstuff.com/post/laravel-has-many-through-eloquent-relationship-tutorialexample.html to get orders
-    
+  
+        
     public function users()
     {
         return $this->hasMany('App\User');
@@ -36,5 +39,18 @@ class Branch extends Model
     public function orders()
     {
         return $this->hasMany('App\Order', 'branch_id');
+    }
+
+    
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::addGlobalScope('role_handler', function (Builder $builder) {
+            $user = Auth::user();
+            if($user->roles != 'Super Admin') {
+                $builder->where('id',  $user->branch_id);
+            }
+        });
     }
 }

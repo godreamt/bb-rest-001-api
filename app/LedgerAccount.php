@@ -5,12 +5,22 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 
-class Category extends Model
+class LedgerAccount extends Model
 {
+    public $timestamps = false;
+    // types = Purchase Account, Sales Account, Sundry Creditors, Sundry Debitors, Duties and Taxes, Bank Account, Cash Account, Direct Expense, Indirect Expense, Direct Income, Indirect Income
     protected $fillable = [
-        'categoryName', 'description', 'featuredImage', 'isActive', 'branch_id'
+        'ledgerName', 'accountType', 'taxPercentage','description', 'openingBalance', 'isActive', 'branch_id'
     ];
 
+    
+    public function transactions() {
+        return $this->hasMany('App\Transaction', 'accountId');
+    }
+    
+    public function transactionOnAccount() {
+        return $this->hasMany('App\TransactionOnAccount', 'accountId');
+    }
     
     protected static function boot()
     {
@@ -30,26 +40,5 @@ class Category extends Model
                 $item->branch_id = $user->branch_id;
             }
         });
-    }
-    
-
-    public function branch()
-    {
-        return $this->belongsTo('App\Branch', 'branch_id');
-    }
-
-    public function products()
-    {
-        return $this->belongsToMany('App\Product', 'product_categories');
- 
-// $roleIds = [1, 2];
-// $user->roles()->attach($roleIds);
-
-// $roleIds = [1, 2];
-// $user->roles()->sync($roleIds);
-// $userIds = [10, 11];
-// $role->users()->attach($userIds);
-// $userIds = [10, 11];
-// $role->users()->sync($userIds);
     }
 }
