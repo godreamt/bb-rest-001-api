@@ -194,17 +194,33 @@ class OrderController extends Controller
 
     public function getOrderList(Request $request) {
         $currentUser = \Auth::user();
-        $fields = $request->get('fields', '*');
-        if($fields != '*'){
+        $fields = $request->get('fields', 'orders.*');
+        if($fields != 'orders.*'){
             $fields = explode(',',$fields);
         }
-        $orders = Order::with('customer')->select($fields)->with('branch')->with('orderType');
+        $orders = Order::with('customer')->select($fields)->with('branch')->with('orderType')
+                        ->leftJoin('order_types', 'order_types.id', 'orders.orderTypeId');
 
         if(!empty($request->searchString)) {
             $orders = $orders->where(function($q) use ($request) {
-                $q->where('productNumber', 'LIKE', '%'.$request->searchString.'%')
-                  ->orWhere('productName', 'LIKE', '%'.$request->searchString.'%');
+                $q->where('orders.id', 'LIKE', '%'.$request->searchString.'%')
+                  ->orWhere('order_types.typeName', 'LIKE', '%'.$request->searchString.'%');
             });
+        }
+
+        if(!empty($request->orderStatus)) {
+            $orderStatus = \explode(",",$request->orderStatus);
+            $orders = $orders->whereIn('orders.orderStatus', $orderStatus);
+        }
+
+        if(!empty($request->typeOfOrder)) {
+            $typeOfOrder = \explode(",",$request->typeOfOrder);
+            $orders = $orders->whereIn('order_types.id', $typeOfOrder);
+        }
+
+        if(!empty($request->startDate) && !empty($request->endDate)) {
+            $endDate = (new \Datetime($request->endDate))->modify('+1 day');
+            $orders = $orders->whereBetween('orders.created_at', [new \Datetime($request->startDate), $endDate]);
         }
 
         if(!empty($request->status)) {
@@ -216,6 +232,16 @@ class OrderController extends Controller
             $orders = $orders->where('takenBy', $currentUser->id);
         }
 
+        if(!empty($request->orderCol) && !empty($request->orderType)) {
+            $orderCol = $request->orderCol;
+            if($request->orderCol == 'id')$orderCol='orders.id';
+            if($request->orderCol == 'orderType')$orderCol='order_types.typeName';
+            if($request->orderCol == 'created_at')$orderCol='orders.created_at';
+            if($request->orderCol == 'updated_at')$orderCol='orders.updated_at';
+            $orders = $orders->orderBy($orderCol, $request->orderType);
+        }else {
+            $orders = $orders->orderBy('orders.updated_at', 'asc');
+        }
 
         $currentPage = $request->pageNumber;
         if(!empty($currentPage)){
