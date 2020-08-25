@@ -63,6 +63,7 @@ Route::group(['middleware' => ['jwt.verify']], function() {
             Route::put('{id}', 'OrderController@updateOrderType')->middleware(['role:Super Admin,Admin']);
             Route::delete('{id}', 'OrderController@deleteOrderType')->middleware(['role:Super Admin,Admin']);
             Route::put('status/{id}', 'OrderController@changeOrderTypeStatus')->middleware(['role:Super Admin,Admin']);
+            Route::put('reserved/{id}', 'OrderController@changeTableReserved')->middleware(['role:Super Admin,Admin']);
         });
 
         Route::group(['prefix'=>'tables'], function(){

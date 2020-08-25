@@ -60,6 +60,7 @@ class OrderController extends Controller
                 $orderType->save();
                 foreach ($request->tables as $table) {
                     $table['isActive'] = true;
+                    $table['branch_id']=$request->branch_id;
                     $orderType->tables()->create($table);
                 }
                 return $orderType;
@@ -88,6 +89,7 @@ class OrderController extends Controller
                     }else if(empty($table['id'])){
                         unset($table['deletedFlag']);
                         $table['isActive'] = true;
+                        $table['branch_id'] = $request->branch_id;
                         $orderType->tables()->create($table);
                     }else {
                         unset($table['deletedFlag']);
@@ -136,6 +138,23 @@ class OrderController extends Controller
                 }
             }catch(\Exception $e) {
                 return response()->json(['msg' => 'Order type status can not changed'], 400);
+            }
+        });
+    }
+
+    public function changeTableReserved(Request $request, $id) {
+        return \DB::transaction(function() use($request, $id) {
+            try {
+                $table = TableManager::find($id);
+                if($table instanceof TableManager) {
+                    $table->isReserved = $request->isReserved;
+                    $table->save();
+                    return ['data' => $table, 'msg'=> "Table manager reserved status updated successfully"];
+                }else {
+                    return response()->json(['msg' => 'Table manager Does not exist'], 400);
+                }
+            }catch(\Exception $e) {
+                return response()->json(['msg' => 'Table manager reserved status can not changed'], 400);
             }
         });
     }
