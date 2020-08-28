@@ -27,6 +27,20 @@ class CreateUsersTable extends Migration
             $table->rememberToken();
             $table->timestamps();
         });
+        Schema::create('branches', function (Blueprint $table) {
+            $table->id();
+            $table->string('branchTitle', 191)->unique();
+            $table->text('description')->nullable();
+            $table->text('branchAddress')->nullable();
+            $table->boolean('isActive')->default(true);
+            $table->string('branchCode')->unique();
+            $table->timestamps();
+        });
+
+        Schema::table('users', function(Blueprint $table) {
+            $table->unsignedBigInteger('branch_id')->nullable(true);
+            $table->foreign('branch_id')->references('id')->on('branches');  
+        });
     }
 
     /**

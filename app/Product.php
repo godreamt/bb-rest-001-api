@@ -14,7 +14,20 @@ class Product extends Model
      * consider https://slickpos.com/hardware/desktop-billing-software/
      */
     protected $fillable = [
-        'productNumber', 'productName', 'productSlug', 'description', 'featuredImage', 'price', 'taxPercent', 'packagingCharges', 'isActive', 'branch_id', 'isOrderTypePricing', 'isVeg'
+        'productNumber', 
+        'productName', 
+        'productSlug', 
+        'description', 
+        'featuredImage', 
+        'price', 
+        'taxPercent', 
+        'packagingCharges', 
+        'isActive', 
+        'branch_id', 
+        'isOrderTypePricing', 
+        'isVeg',
+
+        'isAdvancedPricing'
     ];
 
     
