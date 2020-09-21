@@ -120,9 +120,6 @@ class ProductController extends Controller
         }
         $products = Product::select($fields)->with('branch');
 
-        if($request->needPricing=='detailed') {
-            $products = $products->with('pricings');
-        }
 
 
         if(!empty($request->searchString)) {
@@ -154,7 +151,7 @@ class ProductController extends Controller
     }
 
     public function getProductDetail(Request $request, $id) {
-        return Product::with('branch')->with('categories')->with('pricings')->find($id);
+        return Product::with('branch')->with('categories')->find($id);
     }
 
     public function createProduct(Request $request) {
@@ -178,16 +175,9 @@ class ProductController extends Controller
                 $product->taxPercent = $request->taxPercent;
                 $product->packagingCharges = $request->packagingCharges;
                 $product->isActive = $request->isActive ?? true;
-                $product->isOrderTypePricing = $request->isOrderTypePricing ?? false;
                 $product->isVeg = $request->isVeg ?? true;
                 $product->branch_id = $request->branch_id;
                 $product->save();
-                if($product->isOrderTypePricing) {
-                    foreach($request->orderBasedPrice as $type) {
-                        unset($type['orderTypeName']);
-                        $product->pricings()->create($type);
-                    }
-                }
                 $categories = ($request->categories == "")?[]:$request->categories;
                 if(sizeof($categories) > 0)
                     $product->categories()->sync($categories);
@@ -218,23 +208,8 @@ class ProductController extends Controller
                 $product->taxPercent = $request->taxPercent;
                 $product->packagingCharges = $request->packagingCharges;
                 $product->isActive = $request->isActive ?? true;
-                $product->isOrderTypePricing = $request->isOrderTypePricing ?? false;
                 $product->isVeg = $request->isVeg ?? true;
                 $product->branch_id = $request->branch_id;
-                if($product->isOrderTypePricing) {
-                    foreach($request->orderBasedPrice as $type) {
-                        if(empty($table['id'])){
-                            unset($type['orderTypeName']);
-                            $product->pricings()->create($type);
-                        }else {
-                            $p1 = ProductOrderTypePricing::find($table['id']);
-                            $p1->price = $type['price'];
-                            $p1->taxPercent = $type['taxPercent'];
-                            $p1->packagingCharges = $type['packagingCharges'];
-                            $p1->save();
-                        }
-                    }
-                }
                 $categories = ($request->categories == "")?[]:$request->categories;
                 if(sizeof($categories) > 0)
                     $product->categories()->sync($categories);

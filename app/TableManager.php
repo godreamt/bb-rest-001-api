@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 class TableManager extends Model
 {
     protected $fillable = [
-        'tableId', 'description', 'noOfChair', 'bookedChairs', 'isReserved', 'isActive', 'orderTypeId', 'chairs', 'branch_id'
+        'tableId', 'description', 'noOfChair', 'bookedChairs', 'isReserved', 'isActive', 'chairs', 'branch_id'
     ];
 
     protected $appends = ['chairs'];
@@ -18,12 +18,10 @@ class TableManager extends Model
         return range(1, $this->noOfChair, 1);
     }
     
-    public function orderType()
+    public function branch()
     {
-        return $this->belongsTo('App\OrderType', 'orderTypeId');
+        return $this->belongsTo('App\Branch', 'branch_id');
     }
-
-    
 
     protected static function boot()
     {

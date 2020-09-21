@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 class Order extends Model
 {
     protected $fillable = [
-        'customerId', 'relatedInfo', 'branch_id', 'orderTypeId', 'cgst', 'sgst', 'igst', 'orderAmount', 'packingCharge', 'extraCharge', 'excludeFromReport', 'deliverCharge', 'orderStatus', 'takenBy'
+        'customerId', 'relatedInfo', 'branch_id', 'cgst', 'sgst', 'igst', 'orderAmount', 'packingCharge', 'extraCharge', 'excludeFromReport', 'deliverCharge', 'orderStatus', 'takenBy'
     ];
 
     protected static function boot()
@@ -39,11 +39,6 @@ class Order extends Model
     public function branch()
     {
         return $this->belongsTo('App\Branch', 'branch_id');
-    }
-    
-    public function orderType()
-    {
-        return $this->belongsTo('App\OrderType', 'orderTypeId');
     }
     
     public function orderitems()

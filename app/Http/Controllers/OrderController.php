@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Order;
 use App\Customer;
 use App\OrderItem;
-use App\OrderType;
 use App\OrderTable;
 use App\TableManager;
 use Illuminate\Http\Request;
@@ -14,20 +13,20 @@ use Illuminate\Pagination\Paginator;
 
 class OrderController extends Controller
 {
-    public function getOrderTypes(Request $request) {
+    public function getTableManger(Request $request) {
         
         $fields = $request->get('fields', '*');
         if($fields != '*'){
             $fields = explode(',',$fields);
         }
-        $orderTypes = OrderType::select($fields)->with('branch');
+        $tables = TableManager::select($fields)->with('branch');
 
         if(!empty($request->searchString)) {
-            $orderTypes = $orderTypes->where('branchTitle', 'LIKE', '%'.$request->searchString.'%');
+            $tables = $tables->where('tableId', 'LIKE', '%'.$request->searchString.'%');
         }
 
         if(!empty($request->status)) {
-            $orderTypes = $orderTypes->where('isActive', ($request->status == 'active')?true:false);
+            $tables = $tables->where('isActive', ($request->status == 'active')?true:false);
         }
         $currentPage = $request->pageNumber;
         if(!empty($currentPage)){
@@ -35,53 +34,54 @@ class OrderController extends Controller
                 return $currentPage;
             });
 
-            return $orderTypes->paginate(10);
+            return $tables->paginate(10);
         }else {
-            return $orderTypes->get();
+            return $tables->get();
         }
     }
 
-    public function getOrderTypeDetails(Request $request, $id) {
-        return OrderType::with('branch')->with('tables')->find($id);
-    }
+    // public function getOrderTypeDetails(Request $request, $id) {
+    //     return OrderType::with('branch')->with('tables')->find($id);
+    // }
 
-    public function createOrderType(Request $request) {
+    // public function createOrderType(Request $request) {
+    //     return \DB::transaction(function() use($request) {
+    //         try {
+    //             $orderType = new OrderType();
+    //             $orderType->typeName = $request->typeName;
+    //             $orderType->description = $request->description;
+    //             $orderType->enableTables = $request->enableTables?true:false;
+    //             $orderType->enableExtraInfo = $request->enableExtraInfo?true:false;
+    //             $orderType->enableDeliverCharge = $request->enableDeliverCharge?true:false;
+    //             $orderType->enableExtraCharge = $request->enableExtraCharge?true:false;
+    //             $orderType->branch_id = $request->branch_id;
+    //             $orderType->isActive =$request->isActive?true:false;
+    //             $orderType->save();
+    //             foreach ($request->tables as $table) {
+    //                 $table['isActive'] = true;
+    //                 $table['branch_id']=$request->branch_id;
+    //                 $orderType->tables()->create($table);
+    //             }
+    //             return $orderType;
+    //         }catch(\Exception $e) {
+    //             return response()->json(['msg' => $e], 400);
+    //         }
+    //     });
+    // }
+
+    public function updateTableManager(Request $request) {
         return \DB::transaction(function() use($request) {
             try {
-                $orderType = new OrderType();
-                $orderType->typeName = $request->typeName;
-                $orderType->description = $request->description;
-                $orderType->enableTables = $request->enableTables?true:false;
-                $orderType->enableExtraInfo = $request->enableExtraInfo?true:false;
-                $orderType->enableDeliverCharge = $request->enableDeliverCharge?true:false;
-                $orderType->enableExtraCharge = $request->enableExtraCharge?true:false;
-                $orderType->branch_id = $request->branch_id;
-                $orderType->isActive =$request->isActive?true:false;
-                $orderType->save();
-                foreach ($request->tables as $table) {
-                    $table['isActive'] = true;
-                    $table['branch_id']=$request->branch_id;
-                    $orderType->tables()->create($table);
-                }
-                return $orderType;
-            }catch(\Exception $e) {
-                return response()->json(['msg' => $e], 400);
-            }
-        });
-    }
-
-    public function updateOrderType(Request $request, $id) {
-        return \DB::transaction(function() use($request) {
-            try {
-                $orderType = OrderType::find($request->id);
-                $orderType->typeName = $request->typeName;
-                $orderType->description = $request->description;
-                $orderType->enableTables = $request->enableTables?true:false;
-                $orderType->enableExtraInfo = $request->enableExtraInfo?true:false;
-                $orderType->enableDeliverCharge = $request->enableDeliverCharge?true:false;
-                $orderType->enableExtraCharge = $request->enableExtraCharge?true:false;
-                $orderType->branch_id = $request->branch_id;
-                $orderType->isActive = $request->isActive?true:false;
+                // $orderType = OrderType::find($request->id);
+                // $orderType->typeName = $request->typeName;
+                // $orderType->description = $request->description;
+                // $orderType->enableTables = $request->enableTables?true:false;
+                // $orderType->enableExtraInfo = $request->enableExtraInfo?true:false;
+                // $orderType->enableDeliverCharge = $request->enableDeliverCharge?true:false;
+                // $orderType->enableExtraCharge = $request->enableExtraCharge?true:false;
+                // $orderType->branch_id = $request->branch_id;
+                // $orderType->isActive = $request->isActive?true:false;
+                $tables=[];
                 foreach ($request->tables as $table) {
                     if($table['deletedFlag'] == true) {
                         $t = TableManager::find($table['id']);
@@ -89,8 +89,8 @@ class OrderController extends Controller
                     }else if(empty($table['id'])){
                         unset($table['deletedFlag']);
                         $table['isActive'] = true;
-                        $table['branch_id'] = $request->branch_id;
-                        $orderType->tables()->create($table);
+                        TableManager::create($table);
+                        $tables[] = $table;
                     }else {
                         unset($table['deletedFlag']);
                         $table['isActive'] = true;
@@ -99,48 +99,48 @@ class OrderController extends Controller
                         $t1->description = $table['description'];
                         $t1->noOfChair = $table['noOfChair'];
                         $t1->save();
+                        $tables[] = $t1;
                     }
                 }
-                $orderType->save();
-                return $orderType;
+                return $tables;
             }catch(\Exception $e) {
                 return response()->json(['msg' => $e], 400);
             }
         });
     }
 
-    public function deleteOrderType(Request $request, $id) {
-        return \DB::transaction(function() use($request, $id) {
-            try {
-                $orderType = OrderType::find($id);
-                if($orderType instanceof OrderType) {
-                    $orderType->delete();
-                    return ['data' => $orderType, 'msg'=> "Order Type deleted successfully"];
-                }else {
-                    return response()->json(['msg' => 'Order Type Does not exist'], 400);
-                }
-            }catch(\Exception $e) {
-                return response()->json(['msg' => 'Can not delete order type', 'error'=> $e], 400);
-            }
-        });
-    }
+    // public function deleteOrderType(Request $request, $id) {
+    //     return \DB::transaction(function() use($request, $id) {
+    //         try {
+    //             $orderType = OrderType::find($id);
+    //             if($orderType instanceof OrderType) {
+    //                 $orderType->delete();
+    //                 return ['data' => $orderType, 'msg'=> "Order Type deleted successfully"];
+    //             }else {
+    //                 return response()->json(['msg' => 'Order Type Does not exist'], 400);
+    //             }
+    //         }catch(\Exception $e) {
+    //             return response()->json(['msg' => 'Can not delete order type', 'error'=> $e], 400);
+    //         }
+    //     });
+    // }
 
-    public function changeOrderTypeStatus(Request $request, $id) {
-        return \DB::transaction(function() use($request, $id) {
-            try {
-                $orderType = OrderType::find($id);
-                if($orderType instanceof OrderType) {
-                    $orderType->isActive = $request->isActive;
-                    $orderType->save();
-                    return ['data' => $orderType, 'msg'=> "Order type status updated successfully"];
-                }else {
-                    return response()->json(['msg' => 'Order type Does not exist'], 400);
-                }
-            }catch(\Exception $e) {
-                return response()->json(['msg' => 'Order type status can not changed'], 400);
-            }
-        });
-    }
+    // public function changeOrderTypeStatus(Request $request, $id) {
+    //     return \DB::transaction(function() use($request, $id) {
+    //         try {
+    //             $orderType = OrderType::find($id);
+    //             if($orderType instanceof OrderType) {
+    //                 $orderType->isActive = $request->isActive;
+    //                 $orderType->save();
+    //                 return ['data' => $orderType, 'msg'=> "Order type status updated successfully"];
+    //             }else {
+    //                 return response()->json(['msg' => 'Order type Does not exist'], 400);
+    //             }
+    //         }catch(\Exception $e) {
+    //             return response()->json(['msg' => 'Order type status can not changed'], 400);
+    //         }
+    //     });
+    // }
 
     public function changeTableReserved(Request $request, $id) {
         return \DB::transaction(function() use($request, $id) {
@@ -159,22 +159,41 @@ class OrderController extends Controller
         });
     }
 
-    public function getOrderTypeWithTableOccupy(Request $request) {
-        $result = null;
-        if(!empty($request->orderTypeId)) {
-            $result = $this->handleTableOccupy(OrderType::find($request->orderTypeId), $request->orderId);
-        }else {
-            $orderTypes = OrderType::where('isActive', true)->where('enableTables', true)->get();
-            foreach($orderTypes as $orderType) {
-                $orderType['tables'] = $this->handleTableOccupy($orderType, $request->orderTypeId);
+    public function getOrderTypeWithTableOccupy(Request $request) {        
+        
+        $orderTables = OrderTable::leftJoin('orders', 'orders.id', 'order_tables.orderId')
+            ->where(function($q) use ($request) {
+                $q->where('orders.orderStatus', 'new')
+                    ->orWhere('orders.orderStatus', 'prepairing')
+                    ->orWhere('orders.id',$request->orderId);
+            })
+            ->select('order_tables.selectedChairs', 'order_tables.orderId', 'order_tables.tableId')
+            ->distinct()->get();
+
+        $tables = TableManager::where('isActive', true)->get();
+                
+        foreach($tables as $table) {
+            $selectedChairs="";
+            $orderSelectedChairs="";
+            foreach($orderTables as $ot) {
+                if($ot->tableId == $table->id) {
+                    if($ot->orderId == $request->orderId) {
+                        $orderSelectedChairs = $orderSelectedChairs.$ot->selectedChairs.",";
+                    }
+
+                    $selectedChairs = $selectedChairs.$ot->selectedChairs.",";
+                    
+                }
             }
-            $result = $orderTypes;
+
+            $table['orderSelectedChairs']=$orderSelectedChairs;
+            $table['selectedChairs']=$selectedChairs;
         }
 
-        return $result;
+        return $tables;
     }
 
-    public function handleTableOccupy($orderType, $orderId=null) {
+    public function handleTableOccupy($orderId=null) {
         
         $orderTables = OrderTable::leftJoin('orders', 'orders.id', 'order_tables.orderId')
             ->where(function($q) use ($orderId) {
@@ -182,13 +201,10 @@ class OrderController extends Controller
                     ->orWhere('orders.orderStatus', 'prepairing')
                     ->orWhere('orders.id', $orderId);
             })
-            ->where('orders.orderTypeId', $orderType->id)
             ->select('order_tables.selectedChairs', 'order_tables.orderId', 'order_tables.tableId')
             ->distinct()->get();
 
-        $tables = TableManager::where('isActive', true)
-                ->where('orderTypeId', $orderType->id)
-                ->get();
+        $tables = TableManager::where('isActive', true)->get();
                 
         foreach($tables as $table) {
             $selectedChairs="";
@@ -217,24 +233,17 @@ class OrderController extends Controller
         if($fields != 'orders.*'){
             $fields = explode(',',$fields);
         }
-        $orders = Order::with('customer')->select($fields)->with('branch')->with('orderType')
-                        ->leftJoin('order_types', 'order_types.id', 'orders.orderTypeId');
+        $orders = Order::with('customer')->select($fields)->with('branch');
 
         if(!empty($request->searchString)) {
             $orders = $orders->where(function($q) use ($request) {
-                $q->where('orders.id', 'LIKE', '%'.$request->searchString.'%')
-                  ->orWhere('order_types.typeName', 'LIKE', '%'.$request->searchString.'%');
+                $q->where('orders.id', 'LIKE', '%'.$request->searchString.'%');
             });
         }
 
         if(!empty($request->orderStatus)) {
             $orderStatus = \explode(",",$request->orderStatus);
             $orders = $orders->whereIn('orders.orderStatus', $orderStatus);
-        }
-
-        if(!empty($request->typeOfOrder)) {
-            $typeOfOrder = \explode(",",$request->typeOfOrder);
-            $orders = $orders->whereIn('order_types.id', $typeOfOrder);
         }
 
         if(!empty($request->startDate) && !empty($request->endDate)) {
@@ -254,7 +263,6 @@ class OrderController extends Controller
         if(!empty($request->orderCol) && !empty($request->orderType)) {
             $orderCol = $request->orderCol;
             if($request->orderCol == 'id')$orderCol='orders.id';
-            if($request->orderCol == 'orderType')$orderCol='order_types.typeName';
             if($request->orderCol == 'created_at')$orderCol='orders.created_at';
             if($request->orderCol == 'updated_at')$orderCol='orders.updated_at';
             $orders = $orders->orderBy($orderCol, $request->orderType);
@@ -275,7 +283,7 @@ class OrderController extends Controller
     }
 
     public function getOrderDetails(Request $request, $id) {
-        return Order::with('branch')->with('customer')->with('orderType')->with('orderTables')->with('orderItems')
+        return Order::with('branch')->with('customer')->with('orderTables')->with('orderItems')->with('orderItems.product')
                     ->where('id', $id)->first();
     }
 
@@ -283,11 +291,9 @@ class OrderController extends Controller
         try {
                 return DB::transaction(function() use ($request) {
                         $order = new Order();
-                        $orderType = OrderType::find($request->orderTypeId);
-                        $order->orderTypeId = $orderType->id;
-                        $order->branch_id = $orderType->branch_id;
+                        $order->branch_id = $request->branch_id;
                         if(!empty($request->mobileNumber)) {
-                            $customer = $this->handleCustomerCreation($request->all(), $orderType->branch_id);
+                            $customer = $this->handleCustomerCreation($request->all(), $request->branch_id);
                             $order->customerId = $customer->id;
                         }
                         $order->relatedInfo = $request->relatedInfo;
@@ -303,10 +309,11 @@ class OrderController extends Controller
 
                         $order->save();
 
-
                         foreach($request->items as $item) {
                             $orderItem = new OrderItem();
                             $orderItem->quantity = $item['quantity'];
+                            $orderItem->servedQuantity = $item['servedItems'];
+                            $orderItem->orderType = $item['orderType'];
                             $orderItem->price = $item['price'];
                             $orderItem->packagingCharges = $item['packagingCharges'];
                             $orderItem->totalPrice = $item['totalPrice'];
@@ -334,11 +341,9 @@ class OrderController extends Controller
         try {
                 return DB::transaction(function() use ($request, $orderId) {
                         $order = Order::find($orderId);
-                        $orderType = OrderType::find($request->orderTypeId);
-                        $order->orderTypeId = $orderType->id;
-                        $order->branch_id = $orderType->branch_id;
+                        $order->branch_id = $request->branch_id;
                         if(!empty($request->mobileNumber)) {
-                            $customer = $this->handleCustomerCreation($request->all(), $orderType->branch_id);
+                            $customer = $this->handleCustomerCreation($request->all(), $request->branch_id);
                             $order->customerId = $customer->id;
                         }
                         $order->relatedInfo = $request->relatedInfo;
@@ -356,13 +361,18 @@ class OrderController extends Controller
                         
                         
                         foreach($request->items as $item) {
-                            if(!empty($item['quantity']) && !empty($item['productId'])){
+                            if($item['deletedFlag']) {
+                                $orderItem = OrderItem::find($item['id']);
+                                $orderItem->delete();
+                            }
+                            else if(!empty($item['quantity']) && !empty($item['productId'])){
                                 if(empty($item['id'])) {
                                     $orderItem = new OrderItem();
                                 }else {
                                     $orderItem = OrderItem::find($item['id']);
                                 }
                                 $orderItem->quantity = $item['quantity'];
+                                $orderItem->servedQuantity = $item['servedItems'];
                                 $orderItem->price = $item['price'];
                                 $orderItem->packagingCharges = $item['packagingCharges'];
                                 $orderItem->totalPrice = $item['totalPrice'];
@@ -372,6 +382,8 @@ class OrderController extends Controller
                                 $orderItem->save();
                             }
                         }
+
+
                         $order->orderTables()->delete();
                         // return $orderType;
                         foreach($request->tables as $table) {

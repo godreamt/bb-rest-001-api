@@ -56,13 +56,13 @@ Route::group(['middleware' => ['jwt.verify']], function() {
         });
 
         
-        Route::group(['prefix'=>'order-type'], function(){
-            Route::get('', 'OrderController@getOrderTypes');
-            Route::get('{id}', 'OrderController@getOrderTypeDetails');
-            Route::post('', 'OrderController@createOrderType')->middleware(['role:Super Admin,Admin']);
-            Route::put('{id}', 'OrderController@updateOrderType')->middleware(['role:Super Admin,Admin']);
-            Route::delete('{id}', 'OrderController@deleteOrderType')->middleware(['role:Super Admin,Admin']);
-            Route::put('status/{id}', 'OrderController@changeOrderTypeStatus')->middleware(['role:Super Admin,Admin']);
+        Route::group(['prefix'=>'table-manager'], function(){
+            Route::get('', 'OrderController@getTableManger'); //done
+            // Route::get('{id}', 'OrderController@getOrderTypeDetails');
+            Route::post('', 'OrderController@updateTableManager')->middleware(['role:Super Admin,Admin']);
+            // Route::put('{id}', 'OrderController@updateOrderType')->middleware(['role:Super Admin,Admin']);
+            // Route::delete('{id}', 'OrderController@deleteOrderType')->middleware(['role:Super Admin,Admin']);
+            // Route::put('status/{id}', 'OrderController@changeOrderTypeStatus')->middleware(['role:Super Admin,Admin']);
             Route::put('reserved/{id}', 'OrderController@changeTableReserved')->middleware(['role:Super Admin,Admin']);
         });
 

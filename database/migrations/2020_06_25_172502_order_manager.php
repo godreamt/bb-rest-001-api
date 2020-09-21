@@ -38,33 +38,14 @@ class OrderManager extends Migration
         });
 
         
-
-        
-        Schema::create('order_types', function (Blueprint $table) {
-            $table->id();
-            $table->string('typeName')->unique();
-            $table->text('description')->nullable();
-            $table->boolean('enableTables')->default(true);
-            $table->boolean('enableExtraInfo')->default(true);
-            $table->boolean('enableDeliverCharge')->default(true);
-            $table->boolean('enableExtraCharge')->default(true);
-            $table->boolean('isActive')->default(true);
-            $table->unsignedBigInteger('branch_id');
-            $table->foreign('branch_id')->references('id')->on('branches');  
-            $table->timestamps();
-        });
-        
         Schema::create('table_managers', function (Blueprint $table) {
             $table->id();
-            $table->string('tableId');
+            $table->string('tableId')->unique();
             $table->string('noOfChair');
             $table->string('bookedChairs')->nullable();
             $table->text('description')->nullable();
             $table->boolean('isReserved')->default(false);
             $table->boolean('isActive')->default(true);
-            $table->unsignedBigInteger('orderTypeId')->nullable(true);
-            $table->foreign('orderTypeId')->references('id')->on('order_types')->onDelete('cascade');  
-            $table->unique(['tableId', 'orderTypeId']);
             $table->unsignedBigInteger('branch_id');
             $table->foreign('branch_id')->references('id')->on('branches');  
             $table->timestamps();
@@ -81,7 +62,6 @@ class OrderManager extends Migration
             $table->string('price')->nullable();
             $table->string('taxPercent')->nullable();
             $table->string('packagingCharges')->nullable();
-            $table->boolean('isOrderTypePricing')->default(false);
             $table->boolean('isVeg')->default(false);
             $table->boolean('isActive')->default(true);
             $table->boolean('isAdvancedPricing')->default(false);
@@ -91,25 +71,12 @@ class OrderManager extends Migration
         });
 
         
-        Schema::create('product_order_type_pricings', function (Blueprint $table) {
-            $table->id();
-            $table->string('price')->nullable();
-            $table->string('taxPercent')->nullable();
-            $table->string('packagingCharges')->nullable();
-            $table->unsignedBigInteger('orderTypeId')->nullable(true);
-            $table->foreign('orderTypeId')->references('id')->on('order_types');  
-            $table->unsignedBigInteger('productId')->nullable(true);
-            $table->foreign('productId')->references('id')->on('products');  
-            $table->timestamps();
-        });
-
-        
         Schema::create('product_addons', function (Blueprint $table) {
             $table->id();
             $table->string('addonTitle');
             $table->string('price');
             $table->unsignedBigInteger('productId');
-            $table->foreign('productId')->references('id')->on('products');  
+            $table->foreign('productId')->references('id')->on('products')->onDelete('cascade');  
             $table->unique(['addonTitle', 'productId']);
             $table->timestamps();
         });
@@ -120,7 +87,7 @@ class OrderManager extends Migration
             $table->string('title');
             $table->string('description');
             $table->unsignedBigInteger('productId');
-            $table->foreign('productId')->references('id')->on('products');  
+            $table->foreign('productId')->references('id')->on('products')->onDelete('cascade');  
             $table->unique(['title', 'productId']);
             $table->timestamps();
         });
@@ -130,7 +97,7 @@ class OrderManager extends Migration
             $table->string('title');
             $table->text('description')->nullable(true);
             $table->unsignedBigInteger('priceModelId');
-            $table->foreign('priceModelId')->references('id')->on('product_price_models');  
+            $table->foreign('priceModelId')->references('id')->on('product_price_models')->onDelete('cascade');  
             $table->unique(['title', 'priceModelId']);
             $table->timestamps();
         });
@@ -138,16 +105,16 @@ class OrderManager extends Migration
         Schema::create('product_price_model_combinations', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('productId');
-            $table->foreign('productId')->references('id')->on('products');  
+            $table->foreign('productId')->references('id')->on('products')->onDelete('cascade');  
             $table->timestamps();
         });
 
         Schema::create('product_p_m_combination_items', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('combinationId');
-            $table->foreign('combinationId')->references('id')->on('product_price_model_combinations');  
+            $table->foreign('combinationId')->references('id')->on('product_price_model_combinations')->onDelete('cascade');  
             $table->unsignedBigInteger('priceModelUnitId');
-            $table->foreign('priceModelUnitId')->references('id')->on('product_price_model_units');  
+            $table->foreign('priceModelUnitId')->references('id')->on('product_price_model_units')->onDelete('cascade');  
             $table->unique(['combinationId', 'priceModelUnitId'], 'combination_with_units');
             $table->timestamps();
         });
@@ -155,9 +122,9 @@ class OrderManager extends Migration
         Schema::create('product_advanced_pricings', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('productId');
-            $table->foreign('productId')->references('id')->on('products');  
-            $table->unsignedBigInteger('orderTypePriceId')->nullable(true);
-            $table->foreign('orderTypePriceId')->references('id')->on('product_order_type_pricings');  
+            $table->foreign('productId')->references('id')->on('products')->onDelete('cascade');  
+            $table->unsignedBigInteger('combinationId');
+            $table->foreign('combinationId')->references('id')->on('product_price_model_combinations');  
             $table->string('price')->deafult('0');
             $table->timestamps();
         });
@@ -179,8 +146,6 @@ class OrderManager extends Migration
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');  
             $table->unsignedBigInteger('category_id')->nullable(true);
             $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');  
-            $table->unsignedBigInteger('combinationId');
-            $table->foreign('combinationId')->references('id')->on('product_price_model_combinations');  
         });
 
         
@@ -188,10 +153,8 @@ class OrderManager extends Migration
             $table->id();
             $table->unsignedBigInteger('customerId')->nullable(true);
             $table->foreign('customerId')->references('id')->on('customers');  
-            $table->unsignedBigInteger('branch_id');
+            $table->unsignedBigInteger('branch_id');//nneds to add order type enum
             $table->foreign('branch_id')->references('id')->on('branches'); 
-            $table->unsignedBigInteger('orderTypeId')->nullable(true);
-            $table->foreign('orderTypeId')->references('id')->on('order_types');  
             $table->unsignedBigInteger('takenBy')->nullable(true);
             $table->foreign('takenBy')->references('id')->on('users');  
             $table->string('cgst')->nullable();
@@ -204,7 +167,7 @@ class OrderManager extends Migration
             $table->string('extraCharge')->nullable();
             $table->boolean('excludeFromReport')->default(false);
             $table->string('deliverCharge')->nullable();
-            $table->enum('orderStatus', ['new', 'accepted', 'prepairing', 'packing', 'dispatched', 'delivered', 'completed', 'cancelled'])->nullable();
+            $table->enum('orderStatus', ['new', 'accepted', 'prepairing', 'packing', 'dispatched', 'delivered', 'completed', 'cancelled'])->default('new');
             $table->timestamps();
         });
 
@@ -222,6 +185,7 @@ class OrderManager extends Migration
             $table->unsignedBigInteger('productId');
             $table->foreign('productId')->references('id')->on('products');  
             $table->enum('itemStatus', ['new', 'completed', 'cancelled'])->default('new');
+            $table->enum('orderType', ['on-table', 'take-away', 'online'])->default('on-table');
             $table->timestamps();
         });
         

@@ -24,7 +24,6 @@ class Product extends Model
         'packagingCharges', 
         'isActive', 
         'branch_id', 
-        'isOrderTypePricing', 
         'isVeg',
 
         'isAdvancedPricing'
@@ -35,15 +34,14 @@ class Product extends Model
     {
         return $this->belongsTo('App\Branch', 'branch_id');
     }
-    
-    public function pricings()
-    {
-        return $this->hasMany('App\ProductOrderTypePricing', 'productId');
-    }
 
     public function categories()
     {
         return $this->belongsToMany('App\Category', 'product_categories');
+    }
+
+    public function orderItem() {
+        return $this->hasMany('App\OrderItem', 'productId');
     }
 
     protected static function boot() {
