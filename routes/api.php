@@ -19,6 +19,8 @@ use Illuminate\Support\Facades\Route;
 // });
 
 Route::post('auth/signin', 'AuthController@authenticate');
+Route::get('kitchen/{branch}', 'KitchenController@getKitchenData');
+
 
 Route::group(['middleware' => ['jwt.verify']], function() {
     Route::get('current-user', 'AuthController@getAuthenticatedUser');

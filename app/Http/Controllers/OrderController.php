@@ -267,7 +267,7 @@ class OrderController extends Controller
             if($request->orderCol == 'updated_at')$orderCol='orders.updated_at';
             $orders = $orders->orderBy($orderCol, $request->orderType);
         }else {
-            $orders = $orders->orderBy('orders.updated_at', 'asc');
+            $orders = $orders->orderBy('orders.updated_at', 'desc');
         }
 
         $currentPage = $request->pageNumber;
@@ -372,6 +372,7 @@ class OrderController extends Controller
                                     $orderItem = OrderItem::find($item['id']);
                                 }
                                 $orderItem->quantity = $item['quantity'];
+                                $orderItem->orderType = $item['orderType'];
                                 $orderItem->servedQuantity = $item['servedItems'];
                                 $orderItem->price = $item['price'];
                                 $orderItem->packagingCharges = $item['packagingCharges'];

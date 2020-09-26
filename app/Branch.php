@@ -2,9 +2,10 @@
 
 namespace App;
 
+use App\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Auth;
 
 class Branch extends Model
 {
@@ -48,7 +49,7 @@ class Branch extends Model
 
         static::addGlobalScope('role_handler', function (Builder $builder) {
             $user = Auth::user();
-            if($user->roles != 'Super Admin') {
+            if($user instanceof User && $user->roles != 'Super Admin') {
                 $builder->where('id',  $user->branch_id);
             }
         });
