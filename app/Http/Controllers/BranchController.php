@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Branch;
+use App\BranchKitchen;
+use App\BranchOrderType;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 
@@ -39,43 +41,79 @@ class BranchController extends Controller
     }
 
     public function getBranchDetails(Request $request, $id) {
-        return Branch::find($id);
+        return Branch::with('kitchens')->with('orderTypes')->where('id', $id)->first();
     }
 
-    public function createBranch(Request $request) {
+    public function updateBranch(Request $request) {
         return \DB::transaction(function() use($request) {
             try {
-                $branch = new Branch();
+                if(empty($request->id)) {
+                    $branch = new Branch();
+                }else {
+                    $branch = Branch::find($request->id);
+                }
                 $branch->branchTitle = $request->branchTitle;
                 $branch->description = $request->description;
                 $branch->branchAddress = $request->branchAddress;
                 $branch->branchCode = $request->branchCode;
                 $branch->isActive = $request->isActive;
+                $branch->taxPercent = $request->taxPercent;
+                $branch->appDefaultOrderType = $request->appDefaultOrderType ?? null;
+                $branch->adminDefaultOrderType = $request->adminDefaultOrderType ?? null;
+                
+                if(!empty($request->image)) {
+                    $data = $request->image;
+                    $base64_str = substr($data, strpos($data, ",")+1);
+                    $image = base64_decode($base64_str);
+                    $png_url = "user-".time().".png";
+                    $path = '/img/branch/' . $png_url;
+                    \Storage::disk('public')->put($path, $image);
+                    $branch->branchLogo = '/uploads'.$path;
+                }
+
                 $branch->save();
+
+                    $kitchens = $request->kitchens ?? [];
+                    foreach($kitchens as $kitchen) {
+                        if(!empty($kitchen['deletedFlag'])) {
+                            $kitchen = BranchKitchen::find($kitchen['id']);
+                            $kitchen->delete();
+                        }else {
+                            if(empty($kitchen['id'])) {
+                                $kitchenObj = new BranchKitchen();
+                            }else {
+                                $kitchenObj = BranchKitchen::find($kitchen['id']);
+                            }
+                            $kitchenObj->kitchenTitle = $kitchen['kitchenTitle'];
+                            $kitchenObj->branch_id = $branch->id;
+                            $kitchenObj->save();
+                        }
+                    }
+
+
+                $orderTypes = $request->orderTypes ?? [];
+
+                foreach($orderTypes as $type) {
+                    if(!empty($type['deletedFlag'])) {
+                        $type = BranchOrderType::find($type['id']);
+                        $type->delete();
+                    }else {
+                        if(empty($type['id'])) {
+                            $typeObj = new BranchOrderType();
+                        }else {
+                            $typeObj = BranchOrderType::find($type['id']);
+                        }
+                        $typeObj->orderType = $type['orderType'];
+                        $typeObj->tableRequired = $type['tableRequired'] ?? false;
+                        $typeObj->isActive = $type['isActive'] ?? false;
+                        $typeObj->branch_id = $branch->id;
+                        $typeObj->save();
+                    }
+                }
+
                 return $branch;
             }catch(\Exception $e) {
                 return response()->json(['msg' => ' Can not able to create branch', 'error'=>$e], 404);
-            }
-        });
-    }
- 
-    public function updateBranch(Request $request, $id) {
-        return \DB::transaction(function() use($request, $id) {
-            try {
-                $branch = Branch::find($id);
-                if($branch instanceof Branch) {
-                    $branch->branchTitle = $request->branchTitle;
-                    $branch->description = $request->description;
-                    $branch->branchAddress = $request->branchAddress;
-                    $branch->branchCode = $request->branchCode;
-                    $branch->isActive = true;
-                    $branch->save();
-                    return $branch;
-                }else {
-                    return response()->json(['msg' => 'Branch Does not exist'], 404);
-                }
-            }catch(\Exception $e) {
-                return response()->json(['msg' => 'Can not create branch data'], 404);
             }
         });
     }
@@ -93,7 +131,7 @@ class BranchController extends Controller
             }catch(\Exception $e) {
                 return response()->json(['msg' => 'Can not delete branch', 'error'=>$e], 404);
             }
-        });
+        }); 
     }
 
     public function changeBranchStatus(Request $request, $id) {

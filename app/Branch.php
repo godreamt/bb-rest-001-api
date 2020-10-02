@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 class Branch extends Model
 {
     protected $fillable = [
-        'branchTitle', 'description', 'branchAddress', 'branchCode', 'isActive'
+        'branchTitle', 'description', 'branchAddress', 'branchCode', 'isActive', 'branchLogo', 'taxPercent', 'appDefaultOrderType', 'adminDefaultOrderType'
     ];
 
         //we can also use hasManyThrough https://www.itsolutionstuff.com/post/laravel-has-many-through-eloquent-relationship-tutorialexample.html to get orders
@@ -22,14 +22,20 @@ class Branch extends Model
     }
 
     
+    public function orderTypes()
+    {
+        return $this->hasMany('App\BranchOrderType', 'branch_id');
+    }
+    
+    public function kitchens()
+    {
+        return $this->hasMany('App\BranchKitchen', 'branch_id');
+    }
+
+    
     public function categories()
     {
         return $this->hasMany('App\Category', 'branch_id');
-    }
-    
-    public function orderTypes()
-    {
-        return $this->hasMany('App\OrderType', 'branch_id');
     }
     
     public function products()

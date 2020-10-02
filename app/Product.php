@@ -26,6 +26,7 @@ class Product extends Model
         'isActive', 
         'branch_id', 
         'isVeg',
+        'kitchen_id',
 
         'isAdvancedPricing'
     ];
