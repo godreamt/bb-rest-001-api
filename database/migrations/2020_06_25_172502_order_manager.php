@@ -64,9 +64,12 @@ class OrderManager extends Migration
             $table->string('packagingCharges')->nullable();
             $table->boolean('isVeg')->default(false);
             $table->boolean('isActive')->default(true);
+            $table->boolean('isOutOfStock')->default(true);
             $table->boolean('isAdvancedPricing')->default(false);
             $table->unsignedBigInteger('branch_id');
             $table->foreign('branch_id')->references('id')->on('branches');  
+            $table->unsignedBigInteger('kitchen_id');
+            $table->foreign('kitchen_id')->references('id')->on('branch_kitchens');  
             $table->timestamps();
         });
 
@@ -168,6 +171,8 @@ class OrderManager extends Migration
             $table->boolean('excludeFromReport')->default(false);
             $table->string('deliverCharge')->nullable();
             $table->enum('orderStatus', ['new', 'accepted', 'prepairing', 'packing', 'dispatched', 'delivered', 'completed', 'cancelled'])->default('new');
+            $table->unsignedBigInteger('orderType');
+            $table->foreign('orderType')->references('id')->on('branch_order_types');  
             $table->timestamps();
         });
 
@@ -177,15 +182,17 @@ class OrderManager extends Migration
             $table->id();
             $table->string('price');
             $table->string('quantity')->nullable();
-            $table->string('servedQuantity')->default('0');
+            $table->integer('servedQuantity')->default(0);
+            $table->integer('productionAcceptedQuantity')->default(0);
+            $table->integer('productionReadyQuantity')->default(0);
+            $table->integer('productionRejectedQuantity')->default(0);
             $table->string('packagingCharges')->nullable();
             $table->string('totalPrice')->nullable();
             $table->unsignedBigInteger('orderId');
             $table->foreign('orderId')->references('id')->on('orders');  
             $table->unsignedBigInteger('productId');
             $table->foreign('productId')->references('id')->on('products');  
-            $table->enum('itemStatus', ['new', 'completed', 'cancelled'])->default('new');
-            $table->enum('orderType', ['on-table', 'take-away', 'online'])->default('on-table');
+            $table->boolean('isParcel')->default(false);
             $table->timestamps();
         });
         

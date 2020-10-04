@@ -135,6 +135,9 @@ class ProductController extends Controller
         if(!empty($request->status)) {
             $products = $products->where('isActive', ($request->status == 'in-active')?false:true);
         }
+        if(!empty($request->stockStatus)) {
+            $products = $products->where('isOutOfStock', ($request->stockStatus == 'in-stock')?false:true);
+        }
         if(!empty($request->orderCol) && !empty($request->orderType)) {
             $products = $products->orderBy($request->orderCol, $request->orderType);
         }
@@ -154,44 +157,14 @@ class ProductController extends Controller
         return Product::with('branch')->with('categories')->find($id);
     }
 
-    public function createProduct(Request $request) {
+    public function updateProduct(Request $request) {
         return \DB::transaction(function() use($request) {
             try {
-                $product = new Product();
-                $product->productNumber = $request->productNumber;
-                $product->productName = $request->productName;
-                $product->description = $request->description;
-                $product->price = $request->price;
-                
-                if(!empty($request->image)) {
-                    $data = $request->image;
-                    $base64_str = substr($data, strpos($data, ",")+1);
-                    $image = base64_decode($base64_str);
-                    $png_url = "user-".time().".png";
-                    $path = '/img/products/' . $png_url;
-                    \Storage::disk('public')->put($path, $image);
-                    $product->featuredImage = '/uploads'.$path;
+                if(!empty($request->id)) {
+                    $product = Product::find($request->id);
+                }else {
+                    $product = new Product();
                 }
-                $product->taxPercent = $request->taxPercent;
-                $product->packagingCharges = $request->packagingCharges;
-                $product->isActive = $request->isActive ?? true;
-                $product->isVeg = $request->isVeg ?? true;
-                $product->branch_id = $request->branch_id;
-                $product->save();
-                $categories = ($request->categories == "")?[]:$request->categories;
-                if(sizeof($categories) > 0)
-                    $product->categories()->sync($categories);
-                return ['data' => $product, 'msg'=> "Product created successfully"];
-            }catch(\Exception $e) {
-                return response()->json(['msg' => 'Can not create product data', 'error' => $e], 404);
-            }
-        });
-    }
-
-    public function updateProduct(Request $request, $id) {
-        return \DB::transaction(function() use($request, $id) {
-            try {
-                $product = Product::find($id);
                 $product->productNumber = $request->productNumber;
                 $product->productName = $request->productName;
                 $product->description = $request->description;
@@ -208,8 +181,10 @@ class ProductController extends Controller
                 $product->taxPercent = $request->taxPercent;
                 $product->packagingCharges = $request->packagingCharges;
                 $product->isActive = $request->isActive ?? true;
+                $product->isOutOfStock = $request->isOutOfStock ?? true;
                 $product->isVeg = $request->isVeg ?? true;
                 $product->branch_id = $request->branch_id;
+                $product->kitchen_id = $request->kitchen_id;
                 $categories = ($request->categories == "")?[]:$request->categories;
                 if(sizeof($categories) > 0)
                     $product->categories()->sync($categories);
