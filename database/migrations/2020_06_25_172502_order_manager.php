@@ -158,7 +158,7 @@ class OrderManager extends Migration
             $table->foreign('customerId')->references('id')->on('customers');  
             $table->unsignedBigInteger('branch_id');//nneds to add order type enum
             $table->foreign('branch_id')->references('id')->on('branches'); 
-            $table->unsignedBigInteger('takenBy')->nullable(true);
+            $table->unsignedBigInteger('takenBy');
             $table->foreign('takenBy')->references('id')->on('users');  
             $table->string('cgst')->nullable();
             $table->text('relatedInfo')->nullable();
@@ -168,7 +168,8 @@ class OrderManager extends Migration
             $table->string('orderAmount');
             $table->string('packingCharge')->nullable();
             $table->string('extraCharge')->nullable();
-            $table->boolean('excludeFromReport')->default(false);
+            $table->float('taxPercent')->default(0.0);
+            $table->boolean('taxDisabled')->default(false);
             $table->string('deliverCharge')->nullable();
             $table->enum('orderStatus', ['new', 'accepted', 'prepairing', 'packing', 'dispatched', 'delivered', 'completed', 'cancelled'])->default('new');
             $table->unsignedBigInteger('orderType');

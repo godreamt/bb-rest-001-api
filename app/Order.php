@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 class Order extends Model
 {
     protected $fillable = [
-        'customerId', 'relatedInfo', 'branch_id', 'cgst', 'sgst', 'igst', 'orderAmount', 'packingCharge', 'extraCharge', 'excludeFromReport', 'deliverCharge', 'orderStatus', 'takenBy'
+        'customerId', 'relatedInfo', 'branch_id', 'cgst', 'sgst', 'igst', 'orderAmount', 'packingCharge', 'extraCharge', 'excludeFromReport', 'deliverCharge', 'orderStatus', 'takenBy', 'taxDisabled', 'taxPercent'
     ];
 
     protected static function boot()
@@ -31,6 +31,7 @@ class Order extends Model
             if($user->roles != 'Super Admin') {
                 $item->branch_id = $user->branch_id;
             }
+            $item->takenBy = $user->id;
         });
     }
 
@@ -52,5 +53,15 @@ class Order extends Model
     public function orderTables()
     {
         return $this->hasMany('App\OrderTable', 'orderId');
+    }
+    
+    public function orderType()
+    {
+        return $this->belongsTo('App\BranchOrderType', 'orderType');
+    }
+    
+    public function bearer()
+    {
+        return $this->belongsTo('App\User', 'takenBy');
     }
 }

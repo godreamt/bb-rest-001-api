@@ -19,7 +19,6 @@ use Illuminate\Support\Facades\Route;
 // });
 
 Route::post('auth/signin', 'AuthController@authenticate');
-Route::get('kitchen/{branch}', 'KitchenController@getKitchenData');
 
 
 Route::group(['middleware' => ['jwt.verify']], function() {
@@ -71,9 +70,15 @@ Route::group(['middleware' => ['jwt.verify']], function() {
         Route::group(['prefix'=>'tables'], function(){
             Route::get('', 'OrderController@getOrderTypeWithTableOccupy');
         });
+
+        Route::group(['prefix'=>'kitchen'], function(){
+            Route::get('', 'KitchenController@getKitchenData');
+            Route::post('', 'KitchenController@updateKitchenStatus');
+        });
         
         Route::group(['prefix'=>'product'], function(){
             Route::get('', 'ProductController@getProducts');
+            Route::get('category-based-product', 'ProductController@getCategoryGroupedProduct');
             Route::get('{id}', 'ProductController@getProductDetail');
             Route::post('', 'ProductController@updateProduct')->middleware(['role:Super Admin,Admin']);
             Route::delete('{id}', 'ProductController@deleteProduct')->middleware(['role:Super Admin,Admin']);
@@ -84,6 +89,7 @@ Route::group(['middleware' => ['jwt.verify']], function() {
             Route::get('', 'OrderController@getOrderList');
             Route::get('{id}', 'OrderController@getOrderDetails');
             Route::post('', 'OrderController@updateOrder')->middleware(['role:Super Admin,Admin,Order Manager']);
+            Route::post('rejected-item-remove', 'OrderController@removeRejectedItems')->middleware(['role:Super Admin,Admin,Order Manager']);
             // Route::delete('{id}', 'ProductController@deleteProduct');
             // Route::put('status/{id}', 'ProductController@changeProductStatus');
         });

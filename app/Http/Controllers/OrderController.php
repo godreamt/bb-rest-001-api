@@ -233,8 +233,8 @@ class OrderController extends Controller
         if($fields != 'orders.*'){
             $fields = explode(',',$fields);
         }
-        $orders = Order::with('customer')->select($fields)->with('branch');
-
+        $orders = Order::with('customer')->select($fields)->with('branch')->with('orderitems')->with('bearer')->with('orderTables')->with('orderTables.table')->with('orderType');
+ 
         if(!empty($request->searchString)) {
             $orders = $orders->where(function($q) use ($request) {
                 $q->where('orders.id', 'LIKE', '%'.$request->searchString.'%');
@@ -255,8 +255,13 @@ class OrderController extends Controller
             $orders = $orders->where('isActive', $request->status);
         }
 
+        if(!empty($request->typeOfOrder)) {
+            $typeOfOrder = \explode(",",$request->typeOfOrder);
+            $orders = $orders->whereIn('orders.orderType', $typeOfOrder);
+        }
 
-        if($request->showAll != 'active' && $currentUser->roles == "Order Manager") {
+
+        if($request->showAll != 'active' && $currentUser->roles == "Bearer") {
             $orders = $orders->where('takenBy', $currentUser->id);
         }
 
@@ -276,15 +281,33 @@ class OrderController extends Controller
                 return $currentPage;
             });
 
-            return $orders->paginate(10);
+            $orders =  $orders->paginate(10);
         }else {
-            return $orders->get();
+            $orders =  $orders->get();
         }
+        foreach($orders as $order) {
+            $this->handleOrderDerivedData($order);
+        }
+        return $orders;
+    }
+
+    public function handleOrderDerivedData($order) {
+        
+        $rejectedCount = 0;
+        foreach($order['orderitems'] as $item) {
+            $rejectedCount = $rejectedCount + ($item['productionRejectedQuantity']);
+        }
+        $order['rejectedCount']=$rejectedCount;
+        $order['timeDif']=(new \Datetime())->diff(new \Datetime($order->created_at));
+        return $order;
     }
 
     public function getOrderDetails(Request $request, $id) {
-        return Order::with('branch')->with('customer')->with('orderTables')->with('orderItems')->with('orderItems.product')
+        $order =  Order::with('branch')->with('customer')->with('orderTables')->with('orderItems')->with('orderItems.product')->with('branch')->with('bearer')->with('orderType')
                     ->where('id', $id)->first();
+        $this->handleOrderDerivedData($order);
+
+        return $order;
     }
 
     // public function updateOrder(Request $request) {
@@ -364,6 +387,8 @@ class OrderController extends Controller
                     $order->orderStatus = $request->orderStatus;
                     $order->orderItemTotal = $request->orderItemTotal;
                     $order->orderAmount = $request->orderAmount;
+                    $order->taxPercent = (float)$request->taxPercent;
+                    $order->taxDisabled = $request->taxDisabled ?? false;
                     
                     
                     $order->save();
@@ -389,9 +414,9 @@ class OrderController extends Controller
                             $orderItem->productId = $item['productId'];
                             $orderItem->orderId = $order->id;
                             $orderItem->isParcel = $item['isParcel'] ?? false;
-                            $orderItem->productionAcceptedQuantity = $item['productionAcceptedQuantity'] ?? 0;
-                            $orderItem->productionReadyQuantity = $item['productionReadyQuantity'] ?? 0;
-                            $orderItem->productionRejectedQuantity = $item['productionRejectedQuantity'] ?? 0;
+                            // $orderItem->productionAcceptedQuantity = $item['productionAcceptedQuantity'] ?? 0;
+                            // $orderItem->productionReadyQuantity = $item['productionReadyQuantity'] ?? 0;
+                            // $orderItem->productionRejectedQuantity = $item['productionRejectedQuantity'] ?? 0;
                             $orderItem->save();
                         }
                     }
@@ -426,5 +451,26 @@ class OrderController extends Controller
         $customer->emailId = $request['emailId'] ?? "";
         $customer->save();
         return $customer;
+    }
+
+    public function removeRejectedItems(Request $request) {
+        try {
+                return DB::transaction(function() use ($request) {
+                    $orderItem = OrderItem::find($request->id);
+                    $orderItem->quantity = $orderItem->quantity - $orderItem->productionRejectedQuantity;
+                    $orderItem->productionRejectedQuantity = 0;
+
+                    if($orderItem->quantity == 0) {
+                        $orderItem->delete();
+                    }else {
+                        
+                        $orderItem->save();
+                    }
+
+                    return $orderItem;
+                });
+        }catch(\Exception $e) {
+            return response()->json(['msg' => 'Can not able to update', 'error'=>$e], 400);
+        }
     }
 }

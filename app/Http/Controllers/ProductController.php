@@ -186,7 +186,7 @@ class ProductController extends Controller
                 $product->branch_id = $request->branch_id;
                 $product->kitchen_id = $request->kitchen_id;
                 $categories = ($request->categories == "")?[]:$request->categories;
-                if(sizeof($categories) > 0)
+                // if(sizeof($categories) > 0)
                     $product->categories()->sync($categories);
                 $product->save();
                 return ['data' => $product, 'msg'=> "Product updated successfully"];
@@ -227,5 +227,25 @@ class ProductController extends Controller
                 return response()->json(['msg' => 'Product status can not changed'], 404);
             }
         });
+    }
+
+
+    public function getCategoryGroupedProduct(Request $request) {
+        $categories = Category::where('isActive', true)->get();
+        foreach($categories as $category) {
+            $category['products'] = Product::leftJoin('product_categories', 'product_categories.product_id', 'products.id')
+                    ->where('isActive', true)
+                    ->where('product_categories.category_id', $category->id)->distinct()->get();
+        }
+        
+
+        $otherProducts = Product::join('product_categories', 'product_categories.product_id', '=', 'products.id', 'left outer')->where('product_categories.product_id', NULL)->get();
+        $categories[] = [
+            'id' => 'other',
+            'categoryName' => 'Others',
+            'featuredImage' => '',
+            'products' => $otherProducts
+        ];
+        return $categories;
     }
 }
