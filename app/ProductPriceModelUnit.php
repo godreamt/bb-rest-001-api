@@ -9,4 +9,9 @@ class ProductPriceModelUnit extends Model
     protected $fillable = [
         'priceModelId', 'title'
     ];
+
+    
+    protected $casts = [
+        'priceModelId' => 'int',
+    ];
 }

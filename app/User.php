@@ -20,7 +20,6 @@ class User extends Authenticatable implements JWTSubject
     protected $fillable = [
         'firstName', 'lastName', 'profilePic', 'isActive', 'email', 'mobileNumber', 'roles', 'password', 'branch_id'
     ];
-
     
 
     // protected static function boot()
@@ -51,6 +50,7 @@ class User extends Authenticatable implements JWTSubject
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'branch_id' => 'int',
     ];
 
     public function branch()

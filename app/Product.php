@@ -34,6 +34,12 @@ class Product extends Model
     ];
 
     
+    protected $casts = [
+        'branch_id' => 'int',
+        'kitchen_id' => 'int'
+    ];
+
+    
     public function branch()
     {
         return $this->belongsTo('App\Branch', 'branch_id');

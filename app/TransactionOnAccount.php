@@ -10,6 +10,13 @@ class TransactionOnAccount extends Model
         'transactionId', 'accountId', 'percentage', 'amount', 'currentBalance'
     ];
 
+    
+    protected $casts = [
+        'transactionId' => 'int',
+        'accountId' => 'int',
+    ];
+
+
     public function transaction() {
         return $this->belongsTo('App\Transaction', 'transactionId');
     }

@@ -12,6 +12,12 @@ class MeasureUnit extends Model
         'unitLabel', 'description', 'branch_id'
     ];
     
+
+
+    protected $casts = [
+        'branch_id' => 'int',
+    ];
+    
     protected static function boot()
     {
         parent::boot();

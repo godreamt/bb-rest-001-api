@@ -11,6 +11,11 @@ class Customer extends Model
         'customerName', 'mobileNumber', 'emailId', 'branch_id'
     ];
 
+
+    protected $casts = [
+        'branch_id' => 'int',
+    ];
+
     public function orders()
     {
         return $this->belongsTo('App\Order', 'customerId');

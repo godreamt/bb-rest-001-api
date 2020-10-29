@@ -12,6 +12,10 @@ class Transaction extends Model
     ];
 
     
+    protected $casts = [
+        'accountId' => 'int',
+        'branch_id' => 'int',
+    ];
 
     protected static function boot() {
         parent::boot();

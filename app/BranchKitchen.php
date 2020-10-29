@@ -9,4 +9,9 @@ class BranchKitchen extends Model
     protected $fillable = [
         'kitachenTitle', 'branch_id'
     ];
+
+
+    protected $casts = [
+        'branch_id' => 'int',
+    ];
 }

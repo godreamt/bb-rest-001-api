@@ -12,6 +12,12 @@ class Order extends Model
         'customerId', 'relatedInfo', 'branch_id', 'cgst', 'sgst', 'igst', 'orderAmount', 'packingCharge', 'extraCharge', 'excludeFromReport', 'deliverCharge', 'orderStatus', 'takenBy', 'taxDisabled', 'taxPercent'
     ];
 
+
+    protected $casts = [
+        'branch_id' => 'int',
+        'customerId' => 'int'
+    ];
+
     protected static function boot()
     {
         parent::boot();

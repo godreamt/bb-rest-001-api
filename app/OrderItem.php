@@ -10,6 +10,11 @@ class OrderItem extends Model
         'orderId', 'quantity', 'servedQuantity', 'price', 'packagingCharges', 'productId', 'totalPrice', 'isParcel', 'productionAcceptedQuantity', 'productionReadyQuantity', 'productionRejectedQuantity'
     ];
 
+    protected $casts = [
+        'orderId' => 'int',
+        'productId' => 'int'
+    ];
+
     public function product() {
         return $this->belongsTo('App\Product', 'productId');
     }

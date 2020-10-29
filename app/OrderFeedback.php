@@ -9,4 +9,10 @@ class OrderFeedback extends Model
     protected $fillable = [
         'orderId', 'customerId', 'rating', 'comments'
     ];
+
+    
+    protected $casts = [
+        'customerId' => 'int',
+        'orderId' => 'int'
+    ];
 }

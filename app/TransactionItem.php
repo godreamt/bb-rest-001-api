@@ -10,6 +10,12 @@ class TransactionItem extends Model
         'transactionId', 'itemId', 'quantity', 'amount', 'total'
     ];
 
+    
+    protected $casts = [
+        'transactionId' => 'int',
+        'itemId' => 'int',
+    ];
+
     public function transaction() {
         return $this->belongsTo('App\Transaction', 'transactionId');
     }

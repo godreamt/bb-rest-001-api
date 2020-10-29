@@ -15,6 +15,10 @@ class Branch extends Model
 
         //we can also use hasManyThrough https://www.itsolutionstuff.com/post/laravel-has-many-through-eloquent-relationship-tutorialexample.html to get orders
   
+    public function getBranchId($value)
+    {
+        return (string) $value;
+    }
         
     public function users()
     {

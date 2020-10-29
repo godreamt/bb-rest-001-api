@@ -11,6 +11,11 @@ class TableManager extends Model
         'tableId', 'description', 'noOfChair', 'bookedChairs', 'isReserved', 'isActive', 'chairs', 'branch_id'
     ];
 
+    
+    protected $casts = [
+        'branch_id' => 'int',
+    ];
+
     protected $appends = ['chairs'];
 
     public function getChairsAttribute()

@@ -13,6 +13,11 @@ class LedgerAccount extends Model
         'ledgerName', 'accountType', 'taxPercentage','description', 'openingBalance', 'isActive', 'branch_id'
     ];
 
+
+    protected $casts = [
+        'branch_id' => 'int',
+    ];
+
     
     public function transactions() {
         return $this->hasMany('App\Transaction', 'accountId');

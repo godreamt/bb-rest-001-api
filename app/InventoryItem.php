@@ -12,6 +12,11 @@ class InventoryItem extends Model
         'itemName', 'unitId', 'description', 'pricePerUnit', 'isActive', 'branch_id'
     ];
 
+
+    protected $casts = [
+        'branch_id' => 'int',
+    ];
+
     public function unit() {
         return $this->belongsTo('App\MeasureUnit', 'unitId');
     }

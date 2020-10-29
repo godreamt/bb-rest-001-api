@@ -9,4 +9,9 @@ class ProductPriceModelCombination extends Model
     protected $fillable = [
         'productId'
     ];
+
+    
+    protected $casts = [
+        'productId' => 'int',
+    ];
 }

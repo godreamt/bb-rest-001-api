@@ -11,6 +11,10 @@ class Category extends Model
         'categoryName', 'description', 'featuredImage', 'isActive', 'branch_id'
     ];
 
+
+    protected $casts = [
+        'branch_id' => 'int',
+    ];
     
     protected static function boot()
     {

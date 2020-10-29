@@ -11,6 +11,12 @@ class OrderTable extends Model
         'orderId', 'tableId', 'selectedChairs' 
     ];
 
+    
+    protected $casts = [
+        'orderId' => 'int',
+        'tableId' => 'int'
+    ];
+
     public function table() {
         return $this->belongsTo('App\TableManager', 'tableId');
     }

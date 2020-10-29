@@ -9,6 +9,12 @@ class ProductAdvancedPricing extends Model
     protected $fillable = [
         'productId', 'combinationId', 'price'
     ];
+
+    
+    protected $casts = [
+        'productId' => 'int',
+        'combinationId' => 'int',
+    ];
 }
 
 
