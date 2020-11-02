@@ -187,8 +187,8 @@ class ProductController extends Controller
                 $product->kitchen_id = $request->kitchen_id;
                 $categories = ($request->categories == "")?[]:$request->categories;
                 // if(sizeof($categories) > 0)
-                    $product->categories()->sync($categories);
                 $product->save();
+                $product->categories()->sync($categories);
                 return ['data' => $product, 'msg'=> "Product updated successfully"];
             }catch(\Exception $e) {
                 return response()->json(['msg' => 'Can not update product data', 'error' => $e], 404);

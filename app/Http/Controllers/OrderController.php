@@ -367,15 +367,19 @@ class OrderController extends Controller
     public function updateOrder(Request $request) {
         try {
                 return DB::transaction(function() use ($request) {
+                    $loggedUser = \Auth::user();
                     if(!empty($request->id)) {
                         $order = Order::find($request->id);
                     }else {
                         $order = new Order();
                     }
                     $order->branch_id = $request->branch_id;
+                    if($loggedUser->roles != 'Super Admin') {
+                        $order->branch_id = $loggedUser->branch_id;
+                    }
                     $order->orderType = $request->orderType;
                     if(!empty($request->mobileNumber)) {
-                        $customer = $this->handleCustomerCreation($request->all(), $request->branch_id);
+                        $customer = $this->handleCustomerCreation($request->all(), $order->branch_id);
                         $order->customerId = $customer->id;
                     }
                     $order->relatedInfo = $request->relatedInfo;
