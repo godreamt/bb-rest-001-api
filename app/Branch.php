@@ -13,6 +13,10 @@ class Branch extends Model
         'branchTitle', 'description', 'branchAddress', 'branchCode', 'isActive', 'branchLogo', 'taxPercent', 'appDefaultOrderType', 'adminDefaultOrderType'
     ];
 
+    protected $casts = [
+        'isActive' => 'boolean',
+    ];
+
         //we can also use hasManyThrough https://www.itsolutionstuff.com/post/laravel-has-many-through-eloquent-relationship-tutorialexample.html to get orders
   
     public function getBranchId($value)

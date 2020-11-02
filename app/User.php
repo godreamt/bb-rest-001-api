@@ -51,6 +51,7 @@ class User extends Authenticatable implements JWTSubject
     protected $casts = [
         'email_verified_at' => 'datetime',
         'branch_id' => 'int',
+        'isActive' => 'boolean',
     ];
 
     public function branch()

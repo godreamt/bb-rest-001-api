@@ -15,6 +15,7 @@ class InventoryItem extends Model
 
     protected $casts = [
         'branch_id' => 'int',
+        'isActive' => 'boolean',
     ];
 
     public function unit() {

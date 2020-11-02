@@ -36,6 +36,10 @@ class Product extends Model
     
     protected $casts = [
         'branch_id' => 'int',
+        'isActive' => 'boolean',
+        'isVeg' => 'boolean',
+        'isOutOfStock' => 'boolean',
+        'isAdvancedPricing' => 'boolean',
         'kitchen_id' => 'int'
     ];
 

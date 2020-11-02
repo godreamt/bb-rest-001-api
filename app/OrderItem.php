@@ -12,7 +12,8 @@ class OrderItem extends Model
 
     protected $casts = [
         'orderId' => 'int',
-        'productId' => 'int'
+        'productId' => 'int',
+        'isParcel' => 'boolean',
     ];
 
     public function product() {

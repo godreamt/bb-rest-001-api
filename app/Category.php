@@ -14,6 +14,7 @@ class Category extends Model
 
     protected $casts = [
         'branch_id' => 'int',
+        'isActive' => 'boolean',
     ];
     
     protected static function boot()
