@@ -10,12 +10,12 @@ class LedgerAccount extends Model
     public $timestamps = false;
     // types = Purchase Account, Sales Account, Sundry Creditors, Sundry Debitors, Duties and Taxes, Bank Account, Cash Account, Direct Expense, Indirect Expense, Direct Income, Indirect Income
     protected $fillable = [
-        'ledgerName', 'accountType', 'taxPercentage','description', 'openingBalance', 'isActive', 'branch_id'
+        'ledgerName', 'accountType', 'description', 'isActive', 'company_id'
     ];
 
 
     protected $casts = [
-        'branch_id' => 'int',
+        'company_id' => 'int',
         'isActive' => 'boolean',
     ];
 
@@ -32,19 +32,19 @@ class LedgerAccount extends Model
     {
         parent::boot();
 
-        static::addGlobalScope('role_handler', function (Builder $builder) {
-            $user = \Auth::user();
-            if($user->roles != 'Super Admin') {
-                $builder->where('branch_id',  $user->branch_id);
-            }
-        });
+        // static::addGlobalScope('role_handler', function (Builder $builder) {
+        //     $user = \Auth::user();
+        //     if($user->roles != 'Super Admin') {
+        //         $builder->where('branch_id',  $user->branch_id);
+        //     }
+        // });
 
         
-        static::creating(function ($item) {
-            $user = \Auth::user();
-            if($user->roles != 'Super Admin') {
-                $item->branch_id = $user->branch_id;
-            }
-        });
+        // static::creating(function ($item) {
+        //     $user = \Auth::user();
+        //     if($user->roles != 'Super Admin') {
+        //         $item->branch_id = $user->branch_id;
+        //     }
+        // });
     }
 }

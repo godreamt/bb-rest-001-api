@@ -27,6 +27,20 @@ class CreateUsersTable extends Migration
             $table->rememberToken();
             $table->timestamps();
         });
+        
+        Schema::create('companies', function (Blueprint $table) {
+            $table->id();
+            $table->string('companyLogo')->nullable();
+            $table->string('companyName', 191)->unique();
+            $table->text('companyDetails')->nullable();
+            $table->text('apiKey')->nullable();
+            $table->integer('numberOfBranchesAllowed')->default(1);
+            $table->boolean('enableAccounting')->default(true);
+            $table->boolean('enableRestaurantFunctions')->default(true);
+            $table->boolean('isActive')->default(true);
+            $table->timestamps();
+        });
+
         Schema::create('branches', function (Blueprint $table) {
             $table->id();
             $table->string('branchLogo')->nullable();
@@ -36,6 +50,8 @@ class CreateUsersTable extends Migration
             $table->boolean('isActive')->default(true);
             $table->string('branchCode')->unique();
             $table->float('taxPercent');
+            $table->unsignedBigInteger('company_id');
+            $table->foreign('company_id')->references('id')->on('companies');
             $table->timestamps();
         });
 
@@ -45,7 +61,7 @@ class CreateUsersTable extends Migration
             $table->string('orderType')->nullable();
             $table->boolean('tableRequired')->default(false);
             $table->boolean('isActive')->default(true);
-            $table->unsignedBigInteger('branch_id')->nullable(true);
+            $table->unsignedBigInteger('branch_id');
             $table->foreign('branch_id')->references('id')->on('branches');  
             $table->unique(['orderType', 'branch_id']);
             $table->timestamps();

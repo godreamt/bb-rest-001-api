@@ -96,40 +96,98 @@ class AccountMasterController extends Controller
     }
 
     public function getUnits(Request $request) {
-        return MeasureUnit::get();
+        
+        $fields = $request->get('fields', '*');
+        if($fields != '*'){
+            $fields = explode(',',$fields);
+        }
+        $units = MeasureUnit::with('company')->select($fields);
+
+        if(!empty($request->searchString)) {
+            $units = $units->where('unitLabel', 'LIKE', '%'.$request->searchString.'%');
+        }
+
+        if(!empty($request->companyId)) {
+            $units = $units->where('company_id', $request->companyId);
+        }
+
+        if(!empty($request->status)) {
+            $units = $units->where('isActive', ($request->status == 'in-active')?false:true);
+        }
+
+        if(!empty($request->orderCol) && !empty($request->orderType)) {
+            $units = $units->orderBy($request->orderCol, $request->orderType);
+        }
+        
+        $currentPage = $request->pageNumber;
+        if(!empty($currentPage)){
+            Paginator::currentPageResolver(function () use ($currentPage) {
+                return $currentPage;
+            });
+
+            return $units->paginate(10);
+        }else {
+            return $units->get();
+        }
     }
 
     public function getUnit(Request $request, $id) {
         return MeasureUnit::find($id);
     }
 
-    public function createUnit(Request $request) {
+
+    public function updateUnit(Request $request) {
         try {
+            
+            // Existing unit validation
+            $existingUnits = MeasureUnit::where('company_id', $request->company_id)
+                                    ->where('unitLabel', $request->unitLabel);
+            if(!empty($request->id)) {
+                $existingUnits = $existingUnits->where('id', '<>', $request->id);
+            }
+            // $existingUnits = $existingUnits->where(function($query) use ($request) {
+            //     $query->where('branch_id', NULL)->orWhere('branch_id', '');
+            //     if(!empty($request->branch_id)) {
+            //         $query->orWhere('branch_id', $request->branch_id);
+            //     }
+            // });
+            $existingUnits = $existingUnits->get();
+            if(sizeof($existingUnits) > 0) {
+                return response()->json(['msg' => 'Unit already exists in company.'], 400);
+            }
+
+            // if(empty($request->branch_id)) {
+            //     $existingUnitsOnBranches = MeasureUnit::where('company_id', $request->company_id)
+            //                             ->where('branch_id', '<>', NULL)
+            //                             ->where('unitLabel', $request->unitLabel);
+            //     if(!empty($request->id)) {
+            //         $existingUnitsOnBranches = $existingUnitsOnBranches->where('id', '<>', $request->id);
+            //     }
+            //     $existingUnitsOnBranches = $existingUnitsOnBranches->get();
+            //     if(sizeof($existingUnitsOnBranches) > 0) {
+            //         return response()->json(['msg' => 'Unit already exists in branches. Please move that to company level.'], 400);
+            //     }
+            // }
+            // End of Existing unit validation
+            
             return \DB::transaction(function() use($request) {
 
-                $unit = new MeasureUnit();
+
+                if(empty($request->id)) {
+                    $unit = new MeasureUnit();
+                }else {
+                    $unit = MeasureUnit::find($request->id);
+                }
                 $unit->unitLabel =  $request->unitLabel;
+                $unit->company_id =  $request->company_id;
+                // $unit->branch_id =  $request->branch_id ?? NULL;
+                $unit->isActive =  $request->isActive ?? false;
                 $unit->description =  $request->description;
                 $unit->save();
-                return $unit;
+                return MeasureUnit::with('company')->find($unit->id);
             });
         }catch(\Exception $e) {
-            return response()->json(['msg' => ' Can not able to create unit', 'error'=>$e], 400);
-        }
-    }
-
-    public function updateUnit(Request $request, $id) {
-        try {
-            return \DB::transaction(function() use($request, $id) {
-
-                $unit = MeasureUnit::find($id);
-                $unit->unitLabel =  $request->unitLabel;
-                $unit->description =  $request->description;
-                $unit->save();
-                return $unit;
-            });
-        }catch(\Exception $e) {
-            return response()->json(['msg' => ' Can not able to update unit', 'error'=>$e], 400);
+            return response()->json(['msg' => ' Can not able to update unit', 'error'=>$e->getMessage()], 400);
         }
     }
 

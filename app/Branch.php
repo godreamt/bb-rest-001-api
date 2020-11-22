@@ -10,25 +10,35 @@ use Illuminate\Database\Eloquent\Builder;
 class Branch extends Model
 {
     protected $fillable = [
-        'branchTitle', 'description', 'branchAddress', 'branchCode', 'isActive', 'branchLogo', 'taxPercent', 'appDefaultOrderType', 'adminDefaultOrderType'
+        'branchLogo', 
+        'branchCode', 
+        'branchTitle', 
+        'branchAddress', 
+        'description', 
+        'isActive', 
+        'taxPercent', 
+        'appDefaultOrderType', 
+        'adminDefaultOrderType',
+        'company_id'
     ];
 
     protected $casts = [
         'isActive' => 'boolean',
+        'company_id' => 'int'
     ];
 
         //we can also use hasManyThrough https://www.itsolutionstuff.com/post/laravel-has-many-through-eloquent-relationship-tutorialexample.html to get orders
-  
-    public function getBranchId($value)
-    {
-        return (string) $value;
-    }
         
     public function users()
     {
         return $this->hasMany('App\User');
     }
 
+    
+    public function company()
+    {
+        return $this->belongsTo('App\Company', 'company_id');
+    }
     
     public function orderTypes()
     {

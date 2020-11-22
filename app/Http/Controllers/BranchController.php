@@ -15,12 +15,15 @@ class BranchController extends Controller
         if($fields != '*'){
             $fields = explode(',',$fields);
         }
-        $branches = Branch::select($fields);
+        $branches = Branch::select($fields)->with('company');
 
         if(!empty($request->searchString)) {
             $branches = $branches->where('branchTitle', 'LIKE', '%'.$request->searchString.'%');
         }
 
+        if(!empty($request->companyId)) {
+            $branches = $branches->where('company_id', $request->companyId);
+        }
         if(!empty($request->status)) {
             $branches = $branches->where('isActive', ($request->status == 'in-active')?false:true);
         }

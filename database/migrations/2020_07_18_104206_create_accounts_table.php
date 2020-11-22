@@ -17,16 +17,18 @@ class CreateAccountsTable extends Migration
             $table->id();
             $table->string('unitLabel');
             $table->text('description')->nullable(true);
-            $table->unsignedBigInteger('branch_id');
-            $table->foreign('branch_id')->references('id')->on('branches'); 
-            $table->unique(['unitLabel', 'branch_id']);
+            $table->unsignedBigInteger('company_id');
+            $table->foreign('company_id')->references('id')->on('companies'); 
+            // $table->unsignedBigInteger('branch_id')->nullable(true);
+            // $table->foreign('branch_id')->references('id')->on('branches'); 
+            $table->boolean('isActive')->default(true);
         });
 
         Schema::create('inventory_items', function (Blueprint $table) {
             $table->id();
             $table->string('itemName');
             $table->string('pricePerUnit');
-            $table->boolean('isActive');
+            $table->boolean('isActive')->default(true);
             $table->text('description')->nullable(true);
             $table->unsignedBigInteger('unitId')->nullable(true);
             $table->foreign('unitId')->references('id')->on('measure_units')->onDelete('cascade');  
@@ -51,13 +53,13 @@ class CreateAccountsTable extends Migration
                 'Direct Income',
                 'Indirect Income'
             ]);
-            $table->string('openingBalance')->nullable(true);
-            $table->string('taxPercentage')->nullable(true);
+            // $table->string('openingBalance')->nullable(true);
+            // $table->string('taxPercentage')->nullable(true);
             $table->boolean('isActive')->default(true);
             $table->text('description')->nullable(true);
-            $table->unsignedBigInteger('branch_id');
-            $table->foreign('branch_id')->references('id')->on('branches'); 
-            $table->unique(['ledgerName', 'branch_id']);
+            $table->unsignedBigInteger('company_id');
+            $table->foreign('company_id')->references('id')->on('companies'); 
+            $table->unique(['ledgerName', 'company_id']);
         });
 
         Schema::create('transactions', function (Blueprint $table) {

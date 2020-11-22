@@ -47,6 +47,16 @@ Route::group(['middleware' => ['jwt.verify']], function() {
         });
 
         
+        Route::group(['prefix'=>'company'], function(){
+            Route::get('', 'CompanyController@getAllCompanies');
+            // Route::get('{id}', 'BranchController@getBranchDetails');
+            // Route::post('', 'BranchController@updateBranch')->middleware(['role:Super Admin']);
+            // Route::put('{id}', 'BranchController@updateBranch')->middleware(['role:Super Admin']);
+            // Route::delete('{id}', 'BranchController@deleteBranch')->middleware(['role:Super Admin']);
+            // Route::put('status/{id}', 'BranchController@changeBranchStatus')->middleware(['role:Super Admin']);
+        });
+
+        
         Route::group(['prefix'=>'branch'], function(){
             Route::get('', 'BranchController@getBranches');
             Route::get('{id}', 'BranchController@getBranchDetails');
@@ -108,8 +118,7 @@ Route::group(['middleware' => ['jwt.verify']], function() {
         Route::group(['prefix'=>'unit'], function(){
             Route::get('', 'AccountMasterController@getUnits');
             Route::get('{id}', 'AccountMasterController@getUnit');
-            Route::post('', 'AccountMasterController@createUnit');
-            Route::put('{id}', 'AccountMasterController@updateUnit');
+            Route::post('', 'AccountMasterController@updateUnit');
             Route::delete('{id}', 'AccountMasterController@deleteUnit');
         });
         

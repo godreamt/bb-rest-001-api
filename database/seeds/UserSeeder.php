@@ -21,5 +21,16 @@ class UserSeeder extends Seeder
             'password' => Hash::make('123456'),
             'roles' => 'Super Admin',
         ]);
+
+        DB::table('companies')->insert([
+            'companyName' => 'Black Bamboo'
+        ]);
+
+        DB::table('branches')->insert([
+            'branchTitle' => 'Mukka',
+            'branchCode' => 'MK',
+            'taxPercent' => 5,
+            'company_id' => 1
+        ]);
     }
 }
