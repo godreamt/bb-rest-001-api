@@ -110,8 +110,7 @@ Route::group(['middleware' => ['jwt.verify']], function() {
         Route::group(['prefix'=>'ledger'], function(){
             Route::get('', 'AccountMasterController@getLedgers');
             Route::get('{id}', 'AccountMasterController@getLedger');
-            Route::post('', 'AccountMasterController@createLedger');
-            Route::put('{id}', 'AccountMasterController@updateLedger');
+            Route::post('', 'AccountMasterController@updateLedger');
             Route::delete('{id}', 'AccountMasterController@deleteLedger');
         });
         
@@ -125,8 +124,8 @@ Route::group(['middleware' => ['jwt.verify']], function() {
         Route::group(['prefix'=>'inventory'], function(){
             Route::get('', 'AccountMasterController@getInventoryItems');
             Route::get('{id}', 'AccountMasterController@getInventoryItem');
-            Route::post('', 'AccountMasterController@createInventoryItem');
-            Route::put('{id}', 'AccountMasterController@updateInventoryItem');
+            Route::post('', 'AccountMasterController@updateInventoryItem');
+            // Route::put('{id}', 'AccountMasterController@updateInventoryItem');
             Route::delete('{id}', 'AccountMasterController@deleteInventoryItem');
         });
         

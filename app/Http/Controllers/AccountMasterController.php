@@ -15,10 +15,13 @@ class AccountMasterController extends Controller
         if($fields != '*'){
             $fields = explode(',',$fields);
         }
-        $items = InventoryItem::with('unit')->select($fields);
+        $items = InventoryItem::with('unit')->with('company')->select($fields);
 
         if(!empty($request->searchString)) {
             $items = $items->where('itemName', 'LIKE', '%'.$request->searchString.'%');
+        }
+        if(!empty($request->companyId)) {
+            $items = $items->where('company_id', $request->companyId);
         }
 
         if(!empty($request->status)) {
@@ -45,39 +48,59 @@ class AccountMasterController extends Controller
         return InventoryItem::find($id);
     }
 
-    public function createInventoryItem(Request $request) {
+    public function updateInventoryItem(Request $request) {
         try {
+                           
+            // Existing inventory validation
+            $existingInventory = InventoryItem::where('company_id', $request->company_id)
+                    ->where('itemName', $request->inventoryName);
+            if(!empty($request->id)) {
+                $existingInventory = $existingInventory->where('id', '<>', $request->id);
+            }
+            $existingInventory = $existingInventory->get();
+            if(sizeof($existingInventory) > 0) {
+                return response()->json(['msg' => 'Inventory already exists in company.'], 400);
+            }
+            // End of Existing unit validation
+
             return \DB::transaction(function() use($request) {
 
-                $item = new InventoryItem();
+
+                if(empty($request->id)) {
+                    $item = new InventoryItem();
+                }else {
+                    $item = InventoryItem::find($request->id);
+                }
                 $item->itemName =  $request->itemName;
                 $item->unitId =  $request->unitId;
+                $item->company_id =  $request->company_id;
                 $item->description =  $request->description;
                 $item->pricePerUnit =  $request->pricePerUnit;
                 $item->isActive =  $request->isActive;
                 $item->save();
+                return InventoryItem::with('company')->with('unit')->find($item->id);
             });
         }catch(\Exception $e) {
             return response()->json(['msg' => ' Can not able to create item', 'error'=>$e], 400);
         }
     }
 
-    public function updateInventoryItem(Request $request, $id) {
-        try {
-            return \DB::transaction(function() use($request, $id) {
+    // public function updateInventoryItem(Request $request, $id) {
+    //     try {
+    //         return \DB::transaction(function() use($request, $id) {
 
-                $item = InventoryItem::find($id);
-                $item->itemName =  $request->itemName;
-                $item->unitId =  $request->unitId;
-                $item->description =  $request->description;
-                $item->pricePerUnit =  $request->pricePerUnit;
-                $item->isActive =  $request->isActive;
-                $item->save();
-            });
-        }catch(\Exception $e) {
-            return response()->json(['msg' => ' Can not able to update item', 'error'=>$e], 400);
-        }
-    }
+    //             $item = InventoryItem::find($id);
+    //             $item->itemName =  $request->itemName;
+    //             $item->unitId =  $request->unitId;
+    //             $item->description =  $request->description;
+    //             $item->pricePerUnit =  $request->pricePerUnit;
+    //             $item->isActive =  $request->isActive;
+    //             $item->save();
+    //         });
+    //     }catch(\Exception $e) {
+    //         return response()->json(['msg' => ' Can not able to update item', 'error'=>$e], 400);
+    //     }
+    // }
 
     public function deleteInventoryItem(Request $request, $id) {
         return \DB::transaction(function() use($request, $id) {
@@ -208,58 +231,109 @@ class AccountMasterController extends Controller
     }
 
     public function getLedgers(Request $request) {
-        return LedgerAccount::get();
+        
+        $fields = $request->get('fields', '*');
+        if($fields != '*'){
+            $fields = explode(',',$fields);
+        }
+        $ledgers = LedgerAccount::with('company')->select($fields);
+
+        if(!empty($request->searchString)) {
+            $ledgers = $ledgers->where('ledgerName', 'LIKE', '%'.$request->searchString.'%');
+        }
+
+        if(!empty($request->companyId)) {
+            $ledgers = $ledgers->where('company_id', $request->companyId);
+        }
+
+        if(!empty($request->status)) {
+            $ledgers = $ledgers->where('isActive', ($request->status == 'in-active')?false:true);
+        }
+
+        if(!empty($request->orderCol) && !empty($request->orderType)) {
+            $ledgers = $ledgers->orderBy($request->orderCol, $request->orderType);
+        }
+        
+        $currentPage = $request->pageNumber;
+        if(!empty($currentPage)){
+            Paginator::currentPageResolver(function () use ($currentPage) {
+                return $currentPage;
+            });
+
+            return $ledgers->paginate(10);
+        }else {
+            return $ledgers->get();
+        }
     }
 
     public function getLedger(Request $request, $id) {
         return LedgerAccount::find($id);
     }
 
-    public function createLedger(Request $request) {
-        try {
+    public function updateLedger(Request $request) {
+        try {            
+            // Existing ledger validation
+            $existingLedgers = LedgerAccount::where('company_id', $request->company_id)
+                                    ->where('ledgerName', $request->ledgerName);
+            if(!empty($request->id)) {
+                $existingLedgers = $existingLedgers->where('id', '<>', $request->id);
+            }
+            $existingLedgers = $existingLedgers->get();
+            if(sizeof($existingLedgers) > 0) {
+                return response()->json(['msg' => 'Ledger already exists in company.'], 400);
+            }
+            // End of Existing unit validation
+            
             return \DB::transaction(function() use($request) {
 
-                $ledger = new LedgerAccount();
+
+                if(empty($request->id)) {
+                    $ledger = new LedgerAccount();
+                }else {
+                    $ledger = LedgerAccount::find($request->id);
+                }
                 $ledger->ledgerName =  $request->ledgerName;
                 $ledger->accountType =  $request->accountType;
-                $ledger->taxPercentage =  $request->taxPercentage;
-                $ledger->openingBalance =  $request->openingBalance;
-                $ledger->description = $request->description;
-                $ledger->isActive =  $request->isActive?true:false;
+                $ledger->company_id =  $request->company_id;
+                $ledger->isActive =  $request->isActive ?? false;
+                $ledger->description =  $request->description;
                 $ledger->save();
-            });
-        }catch(\Exception $e) {
-            return response()->json(['msg' => ' Can not able to create ledger', 'error'=>$e], 400);
-        }
-    }
-
-    public function updateLedger(Request $request, $id) {
-        try {
-            return \DB::transaction(function() use($request, $id) {
-
-                $ledger = LedgerAccount::find($id);
-                $ledger->ledgerName =  $request->ledgerName;
-                $ledger->accountType =  $request->accountType;
-                $ledger->taxPercentage =  $request->taxPercentage;
-                $ledger->openingBalance =  $request->openingBalance;
-                $ledger->description = $request->description;
-                $ledger->isActive =  $request->isActive?true:false;
-                $ledger->save();
+                return LedgerAccount::with('company')->find($ledger->id);
             });
         }catch(\Exception $e) {
             return response()->json(['msg' => ' Can not able to update ledger', 'error'=>$e], 400);
         }
     }
 
-    public function deleteLedger(Request $request) {
+    // public function updateLedger(Request $request, $id) {
+    //     try {
+    //         return \DB::transaction(function() use($request, $id) {
+
+    //             $ledger = LedgerAccount::find($id);
+    //             $ledger->ledgerName =  $request->ledgerName;
+    //             $ledger->accountType =  $request->accountType;
+    //             $ledger->taxPercentage =  $request->taxPercentage;
+    //             $ledger->openingBalance =  $request->openingBalance;
+    //             $ledger->description = $request->description;
+    //             $ledger->isActive =  $request->isActive?true:false;
+    //             $ledger->save();
+    //         });
+    //     }catch(\Exception $e) {
+    //         return response()->json(['msg' => ' Can not able to update ledger', 'error'=>$e], 400);
+    //     }
+    // }
+
+    public function deleteLedger(Request $request, $id) {
         return \DB::transaction(function() use($request, $id) {
             try {
                 $ledger = LedgerAccount::find($id);
-                if($ledger instanceof LedgerAccount) {
+                if($ledger instanceof LedgerAccount && !$ledger->isAutoCreated) {
                     $ledger->delete();
                     return $ledger;
+                }else if($ledger->isAutoCreated) {
+                    return response()->json(['msg' => 'Can not delete auto created ledger'], 400);
                 }else {
-                    return response()->json(['msg' => 'ledger Does not exist'], 400);
+                    return response()->json(['msg' => 'Ledger Does not exist'], 400);
                 }
             }catch(\Exception $e) {
                 return response()->json(['msg' => 'Can not delete ledger'], 400);

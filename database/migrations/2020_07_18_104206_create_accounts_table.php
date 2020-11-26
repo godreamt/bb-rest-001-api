@@ -32,9 +32,9 @@ class CreateAccountsTable extends Migration
             $table->text('description')->nullable(true);
             $table->unsignedBigInteger('unitId')->nullable(true);
             $table->foreign('unitId')->references('id')->on('measure_units')->onDelete('cascade');  
-            $table->unsignedBigInteger('branch_id');
-            $table->foreign('branch_id')->references('id')->on('branches'); 
-            $table->unique(['itemName', 'branch_id']);
+            $table->unsignedBigInteger('company_id');
+            $table->foreign('company_id')->references('id')->on('companies'); 
+            $table->unique(['itemName', 'company_id']);
         });
 
         Schema::create('ledger_accounts', function (Blueprint $table) {
@@ -56,6 +56,7 @@ class CreateAccountsTable extends Migration
             // $table->string('openingBalance')->nullable(true);
             // $table->string('taxPercentage')->nullable(true);
             $table->boolean('isActive')->default(true);
+            $table->boolean('isAutoCreated')->default(false);
             $table->text('description')->nullable(true);
             $table->unsignedBigInteger('company_id');
             $table->foreign('company_id')->references('id')->on('companies'); 

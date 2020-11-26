@@ -32,5 +32,9 @@ class UserSeeder extends Seeder
             'taxPercent' => 5,
             'company_id' => 1
         ]);
+        DB::table('measure_units')->insert([
+            'unitLabel' => 'KG',
+            'company_id' => 1
+        ]);
     }
 }
