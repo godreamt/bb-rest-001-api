@@ -63,6 +63,36 @@ class CreateAccountsTable extends Migration
             $table->unique(['ledgerName', 'company_id']);
         });
 
+        Schema::create('yearly_sheets', function (Blueprint $table) {
+            $table->id();
+            $table->dateTimeTz('fromDate');
+            $table->dateTimeTz('toDate');
+            $table->string('amountBrought')->default('0');
+            $table->string('amountCarried')->default('0');
+            $table->unsignedBigInteger('branch_id')->nullable(true);
+            $table->foreign('branch_id')->references('id')->on('branches'); 
+            $table->unsignedBigInteger('company_id');
+            $table->foreign('company_id')->references('id')->on('companies'); 
+            $table->timestamps();
+        });
+
+        Schema::create('month_sheets', function (Blueprint $table) {
+            $table->id();
+            $table->string('month');
+            $table->string('year');
+            $table->string('amountBrought')->default('0');
+            $table->string('totalMonthlyIncome')->default('0');
+            $table->string('totalMonthlyExpense')->default('0');
+            $table->string('amountCarried')->default('0');
+            $table->unsignedBigInteger('branch_id')->nullable(true);
+            $table->foreign('branch_id')->references('id')->on('branches'); 
+            $table->unsignedBigInteger('company_id');
+            $table->foreign('company_id')->references('id')->on('companies'); 
+            $table->unsignedBigInteger('yearly_sheet_id');
+            $table->foreign('yearly_sheet_id')->references('id')->on('yearly_sheets'); 
+            $table->timestamps();
+        });
+
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
             $table->dateTimeTz('transactionDate');
@@ -73,13 +103,16 @@ class CreateAccountsTable extends Migration
                 'Payment',
                 'Receipt',
             ]);
-            $table->string('accountCurrentBalance')->nullable(true);
             $table->string('grandTotal')->nullable(true);
-            $table->text('comment')->nullable(true);
+            $table->text('description')->nullable(true);
             $table->unsignedBigInteger('accountId')->nullable(true);
             $table->foreign('accountId')->references('id')->on('ledger_accounts')->onDelete('cascade');  
-            $table->unsignedBigInteger('branch_id');
+            $table->unsignedBigInteger('branch_id')->nullable(true);
             $table->foreign('branch_id')->references('id')->on('branches'); 
+            $table->unsignedBigInteger('company_id');
+            $table->foreign('company_id')->references('id')->on('companies'); 
+            $table->unsignedBigInteger('monthly_sheet_id');
+            $table->foreign('monthly_sheet_id')->references('id')->on('month_sheets'); 
             $table->timestamps();
         });
 
@@ -97,12 +130,12 @@ class CreateAccountsTable extends Migration
 
         Schema::create('transaction_on_accounts', function (Blueprint $table) {
             $table->id();
-            $table->string('percentage')->nullable(true);
-            $table->string('amount');
-            $table->string('currentBalance')->nullable(true);
-            $table->unsignedBigInteger('transactionId')->nullable(true);
+            $table->enum('amountProcessType', ['amount', 'percent']);
+            $table->string('amountValue');
+            $table->string('totalAmount');
+            $table->unsignedBigInteger('transactionId');
             $table->foreign('transactionId')->references('id')->on('transactions')->onDelete('cascade');  
-            $table->unsignedBigInteger('accountId')->nullable(true);
+            $table->unsignedBigInteger('accountId');
             $table->foreign('accountId')->references('id')->on('ledger_accounts')->onDelete('cascade');  
             $table->timestamps();
         });

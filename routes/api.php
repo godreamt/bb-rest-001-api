@@ -30,18 +30,17 @@ Route::group(['middleware' => ['jwt.verify']], function() {
         Route::group(['prefix'=>'user'], function(){
             Route::get('', 'UserController@getUsers');
             Route::get('{id}', 'UserController@getUser');
-            Route::post('', 'UserController@createUser');
+            Route::post('', 'UserController@updateUser');
             Route::post('change-current-user-image', 'UserController@uploadCurrentUserImage')->middleware(['role:Super Admin,Admin']);
             Route::post('change-current-user-password', 'UserController@changeCurrentUserPassword');
-            Route::put('{id}', 'UserController@updateUser');
+            // Route::put('{id}', 'UserController@updateUser');
             Route::delete('{id}', 'UserController@deleteUser');
         });
 
         Route::group(['prefix'=>'category'], function(){
             Route::get('', 'ProductController@getCategories');
             Route::get('{id}', 'ProductController@getCategoryDetail');
-            Route::post('', 'ProductController@createCategory')->middleware(['role:Super Admin,Admin']);
-            Route::put('{id}', 'ProductController@updateCategory')->middleware(['role:Super Admin,Admin']);
+            Route::post('', 'ProductController@updateCategory')->middleware(['role:Super Admin,Admin']);
             Route::delete('{id}', 'ProductController@deleteCategory')->middleware(['role:Super Admin,Admin']);
             Route::put('status/{id}', 'ProductController@changeCategoryStatus')->middleware(['role:Super Admin,Admin']);
         });
@@ -49,11 +48,10 @@ Route::group(['middleware' => ['jwt.verify']], function() {
         
         Route::group(['prefix'=>'company'], function(){
             Route::get('', 'CompanyController@getAllCompanies');
-            // Route::get('{id}', 'BranchController@getBranchDetails');
-            // Route::post('', 'BranchController@updateBranch')->middleware(['role:Super Admin']);
-            // Route::put('{id}', 'BranchController@updateBranch')->middleware(['role:Super Admin']);
-            // Route::delete('{id}', 'BranchController@deleteBranch')->middleware(['role:Super Admin']);
-            // Route::put('status/{id}', 'BranchController@changeBranchStatus')->middleware(['role:Super Admin']);
+            Route::get('{id}', 'CompanyController@getCompanyDetails');
+            Route::post('', 'CompanyController@updateCompany')->middleware(['role:Super Admin']);
+            Route::delete('{id}', 'CompanyController@deleteCompany')->middleware(['role:Super Admin']);
+            Route::put('status/{id}', 'CompanyController@changeCompanyStatus')->middleware(['role:Super Admin']);
         });
 
         
@@ -129,12 +127,12 @@ Route::group(['middleware' => ['jwt.verify']], function() {
             Route::delete('{id}', 'AccountMasterController@deleteInventoryItem');
         });
         
-        Route::group(['prefix'=>'purchase'], function(){
-            Route::get('', 'AccountTransactionController@getInventoryItems');
-            Route::get('{id}', 'AccountTransactionController@getInventoryItem');
-            Route::post('', 'AccountTransactionController@newPurchase');
-            Route::put('{id}', 'AccountTransactionController@updatePurchase');
-            Route::delete('{id}', 'AccountTransactionController@deleteInventoryItem');
+        Route::group(['prefix'=>'transaction'], function(){
+            // Route::get('', 'AccountTransactionController@getInventoryItems');
+            // Route::get('{id}', 'AccountTransactionController@getInventoryItem');
+            Route::post('', 'AccountTransactionController@updateTransaction');
+            // Route::put('{id}', 'AccountTransactionController@updateTransaction');
+            // Route::delete('{id}', 'AccountTransactionController@deleteInventoryItem');
         });
     });
 });

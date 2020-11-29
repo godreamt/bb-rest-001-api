@@ -61,6 +61,7 @@ class BranchController extends Controller
                 $branch->branchCode = $request->branchCode;
                 $branch->isActive = $request->isActive;
                 $branch->taxPercent = $request->taxPercent;
+                $branch->company_id = $request->company_id;
                 $branch->appDefaultOrderType = $request->appDefaultOrderType ?? null;
                 $branch->adminDefaultOrderType = $request->adminDefaultOrderType ?? null;
                 

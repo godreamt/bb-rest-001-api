@@ -20,6 +20,8 @@ class OrderManager extends Migration
             $table->string('customerName')->nullable();  
             $table->string('mobileNumber')->unique();  
             $table->string('emailId')->nullable();  
+            $table->unsignedBigInteger('company_id');
+            $table->foreign('company_id')->references('id')->on('companies'); 
             $table->unsignedBigInteger('branch_id');
             $table->foreign('branch_id')->references('id')->on('branches'); 
             $table->timestamps();
@@ -32,6 +34,8 @@ class OrderManager extends Migration
             $table->text('description')->nullable();
             $table->string('featuredImage')->nullable();
             $table->boolean('isActive')->default(true);
+            $table->unsignedBigInteger('company_id');
+            $table->foreign('company_id')->references('id')->on('companies'); 
             $table->unsignedBigInteger('branch_id');
             $table->foreign('branch_id')->references('id')->on('branches');  
             $table->timestamps();
@@ -46,6 +50,8 @@ class OrderManager extends Migration
             $table->text('description')->nullable();
             $table->boolean('isReserved')->default(false);
             $table->boolean('isActive')->default(true);
+            $table->unsignedBigInteger('company_id');
+            $table->foreign('company_id')->references('id')->on('companies'); 
             $table->unsignedBigInteger('branch_id');
             $table->foreign('branch_id')->references('id')->on('branches');  
             $table->timestamps();
@@ -66,6 +72,8 @@ class OrderManager extends Migration
             $table->boolean('isActive')->default(true);
             $table->boolean('isOutOfStock')->default(true);
             $table->boolean('isAdvancedPricing')->default(false);
+            $table->unsignedBigInteger('company_id');
+            $table->foreign('company_id')->references('id')->on('companies'); 
             $table->unsignedBigInteger('branch_id');
             $table->foreign('branch_id')->references('id')->on('branches');  
             $table->unsignedBigInteger('kitchen_id');
@@ -156,6 +164,8 @@ class OrderManager extends Migration
             $table->id();
             $table->unsignedBigInteger('customerId')->nullable(true);
             $table->foreign('customerId')->references('id')->on('customers');  
+            $table->unsignedBigInteger('company_id');
+            $table->foreign('company_id')->references('id')->on('companies'); 
             $table->unsignedBigInteger('branch_id');//nneds to add order type enum
             $table->foreign('branch_id')->references('id')->on('branches'); 
             $table->unsignedBigInteger('takenBy');

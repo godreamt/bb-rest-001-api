@@ -7,13 +7,20 @@ use Illuminate\Database\Eloquent\Model;
 class TransactionItem extends Model
 {
     protected $fillable = [
-        'transactionId', 'itemId', 'quantity', 'amount', 'total'
+        'transactionId', 
+        'itemId', 
+        'quantity', 
+        'amount', 
+        'total'
     ];
 
     
     protected $casts = [
         'transactionId' => 'int',
         'itemId' => 'int',
+        'quantity' =>'int',
+        'amount' => 'double',
+        'total' => 'double'
     ];
 
     public function transaction() {

@@ -25,6 +25,10 @@ class OrderController extends Controller
             $tables = $tables->where('tableId', 'LIKE', '%'.$request->searchString.'%');
         }
 
+        if(!empty($request->companyId)) {
+            $tables = $tables->where('company_id', $request->companyId);
+        }
+
         if(!empty($request->status)) {
             $tables = $tables->where('isActive', ($request->status == 'active')?true:false);
         }
@@ -86,21 +90,35 @@ class OrderController extends Controller
                     if($table['deletedFlag'] == true) {
                         $t = TableManager::find($table['id']);
                         $t->delete();
-                    }else if(empty($table['id'])){
-                        unset($table['deletedFlag']);
-                        $table['isActive'] = true;
-                        TableManager::create($table);
-                        $tables[] = $table;
                     }else {
-                        unset($table['deletedFlag']);
-                        $table['isActive'] = true;
-                        $t1 = TableManager::find($table['id']);
+                        if(empty($table['id'])){
+                            $t1 = new TableManager();
+                        }else {
+                            $t1 = TableManager::find($table['id']);
+                        }
+                        $t1->branch_id = $table['branch_id'];
                         $t1->tableId = $table['tableId'];
                         $t1->description = $table['description'];
                         $t1->noOfChair = $table['noOfChair'];
+                        $table['isActive'] = $table['isActive'] ?? false;
                         $t1->save();
                         $tables[] = $t1;
                     }
+                    // else if(empty($table['id'])){
+                    //     unset($table['deletedFlag']);
+                    //     $table['isActive'] = true;
+                    //     TableManager::create($table);
+                    //     $tables[] = $table;
+                    // }else {
+                    //     unset($table['deletedFlag']);
+                    //     $table['isActive'] = true;
+                    //     $t1 = TableManager::find($table['id']);
+                    //     $t1->tableId = $table['tableId'];
+                    //     $t1->description = $table['description'];
+                    //     $t1->noOfChair = $table['noOfChair'];
+                    //     $t1->save();
+                    //     $tables[] = $t1;
+                    // }
                 }
                 return $tables;
             }catch(\Exception $e) {

@@ -10,7 +10,12 @@ class LedgerAccount extends Model
     public $timestamps = false;
     // types = Purchase Account, Sales Account, Sundry Creditors, Sundry Debitors, Duties and Taxes, Bank Account, Cash Account, Direct Expense, Indirect Expense, Direct Income, Indirect Income
     protected $fillable = [
-        'ledgerName', 'accountType', 'description', 'isActive', 'isAutoCreated', 'company_id'
+        'ledgerName', 
+        'accountType', 
+        'description', 
+        'isActive', 
+        'isAutoCreated', 
+        'company_id'
     ];
 
 

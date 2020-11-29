@@ -57,63 +57,40 @@ class UserController extends Controller
         return $user->first();
     } 
 
-    public function createUser(Request $request) {
+    public function updateUser(Request $request) {
         try {
             return \DB::transaction(function() use($request) {
-
-                $user = new User();
-                $user->firstName =  $request->firstName;
-                $user->lastName =  $request->lastName;
-                if(!empty($request->image)) {
-                    $data = $request->image;
-                    $base64_str = substr($data, strpos($data, ",")+1);
-                    $image = base64_decode($base64_str);
-                    $png_url = "user-".time().".png";
-                    $path = '/img/users/' . $png_url;
-                    \Storage::disk('public')->put($path, $image);
-                    $user->profilePic = '/uploads'.$path;
-                }
-                $user->email =  $request->email;
-                $user->mobileNumber =  $request->mobileNumber;
-                $user->password =  Hash::make($request->password);
-                $user->roles =  $request->roles;
-                $user->isActive =  $request->isActive;
-                $user->branch_id =  $request->branch_id;
-                $user->save();
-            });
-        }catch(\Exception $e) {
-            return response()->json(['msg' => ' Can not able to create user', 'error'=>$e], 400);
-        }
-    }
-
-    public function updateUser(Request $request, $id) {
-        try {
-            return \DB::transaction(function() use($request, $id) {
-
-                $user = User::find($id);
-                $user->firstName =  $request->firstName;
-                $user->lastName =  $request->lastName;
-                if(!empty($request->image)) {
-                    $data = $request->image;
-                    $base64_str = substr($data, strpos($data, ",")+1);
-                    $image = base64_decode($base64_str);
-                    $png_url = "user-".time().".png";
-                    $path = '/img/users/' . $png_url;
-                    \Storage::disk('public')->put($path, $image);
-                    $user->profilePic = '/uploads'.$path;
-                }
-                $user->email =  $request->email;
-                $user->mobileNumber =  $request->mobileNumber;
-                if(!empty($request->password)) {
+                if(empty($request->id)) {
+                    $user = new User();
                     $user->password =  Hash::make($request->password);
+                }else {
+                    $user = User::find($request->id);
+                    
+                    if(!empty($request->password)) {
+                        $user->password =  Hash::make($request->password);
+                    }
                 }
+                $user->firstName =  $request->firstName;
+                $user->lastName =  $request->lastName;
+                if(!empty($request->image)) {
+                    $data = $request->image;
+                    $base64_str = substr($data, strpos($data, ",")+1);
+                    $image = base64_decode($base64_str);
+                    $png_url = "user-".time().".png";
+                    $path = '/img/users/' . $png_url;
+                    \Storage::disk('public')->put($path, $image);
+                    $user->profilePic = '/uploads'.$path;
+                }
+                $user->email =  $request->email;
+                $user->mobileNumber =  $request->mobileNumber;
                 $user->roles =  $request->roles;
-                $user->isActive =  $request->isActive;
+                $user->isActive =  $request->isActive ?? false;
+                $user->company_id =  $request->company_id;
                 $user->branch_id =  $request->branch_id;
                 $user->save();
             });
         }catch(\Exception $e) {
-            return response()->json(['msg' => ' Can not able to update user', 'error'=>$e], 400);
+            return response()->json(['msg' => ' Can not able to update user', 'error'=>$e->getMessage()], 400);
         }
     }
 

@@ -7,13 +7,19 @@ use Illuminate\Database\Eloquent\Model;
 class TransactionOnAccount extends Model
 {
     protected $fillable = [
-        'transactionId', 'accountId', 'percentage', 'amount', 'currentBalance'
+        'transactionId', 
+        'accountId', 
+        'amountProcessType', 
+        'amountValue', 
+        'totalAmount'
     ];
 
     
     protected $casts = [
         'transactionId' => 'int',
         'accountId' => 'int',
+        'amountValue' => 'double',
+        'totalAmount' => 'double'
     ];
 
 

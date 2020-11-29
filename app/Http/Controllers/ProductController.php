@@ -44,38 +44,22 @@ class ProductController extends Controller
         return Category::find($id);
     }
 
-    public function createCategory(Request $request) {
+    public function updateCategory(Request $request) {
         return \DB::transaction(function() use($request) {
             try {
-                $category = new Category();
+                if(empty($request->id)) {
+                    $category = new Category();
+                }else {
+                    $category = Category::find($request->id);
+                }
                 $category->categoryName = $request->categoryName;
                 $category->description = $request->description;
                 $category->branch_id = $request->branch_id;
-                $category->isActive = true;
+                $category->isActive = $request->isActive ?? false;
                 $category->save();
-                return ['data' => $category, 'msg'=> "Category created successfully"];
+                return ['data' => $category, 'msg'=> "Category updated successfully"];
             }catch(\Exception $e) {
-                return response()->json(['msg' => 'Can not create category data'], 404);
-            }
-        });
-    }
-
-    public function updateCategory(Request $request, $id) {
-        return \DB::transaction(function() use($request, $id) {
-            try {
-                $category = Category::find($id);
-                if($category instanceof Category) {
-                    $category->categoryName = $request->categoryName;
-                    $category->description = $request->description;
-                    $category->branch_id = $request->branch_id;
-                    $category->isActive = $request->isActive;
-                    $category->save();
-                    return ['data' => $category, 'msg'=> "Category updated successfully"];
-                }else {
-                    return response()->json(['msg' => 'Category Does not exist'], 404);
-                }
-            }catch(\Exception $e) {
-                return response()->json(['msg' => 'Can not update category data'], 404);
+                return response()->json(['msg' => 'Can not update category data', 'error'=>$e], 404);
             }
         });
     }

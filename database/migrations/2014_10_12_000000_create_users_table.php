@@ -23,7 +23,17 @@ class CreateUsersTable extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->enum('roles', ['Super Admin', 'Admin', 'Accountant', 'Branch Manager', 'Order Manager', 'Kitchen Manager', 'Bearer', 'Customer']);
+            $table->enum('roles', [
+                'Super Admin', 
+                'Company Admin', 
+                'Company Accountant', 
+                'Branch Admin', 
+                'Branch Accountant', 
+                'Branch Manager', 
+                'Branch Order Manager', 
+                'Kitchen Manager', 
+                'Bearer'
+            ]);
             $table->rememberToken();
             $table->timestamps();
         });
@@ -80,6 +90,8 @@ class CreateUsersTable extends Migration
         Schema::table('users', function(Blueprint $table) {
             $table->unsignedBigInteger('branch_id')->nullable(true);
             $table->foreign('branch_id')->references('id')->on('branches');  
+            $table->unsignedBigInteger('company_id')->nullable(true);
+            $table->foreign('company_id')->references('id')->on('companies');  
         });
 
         Schema::table('branches', function(Blueprint $table) {

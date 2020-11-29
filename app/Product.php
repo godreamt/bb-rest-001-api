@@ -63,18 +63,48 @@ class Product extends Model
 
         static::addGlobalScope('role_handler', function (Builder $builder) {
             $user = \Auth::user();
-            if($user instanceof User && $user->roles != 'Super Admin') {
-                $builder->where('branch_id',  $user->branch_id);
+            if($user instanceof User) {
+                if($user->roles != 'Super Admin') {
+                    $builder->where('company_id',  $user->company_id);
+                }
+                if($user->roles != 'Super Admin' && $user->roles != 'Company Admin' && $user->roles != 'Company Accountant') {
+                    $builder->where('branch_id',  $user->branch_id);
+                }
             }
+        });
+        
+        
+        static::updating(function ($product) {
+
+            $loggedUser = \Auth::user();
+            if($loggedUser instanceof User) {
+                // throw new ValidationException('test the code first');
+                if($loggedUser->roles != 'Super Admin') {
+                    $product->company_id = $loggedUser->company_id;
+                }
+                if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin' && $loggedUser->roles != 'Company Accountant') {
+                    $product->branch_id = $loggedUser->branch_id;
+                }
+            }
+            $branch = Branch::find($product->branch_id);
+            $product->company_id = $product->company_id;
         });
 
         static::creating(function ($product) {
-            
-            $user = \Auth::user();
-            if($user->roles != 'Super Admin') {
-                $product->branch_id = $user->branch_id;
-            }
 
+            $loggedUser = \Auth::user();
+            if($loggedUser instanceof User) {
+                if($loggedUser->roles != 'Super Admin') {
+                    $product->company_id = $loggedUser->company_id;
+                }
+                if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin' && $loggedUser->roles != 'Company Accountant') {
+                    $product->branch_id = $loggedUser->branch_id;
+                }
+            }
+            $branch = Branch::find($product->branch_id);
+            $product->company_id = $branch->company_id;
+
+            
             $slug = \Str::slug($product->productName);
             $count = static::whereRaw("productSlug RLIKE '^{$slug}(-[0-9]+)?$'")->count();
             $product->productSlug = $count ? "{$slug}-{$count}" : $slug;
