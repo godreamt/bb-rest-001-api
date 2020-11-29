@@ -41,10 +41,20 @@ class User extends Authenticatable implements JWTSubject
         });
 
         static::updating(function ($user) {
+            $restrictedRoles = [ 
+                'Company Accountant', 
+                'Branch Accountant', 
+                'Branch Manager', 
+                'Branch Order Manager', 
+                'Kitchen Manager', 
+                'Bearer'
+            ];
 
             $loggedUser = \Auth::user();
             if($loggedUser instanceof User) {
-                // throw new ValidationException('test the code first');
+                if(in_array($loggedUser->roles, $restrictedRoles) && $loggedUser->id != $user->id) {
+                    throw new ValidationException('Access denied');
+                }
                 if($loggedUser->roles != 'Super Admin') {
                     $user->company_id = $loggedUser->company_id;
                 }
@@ -55,10 +65,20 @@ class User extends Authenticatable implements JWTSubject
         });
 
         static::creating(function ($user) {
-
+            $restrictedRoles = [ 
+                'Company Accountant', 
+                'Branch Accountant', 
+                'Branch Manager', 
+                'Branch Order Manager', 
+                'Kitchen Manager', 
+                'Bearer'
+            ];
+            // throw new ValidationException('test the code first');
             $loggedUser = \Auth::user();
             if($loggedUser instanceof User) {
-                // throw new ValidationException('test the code first');
+                if(in_array($loggedUser->roles, $restrictedRoles) && $loggedUser->id != $user->id) {
+                    throw new ValidationException('Access denied');
+                }
                 if($loggedUser->roles != 'Super Admin') {
                     $user->company_id = $loggedUser->company_id;
                 }

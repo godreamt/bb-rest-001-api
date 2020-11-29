@@ -64,7 +64,7 @@ class Transaction extends Model
      * receipt - accountId = To Account
      */
 
-     public function account() {
+     public function ledgerAccount() {
         return $this->belongsTo('App\LedgerAccount', 'accountId');
     }
 

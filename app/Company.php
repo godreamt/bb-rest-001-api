@@ -36,7 +36,7 @@ class Company extends Model
         static::addGlobalScope('role_handler', function (Builder $builder) {
             $user = Auth::user();
             if($user instanceof User && $user->roles != 'Super Admin') {
-                // $builder->where('id',  $user->company_id);
+                $builder->where('id',  $user->company_id);
             }
         });
     }

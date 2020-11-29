@@ -8,6 +8,7 @@ use App\YearlySheet;
 use App\TransactionItem;
 use Illuminate\Http\Request;
 use App\TransactionOnAccount;
+use Illuminate\Pagination\Paginator;
 
 class AccountTransactionController extends Controller
 {
@@ -210,6 +211,52 @@ class AccountTransactionController extends Controller
     // }
 
     public function getAllTransactions(Request $request) {
+        $fields = $request->get('fields', '*');
+        if($fields != '*'){
+            $fields = explode(',',$fields);
+        }
+        $transactions = Transaction::select($fields)->with('branch')->with('company')->with('ledgerAccount');
 
+        if(!empty($request->searchString)) {
+            $transactions = $transactions->where(function($query) use ($request) {
+                $query->where('transactionRefNumber', 'LIKE', '%'.$request->searchString.'%')
+                    ->orWhere('description', 'LIKE', '%'.$request->searchString.'%');
+            });
+        }
+
+
+        if(!empty($request->startDate) && !empty($request->endDate)) {
+            $endDate = (new \Datetime($request->endDate))->modify('+1 day');
+            $transactions = $transactions->whereBetween('transactionDate', [new \Datetime($request->startDate), $endDate]);
+        }
+
+        if(!empty($request->transactionType)) {
+            $transactions = $transactions->where('transactionType', $request->transactionType);
+        }
+
+        if(!empty($request->companyId)) {
+            $transactions = $transactions->where('company_id', $request->companyId);
+        }
+
+        if(!empty($request->branchId)) {
+            $transactions = $transactions->where('branch_id', $request->branchId);
+        }
+
+        if(!empty($request->orderCol) && !empty($request->orderType)) {
+            $transactions = $transactions->orderBy($request->orderCol, $request->orderType);
+        }else {
+            $transactions = $transactions->orderBy('created_at', 'DESC');
+        }
+
+        $currentPage = $request->pageNumber;
+        if(!empty($currentPage)){
+            Paginator::currentPageResolver(function () use ($currentPage) {
+                return $currentPage;
+            });
+
+            return $transactions->paginate(10);
+        }else {
+            return $transactions->get();
+        }
     }
 }

@@ -25,9 +25,18 @@ class ProductController extends Controller
             $categories = $categories->where('isActive', ($request->status == 'in-active')?false:true);
         }
 
+        if(!empty($request->companyId)) {
+            $branches = $branches->where('company_id', $request->companyId);
+        }
+
+        if(!empty($request->branchId)) {
+            $branches = $branches->where('branch_id', $request->branchId);
+        }
+
         if(!empty($request->orderCol) && !empty($request->orderType)) {
             $categories = $categories->orderBy($request->orderCol, $request->orderType);
         }
+
         $currentPage = $request->pageNumber;
         if(!empty($currentPage)){
             Paginator::currentPageResolver(function () use ($currentPage) {
