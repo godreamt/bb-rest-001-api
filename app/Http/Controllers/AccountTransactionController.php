@@ -74,24 +74,42 @@ class AccountTransactionController extends Controller
 
                 if($request->transactionType == 'purchase' || $request->transactionType == 'sales') {
                     foreach($request->items as $item) {
-                        $transactionItem = new TransactionItem();
-                        $transactionItem->transactionId = $transaction->id;
-                        $transactionItem->itemId = $item['itemId'];
-                        $transactionItem->quantity = $item['quantity'];
-                        $transactionItem->amount = $item['amount'];
-                        $transactionItem->total = $item['total'];
-                        $transactionItem->save();
+                        if(!empty($item['deletedFlag']) && $item['deletedFlag'] == 'true') {
+                            $transactionItem = TransactionItem::find($item['id']);
+                            $transactionItem->delete();
+                        }else {
+                            if(empty($item['id'])){
+                                $transactionItem = new TransactionItem();
+                            }else {
+                                $transactionItem = TransactionItem::find($item['id']);
+                            }
+                            $transactionItem->transactionId = $transaction->id;
+                            $transactionItem->itemId = $item['itemId'];
+                            $transactionItem->quantity = $item['quantity'];
+                            $transactionItem->amount = $item['amount'];
+                            $transactionItem->total = $item['total'];
+                            $transactionItem->save();
+                        }
                     }
                 }
 
                 foreach($request->accounts as $account) {
-                    $transactionAccount = new TransactionOnAccount();
-                    $transactionAccount->transactionId = $transaction->id;
-                    $transactionAccount->accountId = $account['accountId'];
-                    $transactionAccount->amountProcessType = $account['amountProcessType'];
-                    $transactionAccount->amountValue = $account['amountValue'];
-                    $transactionAccount->totalAmount = $account['totalAmount'];
-                    $transactionAccount->save();
+                    if(!empty($account['deletedFlag']) && $account['deletedFlag'] == 'true') {
+                        $transactionAccount = TransactionOnAccount::find($account['id']);
+                        $transactionAccount->delete();
+                    }else {
+                        if(empty($account['id'])){
+                            $transactionAccount = new TransactionOnAccount();
+                        }else {
+                            $transactionAccount = TransactionOnAccount::find($account['id']);
+                        }
+                        $transactionAccount->transactionId = $transaction->id;
+                        $transactionAccount->accountId = $account['accountId'];
+                        $transactionAccount->amountProcessType = $account['amountProcessType'];
+                        $transactionAccount->amountValue = $account['amountValue'];
+                        $transactionAccount->totalAmount = $account['totalAmount'];
+                        $transactionAccount->save();
+                    }
                 }
                 return $transaction;
             });
@@ -258,5 +276,20 @@ class AccountTransactionController extends Controller
         }else {
             return $transactions->get();
         }
+    }
+
+    public function getTransactionDetails(Request $request, $id) {
+        $transaction = Transaction::with('ledgerAccount')
+                                ->with('company')
+                                ->with('branch')
+                                ->with('items')
+                                ->with('items.item')
+                                ->with('items.item.company')
+                                ->with('items.item.unit')
+                                ->with('accounts')
+                                ->with('accounts.account')
+                                ->where('id', $id)
+                                ->first();
+        return $transaction;
     }
 }

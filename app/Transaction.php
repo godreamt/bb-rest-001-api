@@ -76,9 +76,13 @@ class Transaction extends Model
         return $this->belongsTo('App\Branch', 'branch_id');
     }
 
-     public function items() {
-         return $this->hasMany('App\TransactionItem', 'itemId');
-     }
+    public function items() {
+        return $this->hasMany('App\TransactionItem', 'transactionId');
+    }
+
+    public function accounts() {
+        return $this->hasMany('App\TransactionOnAccount', 'transactionId');
+    }
 }
 
 /**
