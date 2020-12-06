@@ -35,19 +35,25 @@ class MeasureUnit extends Model
 
         static::addGlobalScope('role_handler', function (Builder $builder) {
             $user = \Auth::user();
-            // if($user->roles != 'Super Admin') {
-            //     $builder->where('branch_id',  $user->branch_id);
-            // }
+            if($user->roles != 'Super Admin') {
+                $builder->where('company_id',  $user->company_id);
+            }
         });
 
         
-        // static::creating(function ($item) {
-        //     $user = \Auth::user();
-        //     if($user->roles == 'Company Admin') {
+        static::creating(function ($item) {
+            $user = \Auth::user();
+            if($user->roles != 'Super Admin') {
+                $item->company_id = $user->company_id;
+            }
+        });
 
-        //     }else if($user->roles != 'Super Admin') {
-        //         $item->branch_id = $user->branch_id;
-        //     }
-        // });
+        
+        static::updating(function ($item) {
+            $user = \Auth::user();
+            if($user->roles != 'Super Admin') {
+                $item->company_id = $user->company_id;
+            }
+        });
     }
 }

@@ -129,6 +129,7 @@ Route::group(['middleware' => ['jwt.verify']], function() {
         
         Route::group(['prefix'=>'transaction'], function(){
             Route::get('', 'AccountTransactionController@getAllTransactions');
+            Route::get('consolidated-report', 'AccountTransactionController@getConsolidatedReport');
             Route::get('{id}', 'AccountTransactionController@getTransactionDetails');
             Route::post('', 'AccountTransactionController@updateTransaction');
             // Route::put('{id}', 'AccountTransactionController@updateTransaction');

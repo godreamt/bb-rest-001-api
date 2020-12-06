@@ -61,10 +61,19 @@ class ProductController extends Controller
                 }else {
                     $category = Category::find($request->id);
                 }
-                $category->categoryName = $request->categoryName;
+                $category->categoryName = $request->categoryName; 
                 $category->description = $request->description;
                 $category->branch_id = $request->branch_id;
                 $category->isActive = $request->isActive ?? false;
+                if(!empty($request->image)) {
+                    $data = $request->image;
+                    $base64_str = substr($data, strpos($data, ",")+1);
+                    $image = base64_decode($base64_str);
+                    $png_url = "cat-".time().mt_rand(1000, 9999).".png";
+                    $path = '/img/categories/' . $png_url;
+                    \Storage::disk('public')->put($path, $image);
+                    $category->featuredImage = '/uploads'.$path;
+                }
                 $category->save();
                 return ['data' => $category, 'msg'=> "Category updated successfully"];
             }catch(\Exception $e) {

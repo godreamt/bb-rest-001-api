@@ -10,14 +10,33 @@ use Illuminate\Database\Eloquent\Builder;
 class Order extends Model
 {
     protected $fillable = [
-        'customerId', 'relatedInfo', 'branch_id', 'cgst', 'sgst', 'igst', 'orderAmount', 'packingCharge', 'extraCharge', 'excludeFromReport', 'deliverCharge', 'orderStatus', 'takenBy', 'taxDisabled', 'taxPercent'
+        'customerId', 
+        'relatedInfo', 
+        'customerAddress',
+        'branch_id', 
+        'cgst', 
+        'sgst', 
+        'igst', 
+        'orderAmount', 
+        'packingCharge', 
+        'extraCharge', 
+        'excludeFromReport', 
+        'deliverCharge', 
+        'orderStatus', 'takenBy', 'taxDisabled', 'taxPercent'
     ];
 
 
     protected $casts = [
         'branch_id' => 'int',
+        'takenBy' => 'int',
         'customerId' => 'int'
     ];
+    protected $appends = ['order_ready_count'];
+
+    public function getOrderReadyCountAttribute() {
+        return 5;
+    }
+
 
     protected static function boot()
     {
@@ -28,10 +47,10 @@ class Order extends Model
             $user = \Auth::user();
             if($user instanceof User) {
                 if($user->roles != 'Super Admin') {
-                    $builder->where('company_id',  $user->company_id);
+                    $builder->where('orders.company_id',  $user->company_id);
                 }
                 if($user->roles != 'Super Admin' && $user->roles != 'Company Admin' && $user->roles != 'Company Accountant') {
-                    $builder->where('branch_id',  $user->branch_id);
+                    $builder->where('orders.branch_id',  $user->branch_id);
                 }
             }
         });
@@ -51,7 +70,7 @@ class Order extends Model
             }
             $branch = Branch::find($order->branch_id);
             $order->company_id = $branch->company_id;
-            $order->takenBy = $user->id;
+            $order->takenBy = $loggedUser->id;
         });
 
         static::creating(function ($order) {
@@ -68,6 +87,7 @@ class Order extends Model
             }
             $branch = Branch::find($order->branch_id);
             $order->company_id = $branch->company_id;
+            $order->takenBy = $loggedUser->id;
         });
     }
 

@@ -172,10 +172,11 @@ class OrderManager extends Migration
             $table->foreign('takenBy')->references('id')->on('users');  
             $table->string('cgst')->nullable();
             $table->text('relatedInfo')->nullable();
+            $table->text('customerAddress')->nullable();
             $table->string('sgst')->nullable();
             $table->string('igst')->nullable();
-            $table->string('orderItemTotal');
-            $table->string('orderAmount');
+            $table->string('orderItemTotal')->default('0');
+            $table->string('orderAmount')->default('0');
             $table->string('packingCharge')->nullable();
             $table->string('extraCharge')->nullable();
             $table->float('taxPercent')->default(0.0);

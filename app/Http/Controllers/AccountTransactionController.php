@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Order;
 use App\MonthSheet;
 use App\Transaction;
 use App\YearlySheet;
@@ -291,5 +292,35 @@ class AccountTransactionController extends Controller
                                 ->where('id', $id)
                                 ->first();
         return $transaction;
+    }
+
+    public function getConsolidatedReport(Request $request) {
+        $transactions = [];
+        $orders = [];
+        if(!empty($request->startDate) && !empty($request->endDate)) {
+            $transactions  = Transaction::with('ledgerAccount');
+            if(!empty($request->requiredTypes)) {
+                $types = explode(',', $request->requiredTypes);
+                $transactions = $transactions->whereIn('transactionType', $types);
+            }
+
+                $startDate = new \Datetime($request->startDate);
+                $endDate = (new \Datetime($request->endDate))->modify('1 day');
+                $transactions = $transactions->whereBetween('transactionDate', [$startDate, $endDate]);
+
+            $transactions = $transactions->get();
+            if(empty(!$request->includeOrders) && $request->includeOrders) {
+                $orders = Order::with('orderType')->where('orderStatus', 'completed');
+                $startDate = new \Datetime($request->startDate);
+                $endDate = (new \Datetime($request->endDate))->modify('1 day');
+                $orders = $orders->whereBetween('created_at', [$startDate, $endDate]);
+                $orders = $orders->get();
+            }
+                
+        }
+        return [
+            'transactions' => $transactions,
+            'orders' => $orders
+        ];
     }
 }

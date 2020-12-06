@@ -32,22 +32,54 @@ class Transaction extends Model
     protected static function boot() {
         parent::boot();
 
-        // static::addGlobalScope('role_handler', function (Builder $builder) {
-        //     $user = \Auth::user();
-        //     if($user->roles != 'Super Admin') {
-        //         $builder->where('branch_id',  $user->branch_id);
-        //     }
-        // });
+        static::addGlobalScope('role_handler', function (Builder $builder) {
+            $user = \Auth::user();
+            if($user->roles != 'Super Admin') {
+                $builder->where('company_id',  $user->company_id);
+            }
+            if($user->roles != 'Super Admin' && $user->roles != 'Company Admin' && $user->roles != 'Company Accountant') {
+                $builder->where('branch_id',  $user->branch_id);
+            }
+        });
+
+        
+        static::updating(function ($transaction) {
+            $loggedUser = \Auth::user();
+            if($loggedUser instanceof User) {
+                if($loggedUser->roles != 'Super Admin') {
+                    $transaction->company_id = $loggedUser->company_id;
+                }
+                if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin' && $loggedUser->roles != 'Company Accountant') {
+                    $transaction->branch_id = $loggedUser->branch_id;
+                }
+            }
+            if(empty($transaction->company_id)) {
+                $branch = Branch::find($transaction->branch_id);
+                if($branch instanceof Branch) {
+                    $transaction->company_id = $branch->company_id;
+                }
+            }
+        });
 
         static::creating(function ($transaction) {
 
+            $loggedUser = \Auth::user();
+            if($loggedUser instanceof User) {
+                if($loggedUser->roles != 'Super Admin') {
+                    $transaction->company_id = $loggedUser->company_id;
+                }
+                if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin' && $loggedUser->roles != 'Company Accountant') {
+                    $transaction->branch_id = $loggedUser->branch_id;
+                }
+            }
+            if(empty($transaction->company_id)) {
+                $branch = Branch::find($transaction->branch_id);
+                if($branch instanceof Branch) {
+                    $transaction->company_id = $branch->company_id;
+                }
+            }
+
             
-            // $user = \Auth::user();
-            // if($user->roles != 'Super Admin') {
-            //     $transaction->branch_id = $user->branch_id;
-            // }
-
-
             if(empty($transaction->transactionRefNumber)) {
                 $ref = 1000000;
                 $count = static::count();

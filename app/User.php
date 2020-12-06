@@ -29,15 +29,15 @@ class User extends Authenticatable implements JWTSubject
         parent::boot();
 
         static::addGlobalScope('role_handler', function (Builder $builder) {
-            $user = \Auth::user();
-            if($user instanceof User) {
-                if($user->roles != 'Super Admin') {
-                    $builder->where('company_id',  $user->company_id);
-                }
-                if($user->roles != 'Super Admin' && $user->roles != 'Company Admin' && $user->roles != 'Company Accountant') {
-                    $builder->where('branch_id',  $user->branch_id);
-                }
-            }
+            // $user = \Auth::user();
+            // if($user instanceof User) {
+            //     if($user->roles != 'Super Admin') {
+            //         $builder->where('company_id',  $user->company_id);
+            //     }
+            //     if($user->roles != 'Super Admin' && $user->roles != 'Company Admin' && $user->roles != 'Company Accountant') {
+            //         $builder->where('branch_id',  $user->branch_id);
+            //     }
+            // }
         });
 
         static::updating(function ($user) {

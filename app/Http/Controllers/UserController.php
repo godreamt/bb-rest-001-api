@@ -31,9 +31,17 @@ class UserController extends Controller
             $users = $users->orderBy($request->orderCol, $request->orderType);
         }
 
+        // if($loggedUser->roles != 'Super Admin') {
+        //     $users = $users->where('branch_id', $loggedUser->branch_id);
+        // }
+        // if($loggedUser instanceof User) {
         if($loggedUser->roles != 'Super Admin') {
-            $users = $users->where('branch_id', $loggedUser->branch_id);
+            $users = $users->where('company_id',  $loggedUser->company_id);
         }
+        if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin' && $loggedUser->roles != 'Company Accountant') {
+            $users = $users->where('branch_id',  $loggedUser->branch_id);
+        }
+        // }
         $currentPage = $request->pageNumber;
         if(!empty($currentPage)){
             Paginator::currentPageResolver(function () use ($currentPage) {

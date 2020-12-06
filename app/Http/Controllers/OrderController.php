@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Order;
+use App\Product;
 use App\Customer;
 use App\OrderItem;
 use App\OrderTable;
@@ -251,7 +252,8 @@ class OrderController extends Controller
         if($fields != 'orders.*'){
             $fields = explode(',',$fields);
         }
-        $orders = Order::with('customer')->select($fields)->with('branch')->with('orderitems')->with('bearer')->with('orderTables')->with('orderTables.table')->with('orderType');
+        $orders = Order::with('customer')->select($fields)->with('branch')->with('orderitems')->with('bearer')->with('orderTables')->with('orderTables.table')->with('orderType')
+                        ->leftJoin('users as bearer', 'orders.takenBy', 'bearer.id');
  
         if(!empty($request->searchString)) {
             $orders = $orders->where(function($q) use ($request) {
@@ -288,6 +290,7 @@ class OrderController extends Controller
             if($request->orderCol == 'id')$orderCol='orders.id';
             if($request->orderCol == 'created_at')$orderCol='orders.created_at';
             if($request->orderCol == 'updated_at')$orderCol='orders.updated_at';
+            if($request->orderCol == 'bearer')$orderCol='bearer.firstName';
             $orders = $orders->orderBy($orderCol, $request->orderType);
         }else {
             $orders = $orders->orderBy('orders.updated_at', 'desc');
@@ -400,23 +403,19 @@ class OrderController extends Controller
                         $customer = $this->handleCustomerCreation($request->all(), $order->branch_id);
                         $order->customerId = $customer->id;
                     }
+                    $order->customerAddress = $request->customerAddress;
                     $order->relatedInfo = $request->relatedInfo;
-                    $order->cgst = $request->cgst;
-                    $order->sgst = $request->sgst;
-                    $order->igst = 0;
-                    $order->packingCharge = $request->packingCharge;
-                    $order->deliverCharge = $request->deliverCharge;
+                    // $order->packingCharge = $request->packingCharge;
                     $order->orderStatus = $request->orderStatus;
-                    $order->orderItemTotal = $request->orderItemTotal;
-                    $order->orderAmount = $request->orderAmount;
                     $order->taxPercent = (float)$request->taxPercent;
                     $order->taxDisabled = $request->taxDisabled ?? false;
-                    
-                    
-                    $order->save();
+                    if(empty($request->id)) {
+                        $order->save();
+                    }
                         
                        
-                        
+                    $totalOrderAmount=0;
+
                     foreach($request->items as $item) {
                         if($item['deletedFlag']) {
                             $orderItem = OrderItem::find($item['id']);
@@ -428,20 +427,28 @@ class OrderController extends Controller
                             }else {
                                 $orderItem = OrderItem::find($item['id']);
                             }
-                            $orderItem->quantity = $item['quantity'];
+                            $product = Product::find( $item['productId']);
+                            $orderItem->quantity = (int)$item['quantity'];
                             $orderItem->servedQuantity = $item['servedItems'];
-                            $orderItem->price = $item['price'];
-                            $orderItem->packagingCharges = $item['packagingCharges'];
-                            $orderItem->totalPrice = $item['totalPrice'];
-                            $orderItem->productId = $item['productId'];
+                            $orderItem->price = (float)$item['price'];
+                            $orderItem->productId = $product->id;
                             $orderItem->orderId = $order->id;
                             $orderItem->isParcel = $item['isParcel'] ?? false;
-                            // $orderItem->productionAcceptedQuantity = $item['productionAcceptedQuantity'] ?? 0;
-                            // $orderItem->productionReadyQuantity = $item['productionReadyQuantity'] ?? 0;
-                            // $orderItem->productionRejectedQuantity = $item['productionRejectedQuantity'] ?? 0;
+                            $orderItem->packagingCharges = $product->packagingCharges;
+                            $totalPrice = $orderItem->quantity * $product->price;
+                            if($orderItem->isParcel) {
+                                $totalPrice = $totalPrice + ($orderItem->quantity * $orderItem->packagingCharges);
+                            }else {
+                                $orderItem->packagingCharges = 0;
+                            }
+                            $orderItem->totalPrice = $totalPrice;
+                            $totalOrderAmount = $totalOrderAmount + $totalPrice;
                             $orderItem->save();
                         }
                     }
+                    $order->orderItemTotal = $totalOrderAmount;
+                    $order = $this->handleFinalCalculationOrder($order);
+                    $order->save();
 
 
                     $order->orderTables()->delete();
@@ -459,6 +466,32 @@ class OrderController extends Controller
         }catch(\Exception $e) {
             return response()->json(['msg' => 'Can not able to update', 'error'=>$e], 400);
         }
+    }
+
+    public function handleFinalCalculationOrder($order) {
+        $totalOrderAmount = $order->orderItemTotal;
+        
+        $order->igst = 0;
+        if(!empty($request->deliverCharge)) {
+            $order->deliverCharge = (float)$request->deliverCharge;
+            $totalOrderAmount = $totalOrderAmount + $order->deliverCharge;
+        }else {
+            $order->deliverCharge = 0;
+        }
+        
+        $taxAmount = ($totalOrderAmount * $order->taxPercent / 100);
+        if(!$order->taxDisabled && $taxAmount > 0) {
+            $order->cgst = $taxAmount / 2;
+            $order->sgst = $taxAmount / 2;
+            $totalOrderAmount = $totalOrderAmount + $taxAmount;
+        }else {
+            $order->cgst = 0;
+            $order->sgst = 0;
+        }
+
+        
+        $order->orderAmount = $totalOrderAmount;
+        return $order;
     }
 
     public function handleCustomerCreation($request, $branch_id) {
@@ -480,12 +513,18 @@ class OrderController extends Controller
                 return DB::transaction(function() use ($request) {
                     $orderItem = OrderItem::find($request->id);
                     $orderItem->quantity = $orderItem->quantity - $orderItem->productionRejectedQuantity;
-                    $orderItem->productionRejectedQuantity = 0;
 
+                    $totalDeductablePrice = ($orderItem->price * $orderItem->productionRejectedQuantity) + ($orderItem->price * $orderItem->packagingCharges);
+
+                    $orderItem->productionRejectedQuantity = 0;
+                    $orderItem->totalPrice = $orderItem->totalPrice - $totalDeductablePrice;
+                    $order = Order::find($orderItem->orderId);
+                    $order->orderItemTotal = $order->orderItemTotal - $totalDeductablePrice;
+                    $order = $this->handleFinalCalculationOrder($order);
+                    $order->save();
                     if($orderItem->quantity == 0) {
                         $orderItem->delete();
                     }else {
-                        
                         $orderItem->save();
                     }
 
