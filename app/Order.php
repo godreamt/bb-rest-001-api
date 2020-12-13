@@ -22,14 +22,19 @@ class Order extends Model
         'extraCharge', 
         'excludeFromReport', 
         'deliverCharge', 
-        'orderStatus', 'takenBy', 'taxDisabled', 'taxPercent'
+        'orderStatus', 
+        'takenBy', 
+        'taxDisabled', 
+        'taxPercent'
     ];
 
 
     protected $casts = [
         'branch_id' => 'int',
         'takenBy' => 'int',
-        'customerId' => 'int'
+        'customerId' => 'int',
+        'taxDisabled' => 'boolean',
+        'taxPercent' => 'float'
     ];
     protected $appends = ['order_ready_count'];
 

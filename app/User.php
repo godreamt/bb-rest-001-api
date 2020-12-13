@@ -20,7 +20,16 @@ class User extends Authenticatable implements JWTSubject
      * @var array
      */
     protected $fillable = [
-        'firstName', 'lastName', 'profilePic', 'isActive', 'email', 'mobileNumber', 'roles', 'password', 'branch_id'
+        'firstName', 
+        'lastName', 
+        'profilePic', 
+        'isActive', 
+        'email', 
+        'mobileNumber', 
+        'roles', 
+        'password', 
+        'branch_id',
+        'attendaceRequired'
     ];
     
 
@@ -109,6 +118,7 @@ class User extends Authenticatable implements JWTSubject
         'company_id' => 'int',
         'branch_id' => 'int',
         'isActive' => 'boolean',
+        'attendaceRequired' => 'boolean',
     ];
 
     public function branch()

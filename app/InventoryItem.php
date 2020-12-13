@@ -9,7 +9,12 @@ class InventoryItem extends Model
 {
     public $timestamps = false;
     protected $fillable = [
-        'itemName', 'unitId', 'description', 'pricePerUnit', 'isActive', 'company_id'
+        'itemName', 
+        'unitId', 
+        'description', 
+        'pricePerUnit', 
+        'isActive', 
+        'company_id'
     ];
 
 

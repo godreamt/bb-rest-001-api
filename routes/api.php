@@ -37,6 +37,10 @@ Route::group(['middleware' => ['jwt.verify']], function() {
             Route::delete('{id}', 'UserController@deleteUser');
         });
 
+        Route::group(['prefix'=>'user-attendance'], function(){
+            Route::get('', 'UserAttendanceController@getAttendance');
+            Route::post('', 'UserAttendanceController@updateAttendace');
+        });
         Route::group(['prefix'=>'category'], function(){
             Route::get('', 'ProductController@getCategories');
             Route::get('{id}', 'ProductController@getCategoryDetail');

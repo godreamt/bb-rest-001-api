@@ -23,6 +23,10 @@ class UserController extends Controller
             $users = $users->where('firstName', 'LIKE', '%'.$request->searchString.'%');
         }
 
+        if(!empty($request->attendaceRequired)) {
+            $users = $users->where('attendaceRequired', ($request->status == 'in-active')?false:true);
+        }
+
         if(!empty($request->status)) {
             $users = $users->where('isActive', ($request->status == 'in-active')?false:true);
         }
@@ -93,6 +97,7 @@ class UserController extends Controller
                 $user->mobileNumber =  $request->mobileNumber;
                 $user->roles =  $request->roles;
                 $user->isActive =  $request->isActive ?? false;
+                $user->attendaceRequired =  $request->attendaceRequired ?? false;
                 $user->company_id =  $request->company_id;
                 $user->branch_id =  $request->branch_id;
                 $user->save();

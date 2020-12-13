@@ -19,6 +19,7 @@ class CreateUsersTable extends Migration
             $table->string('lastName')->nullable();
             $table->string('profilePic')->nullable();
             $table->boolean('isActive')->default(true);
+            $table->boolean('attendaceRequired')->default(false);
             $table->string('mobileNumber')->unique();
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
@@ -35,6 +36,18 @@ class CreateUsersTable extends Migration
                 'Bearer'
             ]);
             $table->rememberToken();
+            $table->timestamps();
+        });
+
+
+        Schema::create('user_attendances', function (Blueprint $table) {
+            $table->id();
+            $table->date('effectedDate');
+            $table->boolean('isPresent')->default(false);
+            $table->text('description')->nullable();
+            $table->unsignedBigInteger('user_id');
+            $table->foreign('user_id')->references('id')->on('users'); 
+            $table->unique(['effectedDate', 'user_id']);
             $table->timestamps();
         });
         
