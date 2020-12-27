@@ -30,11 +30,29 @@ class CreateAccountsTable extends Migration
             $table->string('pricePerUnit');
             $table->boolean('isActive')->default(true);
             $table->text('description')->nullable(true);
+            $table->string('availableStock')->default('0');
+            $table->string('lastPurchasedPrice')->default('0');
             $table->unsignedBigInteger('unitId')->nullable(true);
             $table->foreign('unitId')->references('id')->on('measure_units')->onDelete('cascade');  
             $table->unsignedBigInteger('company_id');
             $table->foreign('company_id')->references('id')->on('companies'); 
             $table->unique(['itemName', 'company_id']);
+        });
+
+        Schema::create('inventory_item_journals', function (Blueprint $table) {
+            $table->id();
+            $table->string('quantity');
+            $table->string('pricePerUnit');
+            $table->text('description')->nullable(true);
+            $table->string('totalAmount')->default('0');
+            $table->enum('transactionType', ['Damaged Item', 'Wastage', 'Used For Order']);
+            $table->unsignedBigInteger('inventoryId')->nullable(true);
+            $table->foreign('inventoryId')->references('id')->on('inventory_items')->onDelete('cascade');  
+            $table->unsignedBigInteger('orderId')->nullable(true);
+            $table->foreign('orderId')->references('id')->on('orders'); 
+            $table->unsignedBigInteger('updatedBy')->nullable(true);
+            $table->foreign('updatedBy')->references('id')->on('users'); 
+            $table->timestamps();
         });
 
         Schema::create('ledger_accounts', function (Blueprint $table) {
@@ -113,6 +131,8 @@ class CreateAccountsTable extends Migration
             $table->foreign('company_id')->references('id')->on('companies'); 
             $table->unsignedBigInteger('monthly_sheet_id');
             $table->foreign('monthly_sheet_id')->references('id')->on('month_sheets'); 
+            $table->unsignedBigInteger('updatedBy')->nullable(true);
+            $table->foreign('updatedBy')->references('id')->on('users'); 
             $table->timestamps();
         });
 

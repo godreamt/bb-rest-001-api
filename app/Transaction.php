@@ -16,6 +16,7 @@ class Transaction extends Model
         'grandTotal', 
         'company_id', 
         'branch_id',
+        'updatedBy',
         'monthly_sheet_id'
     ];
 
@@ -26,7 +27,8 @@ class Transaction extends Model
         'grandTotal' => 'double',
         'company_id' => 'int',
         'branch_id' => 'int',
-        'monthly_sheet_id' => 'int'
+        'monthly_sheet_id' => 'int',
+        'updatedBy' => 'int'
     ];
 
     protected static function boot() {
@@ -64,6 +66,7 @@ class Transaction extends Model
         static::creating(function ($transaction) {
 
             $loggedUser = \Auth::user();
+            $transaction->updateBy = $loggedUser->id;
             if($loggedUser instanceof User) {
                 if($loggedUser->roles != 'Super Admin') {
                     $transaction->company_id = $loggedUser->company_id;

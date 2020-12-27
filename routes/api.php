@@ -124,11 +124,13 @@ Route::group(['middleware' => ['jwt.verify']], function() {
         });
         
         Route::group(['prefix'=>'inventory'], function(){
-            Route::get('', 'AccountMasterController@getInventoryItems');
-            Route::get('{id}', 'AccountMasterController@getInventoryItem');
-            Route::post('', 'AccountMasterController@updateInventoryItem');
-            // Route::put('{id}', 'AccountMasterController@updateInventoryItem');
-            Route::delete('{id}', 'AccountMasterController@deleteInventoryItem');
+            Route::get('', 'InventoryManagementController@getInventoryItems');
+            Route::get('{id}', 'InventoryManagementController@getInventoryItem');
+            Route::post('', 'InventoryManagementController@updateInventoryItem');
+            // Route::put('{id}', 'InventoryManagementController@updateInventoryItem');
+            Route::delete('{id}', 'InventoryManagementController@deleteInventoryItem');
+            Route::get('inventory-history/{invenotoryId}', 'InventoryManagementController@getInventoryTrackings');
+            Route::post('stock-update', 'InventoryManagementController@updateInventoryStock');
         });
         
         Route::group(['prefix'=>'transaction'], function(){
@@ -136,6 +138,7 @@ Route::group(['middleware' => ['jwt.verify']], function() {
             Route::get('consolidated-report', 'AccountTransactionController@getConsolidatedReport');
             Route::get('{id}', 'AccountTransactionController@getTransactionDetails');
             Route::post('', 'AccountTransactionController@updateTransaction');
+            Route::get('report-dash/monthly', 'AccountTransactionController@monthlyDashStats');
             // Route::put('{id}', 'AccountTransactionController@updateTransaction');
             // Route::delete('{id}', 'AccountTransactionController@deleteInventoryItem');
         });

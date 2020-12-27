@@ -2,18 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\User;
 use App\Order;
 use App\MonthSheet;
 use App\Transaction;
 use App\YearlySheet;
+use App\InventoryItem;
 use App\TransactionItem;
 use Illuminate\Http\Request;
 use App\TransactionOnAccount;
 use Illuminate\Pagination\Paginator;
+use App\Http\Requests\TransactionUpdateValidationRequest;
 
 class AccountTransactionController extends Controller
 {
-    public function updateTransaction(Request $request) {
+    public function updateTransaction(TransactionUpdateValidationRequest $request) {
         try {
             return \DB::transaction(function() use($request) {
                 $date = new \Datetime();
@@ -24,6 +27,16 @@ class AccountTransactionController extends Controller
                     $transaction->transactionType = $request->transactionType;
                     $transaction->company_id = $request->company_id;
                     $transaction->branch_id = $request->branch_id;
+
+                    $loggedUser = \Auth::user();
+                    if($loggedUser instanceof User) {
+                        if($loggedUser->roles != 'Super Admin') {
+                            $transaction->company_id = $loggedUser->company_id;
+                        }
+                        if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin' && $loggedUser->roles != 'Company Accountant') {
+                            $transaction->branch_id = $loggedUser->branch_id;
+                        }
+                    }
                 }else {
                     $transaction = Transaction::find($request->id);
                     if($transaction->transactionDate < $before30days) {
@@ -58,8 +71,8 @@ class AccountTransactionController extends Controller
                 $transaction->description = $request->description;
                 $transaction->grandTotal = $request->grandTotal;
                 $transaction->monthly_sheet_id = $monthlySheet->id;
-                $transaction->branch_id = $request->branch_id;
-                $transaction->company_id = $request->company_id;
+                // $transaction->branch_id = $request->branch_id;
+                // $transaction->company_id = $request->company_id;
                 $transaction->save();
 
                 
@@ -84,12 +97,27 @@ class AccountTransactionController extends Controller
                             }else {
                                 $transactionItem = TransactionItem::find($item['id']);
                             }
+
+                            
+                            $newlyNeededQuantity = $item['quantity'] - $transactionItem->quantity;
+                            $inventory = InventoryItem::find($item['itemId']);
+                            if($request->transactionType == 'purchase') {
+                                if($item['amount'] > 0) {
+                                    $inventory->lastPurchasedPrice = $item['amount'];
+                                }
+                                $inventory->availableStock = $inventory->availableStock + $newlyNeededQuantity;
+                            }else if($request->transactionType == 'sales') {
+                                $inventory->availableStock = $inventory->availableStock - $newlyNeededQuantity;
+                            }
+
                             $transactionItem->transactionId = $transaction->id;
                             $transactionItem->itemId = $item['itemId'];
                             $transactionItem->quantity = $item['quantity'];
                             $transactionItem->amount = $item['amount'];
                             $transactionItem->total = $item['total'];
                             $transactionItem->save();
+
+                            $inventory->save();
                         }
                     }
                 }
@@ -181,53 +209,6 @@ class AccountTransactionController extends Controller
 
 
 
-    // public function updatePurchase(Request $request, $id) {
-    //     try {
-    //         return \DB::transaction(function() use($request, $id) {
-    //             $transaction = Transaction::find($id);
-    //             $transaction->transactionDate = new \Datetime($request->transactionDate);
-    //             $transaction->transactionRefNumber = $request->transactionRefNumber;
-    //             $transaction->accountId = $request->accountId;
-    //             $transaction->transactionType = 'purchase';
-    //             $transaction->accountCurrentBalance = $request->accountCurrentBalance;
-    //             $transaction->comment = $request->comment;
-    //             $transaction->grandTotal = $request->grandTotal;
-    //             $transaction->save();
-
-
-    //             foreach($request->items as $item) {
-    //                 if(!empty($item['id'])) {
-    //                     $transactionItem = TransactionItem::find($item['id']);
-    //                 }else {
-    //                     $transactionItem = new TransactionItem();
-    //                     $transactionItem->transactionId = $transaction->id;
-    //                 }
-    //                 $transactionItem->itemId = $item['itemId'];
-    //                 $transactionItem->quantity = $item['quantity'];
-    //                 $transactionItem->amount = $item['amount'];
-    //                 $transactionItem->total = $item['total'];
-    //                 $transactionItem->save();
-    //             }
-
-    //             foreach($request->accounts as $account) {
-    //                 if(!empty($account['id'])) {
-    //                     $transactionAccount = TransactionOnAccount::find($item['id']);
-    //                 }else {
-    //                     $transactionAccount = new TransactionOnAccount();
-    //                     $transactionAccount->transactionId = $transaction->id;
-    //                 }
-    //                 $transactionAccount->accountId = $account['accountId'];
-    //                 $transactionAccount->percentage = $account['percentage'];
-    //                 $transactionAccount->amount = $account['amount'];
-    //                 $transactionAccount->currentBalance = $account['currentBalance'];
-    //                 $transactionAccount->save();
-    //             }
-    //             return $transaction;
-    //         });
-    //     }catch(\Exception $e) {
-    //         return response()->json(['msg' => ' Can not able to save transaction', 'error'=>$e], 400);
-    //     }
-    // }
 
     public function getAllTransactions(Request $request) {
         $fields = $request->get('fields', '*');
@@ -273,7 +254,7 @@ class AccountTransactionController extends Controller
                 return $currentPage;
             });
 
-            return $transactions->paginate(10);
+            return $transactions->paginate($request->get('perPage', 10));
         }else {
             return $transactions->get();
         }
@@ -322,5 +303,19 @@ class AccountTransactionController extends Controller
             'transactions' => $transactions,
             'orders' => $orders
         ];
+    }
+
+    public function monthlyDashStats(Request $request){
+        $year = $request->get('year', (new \Datetime())->format('Y'));
+        $monthlySheets = MonthSheet::where('year', $year)
+                                ->get();
+        foreach($monthlySheets as $sheet) {
+            $sheet['stats'] = Transaction::where('monthly_sheet_id', $sheet->id)
+                                                ->groupBy('transactionType')
+                                                ->selectRaw('sum(transactions.grandTotal) as amount')
+                                                ->addSelect('transactionType')
+                                                ->get();
+        }
+        return $monthlySheets;
     }
 }
