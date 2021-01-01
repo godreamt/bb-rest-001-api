@@ -3,15 +3,24 @@
 namespace App;
 
 use App\User;
+use Illuminate\Support\Facades\Config;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Builder;
+use Haruncpi\LaravelIdGenerator\IdGenerator;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable implements JWTSubject
 {
+    protected $primaryKey = 'id'; // or null
+
+    public $incrementing = false;
+
+    // In Laravel 6.0+ make sure to also set $keyType
+    protected $keyType = 'string';
+
     use Notifiable;
 
     /**
@@ -95,6 +104,9 @@ class User extends Authenticatable implements JWTSubject
                     $user->branch_id = $loggedUser->branch_id;
                 }
             }
+            // \Debugger::dump(Config::get('app.hosted'));
+            $prefix = Config::get('app.hosted') . ($loggedUser->company_id ?? "") . ($loggedUser->branch_id ?? "" );
+            $user->id = IdGenerator::generate(['table' => 'users', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
         });
         
     }

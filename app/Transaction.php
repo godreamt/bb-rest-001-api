@@ -2,11 +2,20 @@
 
 namespace App;
 
+use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Haruncpi\LaravelIdGenerator\IdGenerator;
 
 class Transaction extends Model
 {
+    protected $primaryKey = 'id'; // or null
+
+    public $incrementing = false;
+
+    // In Laravel 6.0+ make sure to also set $keyType
+    protected $keyType = 'string';
+
     protected $fillable = [
         'transactionDate', 
         'transactionRefNumber', 
@@ -88,6 +97,8 @@ class Transaction extends Model
                 $count = static::count();
                 $transaction->transactionRefNumber = $count ? $ref + $count : $ref;
             }
+            $prefix = Config::get('app.hosted') . ($loggedUser->company_id ?? "") . ($loggedUser->branch_id ?? "" );
+            $transaction->id = IdGenerator::generate(['table' => 'transactions', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
         });
     }
 

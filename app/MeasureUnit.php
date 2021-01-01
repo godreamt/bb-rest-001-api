@@ -2,11 +2,20 @@
 
 namespace App;
 
+use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Haruncpi\LaravelIdGenerator\IdGenerator;
 
 class MeasureUnit extends Model
 {
+    protected $primaryKey = 'id'; // or null
+
+    public $incrementing = false;
+
+    // In Laravel 6.0+ make sure to also set $keyType
+    protected $keyType = 'string';
+
     public $timestamps = false;
     protected $fillable = [
         'unitLabel', 
@@ -42,10 +51,12 @@ class MeasureUnit extends Model
 
         
         static::creating(function ($item) {
-            $user = \Auth::user();
-            if($user->roles != 'Super Admin') {
-                $item->company_id = $user->company_id;
+            $loggedUser = \Auth::user();
+            if($loggedUser->roles != 'Super Admin') {
+                $item->company_id = $loggedUser->company_id;
             }
+            $prefix = Config::get('app.hosted') . ($loggedUser->company_id ?? "") . ($loggedUser->branch_id ?? "" );
+            $item->id = IdGenerator::generate(['table' => 'measure_units', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
         });
 
         

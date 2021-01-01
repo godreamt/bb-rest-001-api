@@ -14,7 +14,9 @@ class CreateUsersTable extends Migration
     public function up()
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id();
+            // $table->string('id')->primary();
+
+            $table->string('id')->primary();
             $table->string('firstName');
             $table->string('lastName')->nullable();
             $table->string('profilePic')->nullable();
@@ -41,18 +43,18 @@ class CreateUsersTable extends Migration
 
 
         Schema::create('user_attendances', function (Blueprint $table) {
-            $table->id();
+            $table->string('id')->primary();
             $table->date('effectedDate');
             $table->boolean('isPresent')->default(false);
             $table->text('description')->nullable();
-            $table->unsignedBigInteger('user_id');
+            $table->string('user_id');
             $table->foreign('user_id')->references('id')->on('users'); 
             $table->unique(['effectedDate', 'user_id']);
             $table->timestamps();
         });
         
         Schema::create('companies', function (Blueprint $table) {
-            $table->id();
+            $table->string('id')->primary();
             $table->string('companyLogo')->nullable();
             $table->string('companyName', 191)->unique();
             $table->text('companyDetails')->nullable();
@@ -65,7 +67,7 @@ class CreateUsersTable extends Migration
         });
 
         Schema::create('branches', function (Blueprint $table) {
-            $table->id();
+            $table->string('id')->primary();
             $table->string('branchLogo')->nullable();
             $table->string('branchTitle', 191)->unique();
             $table->text('description')->nullable();
@@ -73,18 +75,18 @@ class CreateUsersTable extends Migration
             $table->boolean('isActive')->default(true);
             $table->string('branchCode')->unique();
             $table->float('taxPercent');
-            $table->unsignedBigInteger('company_id');
+            $table->string('company_id');
             $table->foreign('company_id')->references('id')->on('companies');
             $table->timestamps();
         });
 
         
         Schema::create('branch_order_types', function (Blueprint $table) {
-            $table->id();
+            $table->string('id')->primary();
             $table->string('orderType')->nullable();
             $table->boolean('tableRequired')->default(false);
             $table->boolean('isActive')->default(true);
-            $table->unsignedBigInteger('branch_id');
+            $table->string('branch_id');
             $table->foreign('branch_id')->references('id')->on('branches');  
             $table->unique(['orderType', 'branch_id']);
             $table->timestamps();
@@ -92,25 +94,25 @@ class CreateUsersTable extends Migration
 
         
         Schema::create('branch_kitchens', function (Blueprint $table) {
-            $table->id();
+            $table->string('id')->primary();
             $table->string('kitchenTitle');
-            $table->unsignedBigInteger('branch_id')->nullable(true);
+            $table->string('branch_id')->nullable(true);
             $table->foreign('branch_id')->references('id')->on('branches');  
             $table->unique(['kitchenTitle', 'branch_id']);
             $table->timestamps();
         });
 
         Schema::table('users', function(Blueprint $table) {
-            $table->unsignedBigInteger('branch_id')->nullable(true);
+            $table->string('branch_id')->nullable(true);
             $table->foreign('branch_id')->references('id')->on('branches');  
-            $table->unsignedBigInteger('company_id')->nullable(true);
+            $table->string('company_id')->nullable(true);
             $table->foreign('company_id')->references('id')->on('companies');  
         });
 
         Schema::table('branches', function(Blueprint $table) {
-            $table->unsignedBigInteger('appDefaultOrderType')->nullable(true);
+            $table->string('appDefaultOrderType')->nullable(true);
             $table->foreign('appDefaultOrderType')->references('id')->on('branch_order_types'); 
-            $table->unsignedBigInteger('adminDefaultOrderType')->nullable(true);
+            $table->string('adminDefaultOrderType')->nullable(true);
             $table->foreign('adminDefaultOrderType')->references('id')->on('branch_order_types');  
         });
     }

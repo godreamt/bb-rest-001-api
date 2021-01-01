@@ -2,10 +2,19 @@
 
 namespace App;
 
+use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Model;
+use Haruncpi\LaravelIdGenerator\IdGenerator;
 
 class BranchOrderType extends Model
 {
+
+    protected $primaryKey = 'id'; // or null
+
+    public $incrementing = false;
+
+    // In Laravel 6.0+ make sure to also set $keyType
+    protected $keyType = 'string';
     protected $fillable = [
         'orderType', 'tableRequired', 'isActive', 'branch_id'
     ];
@@ -16,4 +25,15 @@ class BranchOrderType extends Model
         'isActive' => 'boolean',
         'tableRequired' => 'boolean'
     ];
+    
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::creating(function ($orderType) {
+            $loggedUser = \Auth::user();
+            $prefix = Config::get('app.hosted') . ($loggedUser->company_id ?? "") . ($loggedUser->branch_id ?? "" );
+            $orderType->id = IdGenerator::generate(['table' => 'branch_order_types', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+        });
+    }
 }

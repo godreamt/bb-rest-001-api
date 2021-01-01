@@ -13,6 +13,7 @@ return [
     |
     */
 
+    'hosted' => env('APP_HOSTED', 'ONLINE'),
     'name' => env('APP_NAME', 'Laravel'),
 
     /*

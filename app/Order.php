@@ -4,11 +4,20 @@ namespace App;
 
 use App\User;
 use App\Branch;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Haruncpi\LaravelIdGenerator\IdGenerator;
 
 class Order extends Model
 {
+    protected $primaryKey = 'id'; // or null
+
+    public $incrementing = false;
+
+    // In Laravel 6.0+ make sure to also set $keyType
+    protected $keyType = 'string';
+
     protected $fillable = [
         'customerId', 
         'relatedInfo', 
@@ -93,6 +102,8 @@ class Order extends Model
             $branch = Branch::find($order->branch_id);
             $order->company_id = $branch->company_id;
             $order->takenBy = $loggedUser->id;
+            $prefix = Config::get('app.hosted') . ($loggedUser->company_id ?? "") . ($loggedUser->branch_id ?? "" );
+            $order->id = IdGenerator::generate(['table' => 'orders', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
         });
     }
 

@@ -15,6 +15,7 @@ class UserSeeder extends Seeder
     {
         
         DB::table('users')->insert([
+            'id' => '1',
             'firstname' => 'kiran',
             'email' => 'shiningkiru@gmail.com',
             'mobileNumber' => '7899866288',
@@ -23,16 +24,19 @@ class UserSeeder extends Seeder
         ]);
 
         DB::table('companies')->insert([
+            'id' => '1',
             'companyName' => 'Black Bamboo'
         ]);
 
         DB::table('branches')->insert([
+            'id' => '1',
             'branchTitle' => 'Mukka',
             'branchCode' => 'MK',
             'taxPercent' => 5,
             'company_id' => 1
         ]);
         DB::table('measure_units')->insert([
+            'id' => '1',
             'unitLabel' => 'KG',
             'company_id' => 1
         ]);
