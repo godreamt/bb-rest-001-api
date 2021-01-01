@@ -14,9 +14,7 @@ class InventoryItem extends Model
         'description', 
         'pricePerUnit', 
         'isActive', 
-        'company_id',
-        'availableStock',
-        'lastPurchasedPrice'
+        'company_id'
     ];
 
 
@@ -25,7 +23,6 @@ class InventoryItem extends Model
         'unitId' => 'int',
         'isActive' => 'boolean',
         'pricePerUnit' => 'double',
-        'availableStock' => 'double'
     ];
 
     public function unit() {

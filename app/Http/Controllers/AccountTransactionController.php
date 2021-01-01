@@ -7,9 +7,11 @@ use App\Order;
 use App\MonthSheet;
 use App\Transaction;
 use App\YearlySheet;
+use App\Helper\Helper;
 use App\InventoryItem;
 use App\TransactionItem;
 use Illuminate\Http\Request;
+use App\InventoryItemManager;
 use App\TransactionOnAccount;
 use Illuminate\Pagination\Paginator;
 use App\Http\Requests\TransactionUpdateValidationRequest;
@@ -88,8 +90,19 @@ class AccountTransactionController extends Controller
 
                 if($request->transactionType == 'purchase' || $request->transactionType == 'sales') {
                     foreach($request->items as $item) {
+                        $helper = new Helper();
+                        $inventoryManager = $helper->getInventoryManager($item['itemId'], $transaction->company_id, $transaction->branch_id);
                         if(!empty($item['deletedFlag']) && $item['deletedFlag'] == 'true') {
                             $transactionItem = TransactionItem::find($item['id']);
+
+                            $oldQuantity = $transactionItem->quantity;
+                            if($request->transactionType == 'purchase') {
+                                $inventoryManager->availableStock = $inventoryManager->availableStock - $oldQuantity;
+                            }else if($request->transactionType == 'sales') {
+                                $inventoryManager->availableStock = $inventoryManager->availableStock + $oldQuantity;
+                            }
+
+                            $inventoryManager->save();
                             $transactionItem->delete();
                         }else {
                             if(empty($item['id'])){
@@ -100,14 +113,14 @@ class AccountTransactionController extends Controller
 
                             
                             $newlyNeededQuantity = $item['quantity'] - $transactionItem->quantity;
-                            $inventory = InventoryItem::find($item['itemId']);
+                            
                             if($request->transactionType == 'purchase') {
                                 if($item['amount'] > 0) {
-                                    $inventory->lastPurchasedPrice = $item['amount'];
+                                    $inventoryManager->lastPurchasedPrice = $item['amount'];
                                 }
-                                $inventory->availableStock = $inventory->availableStock + $newlyNeededQuantity;
+                                $inventoryManager->availableStock = $inventoryManager->availableStock + $newlyNeededQuantity;
                             }else if($request->transactionType == 'sales') {
-                                $inventory->availableStock = $inventory->availableStock - $newlyNeededQuantity;
+                                $inventoryManager->availableStock = $inventoryManager->availableStock - $newlyNeededQuantity;
                             }
 
                             $transactionItem->transactionId = $transaction->id;
@@ -117,7 +130,7 @@ class AccountTransactionController extends Controller
                             $transactionItem->total = $item['total'];
                             $transactionItem->save();
 
-                            $inventory->save();
+                            $inventoryManager->save();
                         }
                     }
                 }

@@ -2,6 +2,8 @@
 
 namespace App\Rules;
 
+use App\User;
+use App\Helper\Helper;
 use App\InventoryItem;
 use App\TransactionItem;
 use Illuminate\Contracts\Validation\Rule;
@@ -29,6 +31,9 @@ class InventoryCheckRule implements Rule
      */
     public function passes($attribute, $value)
     {
+        $company_id = $this->param['company_id'];
+        $branch_id = $this->param['branch_id'];
+
         if($this->param['transactionType'] != 'sales')return true;
         $itemList = $this->param['items'];
         $itemGroup = [];
@@ -42,8 +47,10 @@ class InventoryCheckRule implements Rule
         }
         $noError = true;
         foreach($itemGroup as $itemId => $neededQuantity) {
+            $helper = new Helper();
+            $inventoryManager = $helper->getInventoryManager($itemId, $company_id, $branch_id);
             $this->item = InventoryItem::find($itemId);
-            if($neededQuantity > $this->item->availableStock) {
+            if($neededQuantity > $inventoryManager->availableStock) {
                 $noError = false;
                 break;
             }

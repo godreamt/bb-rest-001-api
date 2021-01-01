@@ -8,22 +8,21 @@ use App\InventoryItem;
 use App\TransactionItem;
 use Illuminate\Http\Request;
 use App\InventoryItemJournal;
+use App\InventoryItemManager;
 use Illuminate\Pagination\Paginator;
 
 class InventoryManagementController extends Controller
 {
     public function getInventoryItems(Request $request) {
-        $fields = $request->get('fields', '*');
-        if($fields != '*'){
-            $fields = explode(',',$fields);
-        }
-        $items = InventoryItem::with('unit')->with('company')->select($fields);
+        $items = InventoryItem::with('unit')->with('company')
+                                ->leftJoin('inventory_item_managers', 'inventory_item_managers.inventoryId', 'inventory_items.id')
+                                ->addSelect('inventory_items.*', 'inventory_item_managers.id as managerId', 'inventory_item_managers.availableStock', 'inventory_item_managers.lastPurchasedPrice');
 
         if(!empty($request->searchString)) {
             $items = $items->where('itemName', 'LIKE', '%'.$request->searchString.'%');
         }
         if(!empty($request->companyId)) {
-            $items = $items->where('company_id', $request->companyId);
+            $items = $items->where('inventory_items.company_id', $request->companyId);
         }
 
         if(!empty($request->status)) {
@@ -47,7 +46,10 @@ class InventoryManagementController extends Controller
     }
 
     public function getInventoryItem(Request $request, $id) {
-        return InventoryItem::with('unit')->with('company')->where('id', $id)->first();
+        return InventoryItem::with('unit')->with('company')
+                            ->leftJoin('inventory_item_managers', 'inventory_item_managers.inventoryId', 'inventory_items.id')
+                            ->addSelect('inventory_items.*', 'inventory_item_managers.id as managerId', 'inventory_item_managers.availableStock', 'inventory_item_managers.lastPurchasedPrice')
+                            ->where('inventory_items.id', $id)->first();
     }
 
     public function updateInventoryItem(Request $request) {
@@ -149,7 +151,8 @@ class InventoryManagementController extends Controller
         return \DB::transaction(function() use ($request) {
             try {
                 $invenotory = InventoryItem::find($request->inventoryId);
-                if($request->quantity > $invenotory->availableStock) {
+                $invenotoryManager = InventoryItemManager::find($request->managerId);
+                if($request->quantity > $invenotoryManager->availableStock) {
                     return response()->json(['msg' => $invenotory->itemName.' does not have enough storage'], 400);
                 }
                 $latestUpdate = new InventoryItemJournal();
@@ -157,15 +160,15 @@ class InventoryManagementController extends Controller
                 $latestUpdate->description = $request->description;
                 $latestUpdate->transactionType = $request->transactionType;
                 $latestUpdate->quantity = $request->quantity;
-                if($invenotory->lastPurchasedPrice <= 0) {
+                if($invenotoryManager->lastPurchasedPrice <= 0) {
                     $latestUpdate->pricePerUnit = $invenotory->pricePerUnit;
                 }else {
-                    $latestUpdate->pricePerUnit = $invenotory->lastPurchasedPrice;
+                    $latestUpdate->pricePerUnit = $invenotoryManager->lastPurchasedPrice;
                 }
                 $latestUpdate->totalAmount = $request->quantity * $latestUpdate->pricePerUnit;
-                $invenotory->availableStock=$invenotory->availableStock-$request->quantity;
+                $invenotoryManager->availableStock=$invenotoryManager->availableStock-$request->quantity;
                 $latestUpdate->save();
-                $invenotory->save();
+                $invenotoryManager->save();
                 return $latestUpdate;
             }catch(\Exception $e) {
                 return response()->json(['msg' => 'Can not update inventory', 'error'=>$e->getMessage()], 400);

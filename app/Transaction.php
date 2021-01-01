@@ -66,7 +66,7 @@ class Transaction extends Model
         static::creating(function ($transaction) {
 
             $loggedUser = \Auth::user();
-            $transaction->updateBy = $loggedUser->id;
+            $transaction->updatedBy = $loggedUser->id;
             if($loggedUser instanceof User) {
                 if($loggedUser->roles != 'Super Admin') {
                     $transaction->company_id = $loggedUser->company_id;
