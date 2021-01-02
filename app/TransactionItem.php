@@ -25,8 +25,8 @@ class TransactionItem extends Model
 
     
     protected $casts = [
-        'transactionId' => 'int',
-        'itemId' => 'int',
+        // 'transactionId' => 'int',
+        // 'itemId' => 'int',
         'quantity' =>'int',
         'amount' => 'double',
         'total' => 'double'

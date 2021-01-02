@@ -22,8 +22,8 @@ class OrderTable extends Model
 
     
     protected $casts = [
-        'orderId' => 'int',
-        'tableId' => 'int'
+        // 'orderId' => 'int',
+        // 'tableId' => 'int'
     ];
 
     protected static function boot()

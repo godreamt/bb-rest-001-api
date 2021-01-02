@@ -19,7 +19,7 @@ class ProductPMCombinationItem extends Model
 
     
     protected $casts = [
-        'combinationId' => 'int',
-        'priceModelUnitId' => 'int',
+        // 'combinationId' => 'int',
+        // 'priceModelUnitId' => 'int',
     ];
 }

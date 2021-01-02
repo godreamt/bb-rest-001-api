@@ -23,7 +23,7 @@ class TableManager extends Model
 
     
     protected $casts = [
-        'branch_id' => 'int',
+        // 'branch_id' => 'int',
         'isActive' => 'boolean',
         'isReserved' => 'boolean',
     ];

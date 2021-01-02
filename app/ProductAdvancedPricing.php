@@ -21,8 +21,8 @@ class ProductAdvancedPricing extends Model
 
     
     protected $casts = [
-        'productId' => 'int',
-        'combinationId' => 'int',
+        // 'productId' => 'int',
+        // 'combinationId' => 'int',
     ];
 
     protected static function boot()

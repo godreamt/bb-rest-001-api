@@ -21,7 +21,7 @@ class BranchKitchen extends Model
 
 
     protected $casts = [
-        'branch_id' => 'int',
+        // 'branch_id' => 'int',
     ];
     
     protected static function boot()

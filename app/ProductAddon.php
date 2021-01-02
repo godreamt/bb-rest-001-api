@@ -21,7 +21,7 @@ class ProductAddon extends Model
 
     
     protected $casts = [
-        'productId' => 'int',
+        // 'productId' => 'int',
     ];
 
     protected static function boot()

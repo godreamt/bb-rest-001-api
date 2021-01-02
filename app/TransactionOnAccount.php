@@ -25,8 +25,8 @@ class TransactionOnAccount extends Model
 
     
     protected $casts = [
-        'transactionId' => 'int',
-        'accountId' => 'int',
+        // 'transactionId' => 'int',
+        // 'accountId' => 'int',
         'amountValue' => 'double',
         'totalAmount' => 'double'
     ];

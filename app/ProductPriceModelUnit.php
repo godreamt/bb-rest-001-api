@@ -19,6 +19,6 @@ class ProductPriceModelUnit extends Model
 
     
     protected $casts = [
-        'priceModelId' => 'int',
+        // 'priceModelId' => 'int',
     ];
 }

@@ -27,9 +27,9 @@ class InventoryItemJournal extends Model
     ];
 
     protected $casts = [
-        'inventoryId' => 'int',
-        'updatedBy' => 'int',
-        'orderId' => 'int',
+        // 'inventoryId' => 'int',
+        // 'updatedBy' => 'int',
+        // 'orderId' => 'int',
         'pricePerUnit' => 'double',
         'totalAmount' => 'double',
         'quantity' => 'double',

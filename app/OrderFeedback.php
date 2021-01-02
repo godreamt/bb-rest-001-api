@@ -21,8 +21,8 @@ class OrderFeedback extends Model
 
     
     protected $casts = [
-        'customerId' => 'int',
-        'orderId' => 'int'
+        // 'customerId' => 'int',
+        // 'orderId' => 'int'
     ];
 
     protected static function boot()

@@ -22,7 +22,7 @@ class AccountTransactionController extends Controller
         try {
             return \DB::transaction(function() use($request) {
                 $date = new \Datetime();
-                $before30days = $date->modify('-31 days');
+                $before3days = $date->modify('-3 days');
                 $transactionDate = new \Datetime($request->transactionDate);
                 if(empty($request->id)) {
                     $transaction = new Transaction();
@@ -41,7 +41,7 @@ class AccountTransactionController extends Controller
                     }
                 }else {
                     $transaction = Transaction::find($request->id);
-                    if($transaction->transactionDate < $before30days) {
+                    if($transaction->transactionDate < $before3days) {
                         return response()->json(['Can not update now'], 400);
                     }
 

@@ -32,12 +32,12 @@ class Transaction extends Model
     
     protected $casts = [
         'transactionDate' => 'date',
-        'accountId' => 'int',
+        // 'accountId' => 'int',
         'grandTotal' => 'double',
-        'company_id' => 'int',
-        'branch_id' => 'int',
-        'monthly_sheet_id' => 'int',
-        'updatedBy' => 'int'
+        // 'company_id' => 'int',
+        // 'branch_id' => 'int',
+        // 'monthly_sheet_id' => 'int',
+        // 'updatedBy' => 'int'
     ];
 
     protected static function boot() {

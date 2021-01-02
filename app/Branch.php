@@ -33,7 +33,7 @@ class Branch extends Model
 
     protected $casts = [
         'isActive' => 'boolean',
-        'company_id' => 'int'
+        // 'company_id' => 'int'
     ];
 
         //we can also use hasManyThrough https://www.itsolutionstuff.com/post/laravel-has-many-through-eloquent-relationship-tutorialexample.html to get orders

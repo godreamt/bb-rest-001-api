@@ -32,8 +32,8 @@ class YearlySheet extends Model
         'fromDate' => 'date',
         'toDate' => 'date',
         'amountCarried' => 'double',
-        'company_id' => 'int',
-        'branch_id' => 'int',
+        // 'company_id' => 'int',
+        // 'branch_id' => 'int',
     ];
     
     protected static function boot() {

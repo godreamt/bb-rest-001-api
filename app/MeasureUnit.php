@@ -27,7 +27,7 @@ class MeasureUnit extends Model
 
 
     protected $casts = [
-        'company_id' => 'int',
+        // 'company_id' => 'int',
         'isActive' => 'boolean'
     ];
 

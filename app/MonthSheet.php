@@ -37,9 +37,9 @@ class MonthSheet extends Model
         'totalMonthlyIncome' => 'double',
         'totalMonthlyExpense' => 'double',
         'amountCarried' => 'double',
-        'company_id' => 'int',
-        'branch_id' => 'int',
-        'yearly_sheet_id' => 'int',
+        // 'company_id' => 'int',
+        // 'branch_id' => 'int',
+        // 'yearly_sheet_id' => 'int',
     ];
 
     protected static function boot() {

@@ -29,7 +29,7 @@ class LedgerAccount extends Model
 
 
     protected $casts = [
-        'company_id' => 'int',
+        // 'company_id' => 'int',
         'isActive' => 'boolean',
         'isAutoCreated' => 'boolean'
     ];

@@ -24,9 +24,9 @@ class InventoryItemManager extends Model
     ];
 
     protected $casts = [
-        'inventoryId' => 'int',
-        'company_id' => 'int',
-        'branch_id' => 'int',
+        // 'inventoryId' => 'int',
+        // 'company_id' => 'int',
+        // 'branch_id' => 'int',
         'availableStock' => 'double',
         'lastPurchasedPrice' => 'double'
     ];

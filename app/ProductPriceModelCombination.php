@@ -19,6 +19,6 @@ class ProductPriceModelCombination extends Model
 
     
     protected $casts = [
-        'productId' => 'int',
+        // 'productId' => 'int',
     ];
 }

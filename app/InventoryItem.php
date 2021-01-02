@@ -28,8 +28,8 @@ class InventoryItem extends Model
 
 
     protected $casts = [
-        'company_id' => 'int',
-        'unitId' => 'int',
+        // 'company_id' => 'int',
+        // 'unitId' => 'int',
         'isActive' => 'boolean',
         'pricePerUnit' => 'double',
     ];
