@@ -315,10 +315,13 @@ class OrderController extends Controller
     public function handleOrderDerivedData($order) {
         
         $rejectedCount = 0;
+        $readyCount = 0;
         foreach($order['orderitems'] as $item) {
             $rejectedCount = $rejectedCount + ($item['productionRejectedQuantity']);
+            $readyCount = $readyCount + ($item['productionReadyQuantity'] - $item['servedQuantity']);
         }
         $order['rejectedCount']=$rejectedCount;
+        $order['readyCount']=$readyCount;
         $order['timeDif']=(new \Datetime())->diff(new \Datetime($order->created_at));
         return $order;
     }

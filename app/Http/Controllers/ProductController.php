@@ -188,12 +188,12 @@ class ProductController extends Controller
                 $product->branch_id = $request->branch_id;
                 $product->kitchen_id = $request->kitchen_id;
                 $categories = ($request->categories == "")?[]:$request->categories;
-                // if(sizeof($categories) > 0)
+        //         // if(sizeof($categories) > 0)
                 $product->save();
                 $product->categories()->sync($categories);
                 return ['data' => $product, 'msg'=> "Product updated successfully"];
             }catch(\Exception $e) {
-                return response()->json(['msg' => 'Can not update product data', 'error' => $e], 404);
+                return response()->json(['msg' => 'Can not update product data', 'error' => $e->getMessage()], 404);
             }
         });
     }

@@ -100,7 +100,6 @@ class Product extends Model
         });
 
         static::creating(function ($product) {
-
             $loggedUser = \Auth::user();
             if($loggedUser instanceof User) {
                 if($loggedUser->roles != 'Super Admin') {
@@ -115,11 +114,12 @@ class Product extends Model
 
             
             $slug = \Str::slug($product->productName);
-            $count = static::whereRaw("productSlug RLIKE '^{$slug}(-[0-9]+)?$'")->count();
+            $count = static::where("productSlug", "LIKE", $slug . '%')->count();
             $product->productSlug = $count ? "{$slug}-{$count}" : $slug;
 
             $prefix = Config::get('app.hosted') . ($loggedUser->company_id ?? "") . ($loggedUser->branch_id ?? "" );
             $product->id = IdGenerator::generate(['table' => 'products', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+           
         });
     }
 }

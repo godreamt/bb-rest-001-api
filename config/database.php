@@ -42,7 +42,7 @@ return [
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
         ],
-
+// set engine to 'engine' => 'innodb row_format=dynamic', if get key too long error
         'mysql' => [
             'driver' => 'mysql',
             'url' => env('DATABASE_URL'),
