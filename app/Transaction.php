@@ -48,10 +48,10 @@ class Transaction extends Model
         static::addGlobalScope('role_handler', function (Builder $builder) {
             $user = \Auth::user();
             if($user->roles != 'Super Admin') {
-                $builder->where('company_id',  $user->company_id);
+                $builder->where('transactions.company_id',  $user->company_id);
             }
             if($user->roles != 'Super Admin' && $user->roles != 'Company Admin' && $user->roles != 'Company Accountant') {
-                $builder->where('branch_id',  $user->branch_id);
+                $builder->where('transactions.branch_id',  $user->branch_id);
             }
         });
 

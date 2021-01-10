@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Branch;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -18,7 +19,7 @@ class TableManager extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'tableId', 'description', 'noOfChair', 'bookedChairs', 'isReserved', 'isActive', 'chairs', 'branch_id', 'isSync'
+        'id', 'tableId', 'description', 'noOfChair', 'bookedChairs', 'isReserved', 'isActive', 'branch_id', 'isSync'
     ];
 
     
@@ -46,18 +47,36 @@ class TableManager extends Model
         parent::boot();
 
         
-        static::creating(function ($item) {
+        static::addGlobalScope('role_handler', function (Builder $builder) {
             $loggedUser = \Auth::user();
             if($loggedUser instanceof User) {
                 if($loggedUser->roles != 'Super Admin') {
-                    $builder->where('company_id',  $loggedUser->company_id);
+                    $builder->where('table_managers.company_id',  $loggedUser->company_id);
                 }
                 if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin' && $loggedUser->roles != 'Company Accountant') {
-                    $builder->where('branch_id',  $loggedUser->branch_id);
+                    $builder->where('table_managers.branch_id',  $loggedUser->branch_id);
                 }
             }
-            $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
-            $item->id = IdGenerator::generate(['table' => 'table_managers', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+        });
+
+        static::creating(function ($tableManager) {
+
+            $loggedUser = \Auth::user();
+            if($loggedUser instanceof User) {
+                if($loggedUser->roles != 'Super Admin') {
+                    $tableManager->company_id = $loggedUser->company_id;
+                }
+                if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin' && $loggedUser->roles != 'Company Accountant') {
+                    $tableManager->branch_id = $loggedUser->branch_id;
+                }
+            }
+            $branch = Branch::find($tableManager->branch_id);
+            $tableManager->company_id = $branch->company_id;
+
+            if(empty($tableManager->id)) {
+                $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
+                $tableManager->id = IdGenerator::generate(['table' => 'table_managers', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+            }
         });
         
         
@@ -77,19 +96,5 @@ class TableManager extends Model
             $tableManager->company_id = $tableManager->company_id;
         });
 
-        static::creating(function ($tableManager) {
-
-            $loggedUser = \Auth::user();
-            if($loggedUser instanceof User) {
-                if($loggedUser->roles != 'Super Admin') {
-                    $tableManager->company_id = $loggedUser->company_id;
-                }
-                if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin' && $loggedUser->roles != 'Company Accountant') {
-                    $tableManager->branch_id = $loggedUser->branch_id;
-                }
-            }
-            $branch = Branch::find($tableManager->branch_id);
-            $tableManager->company_id = $branch->company_id;
-        });
     }
 }

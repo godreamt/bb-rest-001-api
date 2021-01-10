@@ -53,7 +53,7 @@ class InventoryItem extends Model
         static::addGlobalScope('role_handler', function (Builder $builder) {
             $user = \Auth::user();
             if($user->roles != 'Super Admin') {
-                $builder->where('company_id',  $user->company_id);
+                $builder->where('inventory_items.company_id',  $user->company_id);
             }
         });
 

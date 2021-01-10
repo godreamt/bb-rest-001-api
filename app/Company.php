@@ -18,6 +18,7 @@ class Company extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
+        'id',
         'companyName',
         'companyLogo',
         'companyDetails',
@@ -47,14 +48,16 @@ class Company extends Model
         static::addGlobalScope('role_handler', function (Builder $builder) {
             $user = Auth::user();
             if($user instanceof User && $user->roles != 'Super Admin') {
-                $builder->where('id',  $user->company_id);
+                $builder->where('companies.id',  $user->company_id);
             }
         });
         
         static::creating(function ($company) {
-            $loggedUser = \Auth::user();
-            $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
-            $company->id = IdGenerator::generate(['table' => 'companies', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+            if(empty($company->id)) {
+                $loggedUser = \Auth::user();
+                $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
+                $company->id = IdGenerator::generate(['table' => 'companies', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+            }
         });
     }
 }

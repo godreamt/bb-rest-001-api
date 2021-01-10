@@ -19,6 +19,12 @@ use Illuminate\Support\Facades\Route;
 // });
 
 Route::post('auth/signin', 'AuthController@authenticate');
+
+
+Route::get('master-sync/{branchId}', 'MigrationController@masterSync');
+Route::get('master-sync-get-data/{branchId}', 'MigrationController@getMasterInfo');
+
+
 Route::get('sync', 'MigrationController@syncStart');
 Route::post('execute', 'MigrationController@syncExecute');
 

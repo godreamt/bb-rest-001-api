@@ -16,7 +16,7 @@ class BranchOrderType extends Model
     // In Laravel 6.0+ make sure to also set $keyType
     protected $keyType = 'string';
     protected $fillable = [
-        'orderType', 'tableRequired', 'isActive', 'branch_id', 'isSync'
+        'id', 'orderType', 'tableRequired', 'isActive', 'branch_id', 'isSync'
     ];
 
 
@@ -32,9 +32,11 @@ class BranchOrderType extends Model
         parent::boot();
         
         static::creating(function ($orderType) {
-            $loggedUser = \Auth::user();
-            $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
-            $orderType->id = IdGenerator::generate(['table' => 'branch_order_types', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+            if(empty($orderType->id)) {
+                $loggedUser = \Auth::user();
+                $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
+                $orderType->id = IdGenerator::generate(['table' => 'branch_order_types', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+            }
         });
     }
 }

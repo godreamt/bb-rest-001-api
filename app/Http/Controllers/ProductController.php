@@ -78,7 +78,7 @@ class ProductController extends Controller
                 $category->save();
                 return ['data' => $category, 'msg'=> "Category updated successfully"];
             }catch(\Exception $e) {
-                return response()->json(['msg' => 'Can not update category data', 'error'=>$e], 404);
+                return response()->json(['msg' => 'Can not update category data', 'error'=>$e->getMessage()], 404);
             }
         });
     }

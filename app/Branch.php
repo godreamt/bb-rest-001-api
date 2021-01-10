@@ -19,6 +19,7 @@ class Branch extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
+        'id',
         'branchLogo', 
         'branchCode', 
         'branchTitle', 
@@ -76,6 +77,11 @@ class Branch extends Model
     {
         return $this->hasMany('App\Order', 'branch_id');
     }
+    
+    public function tables()
+    {
+        return $this->hasMany('App\TableManager', 'branch_id');
+    }
 
     
     protected static function boot()
@@ -86,17 +92,19 @@ class Branch extends Model
             $user = \Auth::user();
             if($user instanceof User) {
                 if($user->roles != 'Super Admin') {
-                    $builder->where('company_id',  $user->company_id);
+                    $builder->where('branches.company_id',  $user->company_id);
                 }
                 if($user->roles != 'Super Admin' && $user->roles != 'Company Admin' && $user->roles != 'Company Accountant') {
-                    $builder->where('id',  $user->branch_id);
+                    $builder->where('branches.id',  $user->branch_id);
                 }
             }
         });
         static::creating(function ($branch) {
-            $loggedUser = \Auth::user();
-            $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
-            $branch->id = IdGenerator::generate(['table' => 'branches', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+            if(empty($branch->id)) {
+                $loggedUser = \Auth::user();
+                $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
+                $branch->id = IdGenerator::generate(['table' => 'branches', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+            }
         });
     }
 }

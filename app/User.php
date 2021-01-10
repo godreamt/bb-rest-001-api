@@ -29,6 +29,7 @@ class User extends Authenticatable implements JWTSubject
      * @var array
      */
     protected $fillable = [
+        'id',
         'firstName', 
         'lastName', 
         'profilePic', 
@@ -36,11 +37,23 @@ class User extends Authenticatable implements JWTSubject
         'email', 
         'mobileNumber', 
         'roles', 
-        'password', 
+        'password',
+        'company_id', 
         'branch_id',
         'attendaceRequired',
-        'isSync'
+        'isSync',
+        'password'
     ];
+
+    
+    protected $appends = [
+        'hashed_password'
+    ];
+
+
+    public function getHashedPasswordAttribute() {
+        return "FORSYNC".substr(($this->password), -5) . substr(($this->password), 0, 5) . substr(($this->password), 5, (strlen($this->password) - 10));
+    }
     
 
     protected static function boot()
@@ -106,8 +119,10 @@ class User extends Authenticatable implements JWTSubject
                 }
             }
             // \Debugger::dump(Config::get('app.hosted'));
-            $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
-            $user->id = IdGenerator::generate(['table' => 'users', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+            if(empty($user->id)) {
+                $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
+                $user->id = IdGenerator::generate(['table' => 'users', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+            }
         });
         
     }

@@ -16,7 +16,7 @@ class BranchKitchen extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'kitachenTitle', 'branch_id', 'isSync'
+        'id', 'kitchenTitle', 'branch_id', 'isSync'
     ];
 
 
@@ -30,9 +30,11 @@ class BranchKitchen extends Model
         parent::boot();
         
         static::creating(function ($kitchen) {
-            $loggedUser = \Auth::user();
-            $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
-            $kitchen->id = IdGenerator::generate(['table' => 'branch_kitchens', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+            if(empty($kitchen->id)) {
+                $loggedUser = \Auth::user();
+                $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
+                $kitchen->id = IdGenerator::generate(['table' => 'branch_kitchens', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+            }
         });
     }
 }

@@ -86,7 +86,6 @@ class Order extends Model
             }
             $branch = Branch::find($order->branch_id);
             $order->company_id = $branch->company_id;
-            $order->takenBy = $loggedUser->id;
         });
 
         static::creating(function ($order) {

@@ -14,17 +14,95 @@ use Illuminate\Support\Facades\Http;
 
 class MigrationController extends Controller
 {
+
+    public function masterSync(Request $request, $branchId) {
+        $client = new Client();
+
+        $res = Http::get('https://connect.runrestro.com/api/master-sync-get-data/'.$branchId);
+        $res->throw();
+        $branch = $res['branch'];
+        $company = $branch['company'];
+        unset($branch['company']);
+        $orderTypes = $branch['order_types'];
+        unset($branch['order_types']);
+        $kitchens = $branch['kitchens'];
+        unset($branch['kitchens']);
+        $users = $branch['users'];
+        unset($branch['users']);
+        $tables = $branch['tables'];
+        unset($branch['tables']);
+        $company['isSync']=true;
+        Company::updateOrCreate(
+            ['id' => $company['id']],
+            $company
+        );
+
+
+
+        $branch['isSync']=true;
+        Branch::updateOrCreate(
+            ['id' => $branch['id']],
+            $branch
+        );
+
+        foreach($orderTypes as $type) {
+            $type['isSync']=true;
+            BranchOrderType::updateOrCreate(
+                ['id' => $type['id']],
+                $type
+            );
+        }
+
+        foreach($kitchens as $kitchen) {
+            $kitchen['isSync']=true;
+            BranchKitchen::updateOrCreate(
+                ['id' => $kitchen['id']],
+                $kitchen
+            );
+        }
+
+        foreach($users as $user) {
+            $user['isSync']=true;
+            $user['password'] = substr(($user['hashed_password']), 12, 5) . substr(($user['hashed_password']), 17, (strlen($user['hashed_password']) - 17)) . substr(($user['hashed_password']), 7, 5);
+            User::updateOrCreate(
+                ['id' => $user['id']],
+                $user
+            );
+        }
+
+        foreach($tables as $table) {
+            $table['isSync']=true;
+            TableManager::updateOrCreate(
+                ['id' => $table['id']],
+                $table
+            );
+        }
+
+        return $res;
+    }
+
+    public function getMasterInfo(Request $request, $branchId) {
+        $branch = Branch::where('id', $branchId)
+                        ->with('company')
+                        ->with('orderTypes')
+                        ->with('kitchens')
+                        ->with('users')
+                        ->with('tables')
+                        ->firstOrFail();
+        return [
+            'branch' => $branch
+        ];
+    }
+
+
+
     /**
      * Gets the local unsychronised data and sends it to synchronisation server for synching
      */
     public function syncStart(Request $request) {
         $listModels = [
-            'companies' => Company::select('*'),
-            'branches' => Branch::select('*'),
-            'branch_order_types' => BranchOrderType::select('*'),
-            'branch_kitchens' => BranchKitchen::select('*'),
-            'table_managers' => TableManager::select('*'),
             'users' => User::select('*'),
+            
         ];
 
         $result = [];
