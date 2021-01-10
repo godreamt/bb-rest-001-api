@@ -16,11 +16,12 @@ class ProductAddon extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'addonTitle', 'price', 'productId'
+        'addonTitle', 'price', 'productId', 'isSync'
     ];
 
     
     protected $casts = [
+        'isSync' => 'boolean',
         // 'productId' => 'int',
     ];
 

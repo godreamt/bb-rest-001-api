@@ -23,7 +23,8 @@ class InventoryItemJournal extends Model
         'pricePerUnit',
         'totalAmount',
         'updatedBy',
-        'orderId'
+        'orderId',
+        'isSync'
     ];
 
     protected $casts = [
@@ -32,6 +33,7 @@ class InventoryItemJournal extends Model
         // 'orderId' => 'int',
         'pricePerUnit' => 'double',
         'totalAmount' => 'double',
+        'isSync' => 'boolean',
         'quantity' => 'double',
     ];  
 

@@ -20,7 +20,8 @@ class TransactionOnAccount extends Model
         'accountId', 
         'amountProcessType', 
         'amountValue', 
-        'totalAmount'
+        'totalAmount',
+        'isSync'
     ];
 
     
@@ -28,6 +29,7 @@ class TransactionOnAccount extends Model
         // 'transactionId' => 'int',
         // 'accountId' => 'int',
         'amountValue' => 'double',
+        'isSync' => 'boolean',
         'totalAmount' => 'double'
     ];
 

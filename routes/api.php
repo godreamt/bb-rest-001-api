@@ -19,6 +19,8 @@ use Illuminate\Support\Facades\Route;
 // });
 
 Route::post('auth/signin', 'AuthController@authenticate');
+Route::get('sync', 'MigrationController@syncStart');
+Route::post('execute', 'MigrationController@syncExecute');
 
 
 Route::group(['middleware' => ['jwt.verify']], function() {

@@ -16,6 +16,21 @@ class UserAttendance extends Model
     protected $keyType = 'string';
     
 
+    protected $fillable = [
+        'effectedDate', 
+        'isPresent', 
+        'description', 
+        'user_id', 
+        'isSync'
+    ];
+
+    
+    protected $casts = [
+        'isPresent' => 'boolean',
+        'isSync' => 'boolean'
+    ];
+
+
     protected static function boot()
     {
         parent::boot();

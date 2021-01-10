@@ -119,6 +119,7 @@ class KitchenController extends Controller
                             return response()->json(['Incorrect data. Please check after reloading.'], 400);
                         }
                     }
+                    $item->isSync = false;
                     $item->save();
                 }
                 return $item;

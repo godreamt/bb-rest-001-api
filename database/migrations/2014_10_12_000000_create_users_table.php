@@ -39,6 +39,7 @@ class CreateUsersTable extends Migration
             ]);
             $table->rememberToken();
             $table->timestamps();
+            $table->boolean('isSync')->default(false);
         });
 
 
@@ -51,6 +52,7 @@ class CreateUsersTable extends Migration
             $table->foreign('user_id')->references('id')->on('users'); 
             $table->unique(['effectedDate', 'user_id']);
             $table->timestamps();
+            $table->boolean('isSync')->default(false);
         });
         
         Schema::create('companies', function (Blueprint $table) {
@@ -64,6 +66,7 @@ class CreateUsersTable extends Migration
             $table->boolean('enableRestaurantFunctions')->default(true);
             $table->boolean('isActive')->default(true);
             $table->timestamps();
+            $table->boolean('isSync')->default(false);
         });
 
         Schema::create('branches', function (Blueprint $table) {
@@ -78,6 +81,7 @@ class CreateUsersTable extends Migration
             $table->string('company_id');
             $table->foreign('company_id')->references('id')->on('companies');
             $table->timestamps();
+            $table->boolean('isSync')->default(false);
         });
 
         
@@ -90,6 +94,7 @@ class CreateUsersTable extends Migration
             $table->foreign('branch_id')->references('id')->on('branches');  
             $table->unique(['orderType', 'branch_id']);
             $table->timestamps();
+            $table->boolean('isSync')->default(false);
         });
 
         
@@ -100,6 +105,7 @@ class CreateUsersTable extends Migration
             $table->foreign('branch_id')->references('id')->on('branches');  
             $table->unique(['kitchenTitle', 'branch_id']);
             $table->timestamps();
+            $table->boolean('isSync')->default(false);
         });
 
         Schema::table('users', function(Blueprint $table) {
@@ -107,6 +113,7 @@ class CreateUsersTable extends Migration
             $table->foreign('branch_id')->references('id')->on('branches');  
             $table->string('company_id')->nullable(true);
             $table->foreign('company_id')->references('id')->on('companies');  
+            $table->boolean('isSync')->default(false);
         });
 
         Schema::table('branches', function(Blueprint $table) {
@@ -114,6 +121,7 @@ class CreateUsersTable extends Migration
             $table->foreign('appDefaultOrderType')->references('id')->on('branch_order_types'); 
             $table->string('adminDefaultOrderType')->nullable(true);
             $table->foreign('adminDefaultOrderType')->references('id')->on('branch_order_types');  
+            $table->boolean('isSync')->default(false);
         });
     }
 

@@ -24,13 +24,15 @@ class LedgerAccount extends Model
         'description', 
         'isActive', 
         'isAutoCreated', 
-        'company_id'
+        'company_id',
+        'isSync'
     ];
 
 
     protected $casts = [
         // 'company_id' => 'int',
         'isActive' => 'boolean',
+        'isSync' => 'boolean',
         'isAutoCreated' => 'boolean'
     ];
 

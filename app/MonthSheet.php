@@ -28,6 +28,7 @@ class MonthSheet extends Model
         'company_id',
         'branch_id',
         'yearly_sheet_id',
+        'isSync'
     ];
     
     protected $casts = [
@@ -37,6 +38,7 @@ class MonthSheet extends Model
         'totalMonthlyIncome' => 'double',
         'totalMonthlyExpense' => 'double',
         'amountCarried' => 'double',
+        'isSync' => 'boolean',
         // 'company_id' => 'int',
         // 'branch_id' => 'int',
         // 'yearly_sheet_id' => 'int',

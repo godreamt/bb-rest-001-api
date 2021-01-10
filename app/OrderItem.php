@@ -16,12 +16,24 @@ class OrderItem extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'orderId', 'quantity', 'servedQuantity', 'price', 'packagingCharges', 'productId', 'totalPrice', 'isParcel', 'productionAcceptedQuantity', 'productionReadyQuantity', 'productionRejectedQuantity'
+        'orderId', 
+        'quantity', 
+        'servedQuantity', 
+        'price', 
+        'packagingCharges', 
+        'productId', 
+        'totalPrice', 
+        'isParcel', 
+        'productionAcceptedQuantity', 
+        'productionReadyQuantity', 
+        'productionRejectedQuantity',
+        'isSync'
     ];
 
     protected $casts = [
         // 'orderId' => 'int',
         // 'productId' => 'int',
+        'isSync' => 'boolean',
         'isParcel' => 'boolean',
     ];
 

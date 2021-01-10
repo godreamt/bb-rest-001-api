@@ -100,6 +100,7 @@ class UserController extends Controller
                 $user->attendaceRequired =  $request->attendaceRequired ?? false;
                 $user->company_id =  $request->company_id;
                 $user->branch_id =  $request->branch_id;
+                $user->isSync = false;
                 $user->save();
             });
         }catch(\Exception $e) {
@@ -118,6 +119,7 @@ class UserController extends Controller
                 $path = '/img/users/' . $png_url;
                 \Storage::disk('public')->put($path, $image);
                 $user->profilePic = '/uploads'.$path;
+                $user->isSync = false;
                 $user->save();
                 return $user;
             });
@@ -133,6 +135,7 @@ class UserController extends Controller
                 $user = \Auth::user();
                 if(Hash::check($request->oldPassword,$user->password)) {
                     $user->password = Hash::make($request->password);
+                    $user->isSync = false;
                     $user->save();
                     return $user;
                 } else {

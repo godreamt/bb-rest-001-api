@@ -21,13 +21,15 @@ class MeasureUnit extends Model
         'unitLabel', 
         'description', 
         'company_id',
-        'isActive'
+        'isActive',
+        'isSync'
     ];
     
 
 
     protected $casts = [
         // 'company_id' => 'int',
+        'isSync' => 'boolean',
         'isActive' => 'boolean'
     ];
 

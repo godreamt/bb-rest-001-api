@@ -14,11 +14,12 @@ class ProductPriceModel extends Model
     protected $keyType = 'string';
     
     protected $fillable = [
-        'productId', 'title', 'description'
+        'productId', 'title', 'description', 'isSync'
     ];
 
     
     protected $casts = [
+        'isSync' => 'boolean',
         // 'productId' => 'int',
     ];
 }

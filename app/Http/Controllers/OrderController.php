@@ -102,6 +102,7 @@ class OrderController extends Controller
                         $t1->description = $table['description'];
                         $t1->noOfChair = $table['noOfChair'];
                         $table['isActive'] = $table['isActive'] ?? false;
+                        $t1->isSync = false;
                         $t1->save();
                         $tables[] = $t1;
                     }
@@ -167,6 +168,7 @@ class OrderController extends Controller
                 $table = TableManager::find($id);
                 if($table instanceof TableManager) {
                     $table->isReserved = $request->isReserved;
+                    $table->isSync = false;
                     $table->save();
                     return ['data' => $table, 'msg'=> "Table manager reserved status updated successfully"];
                 }else {
@@ -413,6 +415,7 @@ class OrderController extends Controller
                     $order->taxPercent = (float)$request->taxPercent;
                     $order->taxDisabled = $request->taxDisabled ?? false;
                     if(empty($request->id)) {
+                        $order->isSync = false;
                         $order->save();
                     }
                         
@@ -446,11 +449,13 @@ class OrderController extends Controller
                             }
                             $orderItem->totalPrice = $totalPrice;
                             $totalOrderAmount = $totalOrderAmount + $totalPrice;
+                            $orderItem->isSync = false;
                             $orderItem->save();
                         }
                     }
                     $order->orderItemTotal = $totalOrderAmount;
                     $order = $this->handleFinalCalculationOrder($order);
+                    $order->isSync = false;
                     $order->save();
 
 
@@ -461,6 +466,7 @@ class OrderController extends Controller
                         $orderTable->tableId = $table['id'];
                         $orderTable->selectedChairs = $table['chairs'];
                         $orderTable->orderId = $order->id;
+                        $orderTable->isSync = false;
                         $orderTable->save();
                     }
 
@@ -507,6 +513,7 @@ class OrderController extends Controller
         }
         $customer->customerName = $request['customerName'];
         $customer->emailId = $request['emailId'] ?? "";
+        $customer->isSync = false;
         $customer->save();
         return $customer;
     }
@@ -524,10 +531,12 @@ class OrderController extends Controller
                     $order = Order::find($orderItem->orderId);
                     $order->orderItemTotal = $order->orderItemTotal - $totalDeductablePrice;
                     $order = $this->handleFinalCalculationOrder($order);
+                    $order->isSync = false;
                     $order->save();
                     if($orderItem->quantity == 0) {
                         $orderItem->delete();
                     }else {
+                        $orderItem->isSync = false;
                         $orderItem->save();
                     }
 

@@ -70,6 +70,7 @@ class CompanyController extends Controller
                     $company->companyLogo = '/uploads'.$path;
                 }
 
+                $company->isSync = false;
                 $company->save();
 
                 return $company;
@@ -101,6 +102,7 @@ class CompanyController extends Controller
                 $company = Company::find($id);
                 if($company instanceof Company) {
                     $company->isActive = $request->isActive;
+                    $company->isSync = false;
                     $company->save();
                     return ['data' => $company, 'msg'=> "Company status updated successfully"];
                 }else {

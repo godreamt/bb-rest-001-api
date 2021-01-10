@@ -74,6 +74,7 @@ class ProductController extends Controller
                     \Storage::disk('public')->put($path, $image);
                     $category->featuredImage = '/uploads'.$path;
                 }
+                $category->isSync = false;
                 $category->save();
                 return ['data' => $category, 'msg'=> "Category updated successfully"];
             }catch(\Exception $e) {
@@ -104,6 +105,7 @@ class ProductController extends Controller
                 $category = Category::find($id);
                 if($category instanceof Category) {
                     $category->isActive = $request->isActive;
+                    $category->isSync = false;
                     $category->save();
                     return ['data' => $category, 'msg'=> "Category status updated successfully"];
                 }else {
@@ -189,6 +191,7 @@ class ProductController extends Controller
                 $product->kitchen_id = $request->kitchen_id;
                 $categories = ($request->categories == "")?[]:$request->categories;
         //         // if(sizeof($categories) > 0)
+                $product->isSync = false;
                 $product->save();
                 $product->categories()->sync($categories);
                 return ['data' => $product, 'msg'=> "Product updated successfully"];
@@ -220,6 +223,7 @@ class ProductController extends Controller
                 $product = Product::find($id);
                 if($product instanceof Product) {
                     $product->isActive = $request->isActive;
+                    $product->isSync = false;
                     $product->save();
                     return ['data' => $product, 'msg'=> "Product status updated successfully"];
                 }else {

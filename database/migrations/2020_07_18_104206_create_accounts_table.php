@@ -22,6 +22,7 @@ class CreateAccountsTable extends Migration
             // $table->string('branch_id')->nullable(true);
             // $table->foreign('branch_id')->references('id')->on('branches'); 
             $table->boolean('isActive')->default(true);
+            $table->boolean('isSync')->default(false);
         });
 
         Schema::create('inventory_items', function (Blueprint $table) {
@@ -36,6 +37,7 @@ class CreateAccountsTable extends Migration
             $table->string('company_id');
             $table->foreign('company_id')->references('id')->on('companies'); 
             $table->unique(['itemName', 'company_id']);
+            $table->boolean('isSync')->default(false);
         });
 
         Schema::create('inventory_item_journals', function (Blueprint $table) {
@@ -52,6 +54,7 @@ class CreateAccountsTable extends Migration
             $table->string('updatedBy')->nullable(true);
             $table->foreign('updatedBy')->references('id')->on('users'); 
             $table->timestamps();
+            $table->boolean('isSync')->default(false);
         });
 
         
@@ -67,6 +70,7 @@ class CreateAccountsTable extends Migration
             $table->foreign('branch_id')->references('id')->on('branches'); 
             $table->unique(['inventoryId', 'company_id', 'branch_id']);  
             $table->timestamps();
+            $table->boolean('isSync')->default(false);
         });
 
         Schema::create('ledger_accounts', function (Blueprint $table) {
@@ -93,6 +97,7 @@ class CreateAccountsTable extends Migration
             $table->string('company_id');
             $table->foreign('company_id')->references('id')->on('companies'); 
             $table->unique(['ledgerName', 'company_id']);
+            $table->boolean('isSync')->default(false);
         });
 
         Schema::create('yearly_sheets', function (Blueprint $table) {
@@ -106,6 +111,7 @@ class CreateAccountsTable extends Migration
             $table->string('company_id');
             $table->foreign('company_id')->references('id')->on('companies'); 
             $table->timestamps();
+            $table->boolean('isSync')->default(false);
         });
 
         Schema::create('month_sheets', function (Blueprint $table) {
@@ -123,6 +129,7 @@ class CreateAccountsTable extends Migration
             $table->string('yearly_sheet_id');
             $table->foreign('yearly_sheet_id')->references('id')->on('yearly_sheets'); 
             $table->timestamps();
+            $table->boolean('isSync')->default(false);
         });
 
         Schema::create('transactions', function (Blueprint $table) {
@@ -148,6 +155,7 @@ class CreateAccountsTable extends Migration
             $table->string('updatedBy')->nullable(true);
             $table->foreign('updatedBy')->references('id')->on('users'); 
             $table->timestamps();
+            $table->boolean('isSync')->default(false);
         });
 
         Schema::create('transaction_items', function (Blueprint $table) {
@@ -160,6 +168,7 @@ class CreateAccountsTable extends Migration
             $table->string('itemId')->nullable(true);
             $table->foreign('itemId')->references('id')->on('inventory_items')->onDelete('cascade');  
             $table->timestamps();
+            $table->boolean('isSync')->default(false);
         });
 
         Schema::create('transaction_on_accounts', function (Blueprint $table) {
@@ -172,6 +181,7 @@ class CreateAccountsTable extends Migration
             $table->string('accountId');
             $table->foreign('accountId')->references('id')->on('ledger_accounts')->onDelete('cascade');  
             $table->timestamps();
+            $table->boolean('isSync')->default(false);
         });
     }
 

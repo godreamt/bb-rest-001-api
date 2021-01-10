@@ -81,6 +81,7 @@ class InventoryManagementController extends Controller
                 $item->description =  $request->description;
                 $item->pricePerUnit =  $request->pricePerUnit;
                 $item->isActive =  $request->isActive;
+                $item->isSync = false;
                 $item->save();
                 return InventoryItem::with('company')->with('unit')->find($item->id);
             });
@@ -167,7 +168,9 @@ class InventoryManagementController extends Controller
                 }
                 $latestUpdate->totalAmount = $request->quantity * $latestUpdate->pricePerUnit;
                 $invenotoryManager->availableStock=$invenotoryManager->availableStock-$request->quantity;
+                $latestUpdate->isSync = false;
                 $latestUpdate->save();
+                $invenotoryManager->isSync = false;
                 $invenotoryManager->save();
                 return $latestUpdate;
             }catch(\Exception $e) {

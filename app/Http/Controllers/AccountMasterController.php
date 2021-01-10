@@ -98,6 +98,7 @@ class AccountMasterController extends Controller
                 // $unit->branch_id =  $request->branch_id ?? NULL;
                 $unit->isActive =  $request->isActive ?? false;
                 $unit->description =  $request->description;
+                $unit->isSync = false;
                 $unit->save();
                 return MeasureUnit::with('company')->find($unit->id);
             });
@@ -189,6 +190,7 @@ class AccountMasterController extends Controller
                 $ledger->company_id =  $request->company_id;
                 $ledger->isActive =  $request->isActive ?? false;
                 $ledger->description =  $request->description;
+                $ledger->isSync = false;
                 $ledger->save();
                 return LedgerAccount::with('company')->find($ledger->id);
             });

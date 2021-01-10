@@ -21,6 +21,7 @@ class InventoryItemManager extends Model
         'lastPurchasedPrice',
         'company_id',
         'branch_id',
+        'isSync'
     ];
 
     protected $casts = [
@@ -28,7 +29,8 @@ class InventoryItemManager extends Model
         // 'company_id' => 'int',
         // 'branch_id' => 'int',
         'availableStock' => 'double',
-        'lastPurchasedPrice' => 'double'
+        'lastPurchasedPrice' => 'double',
+        'isSync' => 'boolean',
     ];
     
     protected static function boot()

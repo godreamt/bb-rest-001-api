@@ -38,7 +38,8 @@ class User extends Authenticatable implements JWTSubject
         'roles', 
         'password', 
         'branch_id',
-        'attendaceRequired'
+        'attendaceRequired',
+        'isSync'
     ];
     
 
@@ -130,6 +131,7 @@ class User extends Authenticatable implements JWTSubject
         // 'company_id' => 'int',
         // 'branch_id' => 'int',
         'isActive' => 'boolean',
+        'isSync' => 'boolean',
         'attendaceRequired' => 'boolean',
     ];
 

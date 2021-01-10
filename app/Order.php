@@ -34,7 +34,8 @@ class Order extends Model
         'orderStatus', 
         'takenBy', 
         'taxDisabled', 
-        'taxPercent'
+        'taxPercent',
+        'isSync'
     ];
 
 
@@ -43,6 +44,7 @@ class Order extends Model
         // 'takenBy' => 'int',
         // 'customerId' => 'int',
         'taxDisabled' => 'boolean',
+        'isSync' => 'boolean',
         'taxPercent' => 'float'
     ];
     protected $appends = ['order_ready_count'];

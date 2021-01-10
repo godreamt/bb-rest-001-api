@@ -16,11 +16,12 @@ class BranchKitchen extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'kitachenTitle', 'branch_id'
+        'kitachenTitle', 'branch_id', 'isSync'
     ];
 
 
     protected $casts = [
+        'isSync' => 'boolean',
         // 'branch_id' => 'int',
     ];
     

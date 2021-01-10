@@ -24,7 +24,8 @@ class YearlySheet extends Model
         'toDate',
         'amountCarried',
         'company_id',
-        'branch_id'
+        'branch_id',
+        'isSync'
     ];
     
     protected $casts = [
@@ -32,6 +33,7 @@ class YearlySheet extends Model
         'fromDate' => 'date',
         'toDate' => 'date',
         'amountCarried' => 'double',
+        'isSync' => 'boolean'
         // 'company_id' => 'int',
         // 'branch_id' => 'int',
     ];

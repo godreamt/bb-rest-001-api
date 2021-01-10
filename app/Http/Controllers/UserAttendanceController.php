@@ -26,6 +26,7 @@ class UserAttendanceController extends Controller
                 $attendance->user_id = $user['user_id'];
                 $attendance->isPresent = $request->isPresent ?? false;
                 $attendance->description = $request->description;
+                $attendance->isSync = false;
                 $attendance->save();
             }
             return response()->json(['msg'=>'saved successfully'], 200);

@@ -14,11 +14,12 @@ class ProductPriceModelCombination extends Model
     protected $keyType = 'string';
     
     protected $fillable = [
-        'productId'
+        'productId', 'isSync'
     ];
 
     
     protected $casts = [
+        'isSync' => 'boolean',
         // 'productId' => 'int',
     ];
 }

@@ -25,6 +25,7 @@ class Company extends Model
         'enableAccounting',
         'enableRestaurantFunctions',
         'isActive',
+        'isSync',
         'apiKey'
 
     ];
@@ -33,6 +34,7 @@ class Company extends Model
         'enableAccounting' => 'boolean',
         'enableRestaurantFunctions' => 'boolean',
         'isActive' => 'boolean',
+        'isSync' => 'boolean',
         'numberOfBranchesAllowed' => 'int'
     ];
 

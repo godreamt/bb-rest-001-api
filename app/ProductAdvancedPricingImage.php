@@ -16,11 +16,12 @@ class ProductAdvancedPricingImage extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'productId', 'advancedPricingId', 'image'
+        'productId', 'advancedPricingId', 'image', 'isSync'
     ];
 
     
     protected $casts = [
+        'isSync' => 'boolean',
         // 'productId' => 'int',
         // 'advancedPricingId' => 'int',
     ];

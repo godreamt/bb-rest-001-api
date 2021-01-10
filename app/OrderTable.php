@@ -17,11 +17,12 @@ class OrderTable extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'orderId', 'tableId', 'selectedChairs' 
+        'orderId', 'tableId', 'selectedChairs', 'isSync'
     ];
 
     
     protected $casts = [
+        'isSync' => 'boolean',
         // 'orderId' => 'int',
         // 'tableId' => 'int'
     ];

@@ -92,6 +92,7 @@ class AuthController extends Controller
         $user->password =  Hash::make($request->password);
         $user->roles =  $request->roles;
         $user->isActive =  $request->isActive;
+        $user->isSync = false;
 
         $token = JWTAuth::fromUser($user);
 

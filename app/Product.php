@@ -39,13 +39,15 @@ class Product extends Model
         'kitchen_id',
         'isOutOfStock',
 
-        'isAdvancedPricing'
+        'isAdvancedPricing',
+        'isSync'
     ];
 
     
     protected $casts = [
         // 'branch_id' => 'int',
         'isActive' => 'boolean',
+        'isSync' => 'boolean',
         'isVeg' => 'boolean',
         'isOutOfStock' => 'boolean',
         'isAdvancedPricing' => 'boolean',

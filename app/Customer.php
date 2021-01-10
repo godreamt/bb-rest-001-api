@@ -18,11 +18,12 @@ class Customer extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'customerName', 'mobileNumber', 'emailId', 'branch_id'
+        'customerName', 'mobileNumber', 'emailId', 'branch_id', 'isSync'
     ];
 
 
     protected $casts = [
+        'isSync' => 'boolean',
         // 'branch_id' => 'int',
     ];
 

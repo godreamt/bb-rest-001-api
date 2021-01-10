@@ -26,12 +26,14 @@ class Transaction extends Model
         'company_id', 
         'branch_id',
         'updatedBy',
-        'monthly_sheet_id'
+        'monthly_sheet_id',
+        'isSync'
     ];
 
     
     protected $casts = [
         'transactionDate' => 'date',
+        'isSync' => 'boolean',
         // 'accountId' => 'int',
         'grandTotal' => 'double',
         // 'company_id' => 'int',

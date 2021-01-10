@@ -75,6 +75,7 @@ class AccountTransactionController extends Controller
                 $transaction->monthly_sheet_id = $monthlySheet->id;
                 // $transaction->branch_id = $request->branch_id;
                 // $transaction->company_id = $request->company_id;
+                $transaction->isSync = false;
                 $transaction->save();
 
                 
@@ -84,6 +85,7 @@ class AccountTransactionController extends Controller
                 }else {//if type = sales, receipt
                     $monthlySheet->totalMonthlyIncome = (float)$monthlySheet->totalMonthlyIncome - (float)$transaction->grandTotal;
                 }
+                $monthlySheet->isSync = false;
                 $monthlySheet->save();
                 // ! Todo : Handle all month carrid down aaounts
 
@@ -102,6 +104,7 @@ class AccountTransactionController extends Controller
                                 $inventoryManager->availableStock = $inventoryManager->availableStock + $oldQuantity;
                             }
 
+                            $inventoryManager->isSync = false;
                             $inventoryManager->save();
                             $transactionItem->delete();
                         }else {
@@ -128,8 +131,10 @@ class AccountTransactionController extends Controller
                             $transactionItem->quantity = $item['quantity'];
                             $transactionItem->amount = $item['amount'];
                             $transactionItem->total = $item['total'];
+                            $transactionItem->isSync = false;
                             $transactionItem->save();
 
+                            $inventoryManager->isSync = false;
                             $inventoryManager->save();
                         }
                     }
@@ -150,6 +155,7 @@ class AccountTransactionController extends Controller
                         $transactionAccount->amountProcessType = $account['amountProcessType'];
                         $transactionAccount->amountValue = $account['amountValue'];
                         $transactionAccount->totalAmount = $account['totalAmount'];
+                        $transactionAccount->isSync = false;
                         $transactionAccount->save();
                     }
                 }
@@ -183,6 +189,7 @@ class AccountTransactionController extends Controller
         $monthSheet->company_id = $company_id;
         $monthSheet->branch_id = $branch_id;
         $monthSheet->yearly_sheet_id = $yearlySheet->id;
+        $monthSheet->isSync = false;
         $monthSheet->save();
         return [
             'monthly' => $monthSheet,
@@ -216,6 +223,7 @@ class AccountTransactionController extends Controller
         $yearlySheet->toDate = new \Datetime(('01-03-'.$endYear));
         $yearlySheet->company_id = $company_id;
         $yearlySheet->branch_id = $branch_id;
+        $yearlySheet->isSync = false;
         $yearlySheet->save();
         return $yearlySheet;
     }

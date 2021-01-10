@@ -19,13 +19,14 @@ class Category extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'categoryName', 'description', 'featuredImage', 'isActive', 'branch_id'
+        'categoryName', 'description', 'featuredImage', 'isActive', 'branch_id', 'isSync'
     ];
 
 
     protected $casts = [
         // 'branch_id' => 'int',
         'isActive' => 'boolean',
+        'isSync' => 'boolean',
     ];
     
     protected static function boot()

@@ -18,13 +18,14 @@ class TableManager extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'tableId', 'description', 'noOfChair', 'bookedChairs', 'isReserved', 'isActive', 'chairs', 'branch_id'
+        'tableId', 'description', 'noOfChair', 'bookedChairs', 'isReserved', 'isActive', 'chairs', 'branch_id', 'isSync'
     ];
 
     
     protected $casts = [
         // 'branch_id' => 'int',
         'isActive' => 'boolean',
+        'isSync' => 'boolean',
         'isReserved' => 'boolean',
     ];
 

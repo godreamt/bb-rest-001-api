@@ -25,6 +25,7 @@ class OrderManager extends Migration
             $table->string('branch_id');
             $table->foreign('branch_id')->references('id')->on('branches'); 
             $table->timestamps();
+            $table->boolean('isSync')->default(false);
         });
 
         
@@ -39,6 +40,7 @@ class OrderManager extends Migration
             $table->string('branch_id');
             $table->foreign('branch_id')->references('id')->on('branches');  
             $table->timestamps();
+            $table->boolean('isSync')->default(false);
         });
 
         
@@ -55,6 +57,7 @@ class OrderManager extends Migration
             $table->string('branch_id');
             $table->foreign('branch_id')->references('id')->on('branches');  
             $table->timestamps();
+            $table->boolean('isSync')->default(false);
         });
         
         
@@ -79,6 +82,7 @@ class OrderManager extends Migration
             $table->string('kitchen_id');
             $table->foreign('kitchen_id')->references('id')->on('branch_kitchens');  
             $table->timestamps();
+            $table->boolean('isSync')->default(false);
         });
 
         
@@ -90,6 +94,7 @@ class OrderManager extends Migration
             $table->foreign('productId')->references('id')->on('products')->onDelete('cascade');  
             $table->unique(['addonTitle', 'productId']);
             $table->timestamps();
+            $table->boolean('isSync')->default(false);
         });
 
         //advanced pricing tables
@@ -101,6 +106,7 @@ class OrderManager extends Migration
             $table->foreign('productId')->references('id')->on('products')->onDelete('cascade');  
             $table->unique(['title', 'productId']);
             $table->timestamps();
+            $table->boolean('isSync')->default(false);
         });
 
         Schema::create('product_price_model_units', function (Blueprint $table) {
@@ -111,6 +117,7 @@ class OrderManager extends Migration
             $table->foreign('priceModelId')->references('id')->on('product_price_models')->onDelete('cascade');  
             $table->unique(['title', 'priceModelId']);
             $table->timestamps();
+            $table->boolean('isSync')->default(false);
         });
 
         Schema::create('product_price_model_combinations', function (Blueprint $table) {
@@ -128,6 +135,7 @@ class OrderManager extends Migration
             $table->foreign('priceModelUnitId')->references('id')->on('product_price_model_units')->onDelete('cascade');  
             $table->unique(['combinationId', 'priceModelUnitId'], 'combination_with_units');
             $table->timestamps();
+            $table->boolean('isSync')->default(false);
         });
 
         Schema::create('product_advanced_pricings', function (Blueprint $table) {
@@ -138,6 +146,7 @@ class OrderManager extends Migration
             $table->foreign('combinationId')->references('id')->on('product_price_model_combinations');  
             $table->string('price')->deafult('0');
             $table->timestamps();
+            $table->boolean('isSync')->default(false);
         });
 
         Schema::create('product_advanced_pricing_images', function (Blueprint $table) {
@@ -148,6 +157,7 @@ class OrderManager extends Migration
             $table->foreign('advancedPricingId')->references('id')->on('product_advanced_pricings');  
             $table->string('price')->deafult('0');
             $table->timestamps();
+            $table->boolean('isSync')->default(false);
         });
         //advanced pricing tables
 
@@ -157,6 +167,7 @@ class OrderManager extends Migration
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');  
             $table->string('category_id')->nullable(true);
             $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');  
+            $table->boolean('isSync')->default(false);
         });
 
         
@@ -186,6 +197,7 @@ class OrderManager extends Migration
             $table->string('orderType');
             $table->foreign('orderType')->references('id')->on('branch_order_types');  
             $table->timestamps();
+            $table->boolean('isSync')->default(false);
         });
 
 
@@ -206,6 +218,7 @@ class OrderManager extends Migration
             $table->foreign('productId')->references('id')->on('products');  
             $table->boolean('isParcel')->default(false);
             $table->timestamps();
+            $table->boolean('isSync')->default(false);
         });
         
         Schema::create('order_tables', function (Blueprint $table) {
@@ -216,6 +229,7 @@ class OrderManager extends Migration
             $table->string('tableId');
             $table->foreign('tableId')->references('id')->on('table_managers');  
             $table->timestamps();
+            $table->boolean('isSync')->default(false);
         });
         
         Schema::create('order_feedbacks', function (Blueprint $table) {
@@ -227,6 +241,7 @@ class OrderManager extends Migration
             $table->string('customerId');
             $table->foreign('customerId')->references('id')->on('customers');  
             $table->timestamps();
+            $table->boolean('isSync')->default(false);
         });
 
 

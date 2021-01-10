@@ -16,13 +16,14 @@ class BranchOrderType extends Model
     // In Laravel 6.0+ make sure to also set $keyType
     protected $keyType = 'string';
     protected $fillable = [
-        'orderType', 'tableRequired', 'isActive', 'branch_id'
+        'orderType', 'tableRequired', 'isActive', 'branch_id', 'isSync'
     ];
 
 
     protected $casts = [
         // 'branch_id' => 'int',
         'isActive' => 'boolean',
+        'isSync' => 'boolean',
         'tableRequired' => 'boolean'
     ];
     

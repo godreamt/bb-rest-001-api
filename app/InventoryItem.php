@@ -23,7 +23,8 @@ class InventoryItem extends Model
         'description', 
         'pricePerUnit', 
         'isActive', 
-        'company_id'
+        'company_id',
+        'isSync'
     ];
 
 
@@ -31,6 +32,7 @@ class InventoryItem extends Model
         // 'company_id' => 'int',
         // 'unitId' => 'int',
         'isActive' => 'boolean',
+        'isSync' => 'boolean',
         'pricePerUnit' => 'double',
     ];
 

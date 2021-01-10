@@ -75,6 +75,7 @@ class BranchController extends Controller
                     $branch->branchLogo = '/uploads'.$path;
                 }
 
+                $branch->isSync = false;
                 $branch->save();
 
                     $kitchens = $request->kitchens ?? [];
@@ -90,6 +91,7 @@ class BranchController extends Controller
                             }
                             $kitchenObj->kitchenTitle = $kitchen['kitchenTitle'];
                             $kitchenObj->branch_id = $branch->id;
+                            $kitchenObj->isSync = false;
                             $kitchenObj->save();
                         }
                     }
@@ -111,6 +113,7 @@ class BranchController extends Controller
                         $typeObj->tableRequired = $type['tableRequired'] ?? false;
                         $typeObj->isActive = $type['isActive'] ?? false;
                         $typeObj->branch_id = $branch->id;
+                        $typeObj->isSync = false;
                         $typeObj->save();
                     }
                 }
@@ -144,6 +147,7 @@ class BranchController extends Controller
                 $branch = Branch::find($id);
                 if($branch instanceof Branch) {
                     $branch->isActive = $request->isActive;
+                    $branch->isSync = false;
                     $branch->save();
                     return ['data' => $branch, 'msg'=> "Branch status updated successfully"];
                 }else {

@@ -16,11 +16,12 @@ class OrderFeedback extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'orderId', 'customerId', 'rating', 'comments'
+        'orderId', 'customerId', 'rating', 'comments', 'isSync'
     ];
 
     
     protected $casts = [
+        'isSync' => 'boolean',
         // 'customerId' => 'int',
         // 'orderId' => 'int'
     ];

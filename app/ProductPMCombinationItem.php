@@ -14,11 +14,12 @@ class ProductPMCombinationItem extends Model
     protected $keyType = 'string';
     
     protected $fillable = [
-        'combinationId', 'priceModelUnitId'
+        'combinationId', 'priceModelUnitId', 'isSync'
     ];
 
     
     protected $casts = [
+        'isSync' => 'boolean',
         // 'combinationId' => 'int',
         // 'priceModelUnitId' => 'int',
     ];

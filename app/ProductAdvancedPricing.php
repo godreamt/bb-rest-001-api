@@ -16,11 +16,12 @@ class ProductAdvancedPricing extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'productId', 'combinationId', 'price'
+        'productId', 'combinationId', 'price', 'isSync'
     ];
 
     
     protected $casts = [
+        'isSync' => 'boolean',
         // 'productId' => 'int',
         // 'combinationId' => 'int',
     ];

@@ -28,11 +28,13 @@ class Branch extends Model
         'taxPercent', 
         'appDefaultOrderType', 
         'adminDefaultOrderType',
-        'company_id'
+        'company_id',
+        'isSync'
     ];
 
     protected $casts = [
         'isActive' => 'boolean',
+        'isSync' => 'boolean',
         // 'company_id' => 'int'
     ];
 

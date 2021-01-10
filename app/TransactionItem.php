@@ -20,7 +20,8 @@ class TransactionItem extends Model
         'itemId', 
         'quantity', 
         'amount', 
-        'total'
+        'total',
+        'isSync'
     ];
 
     
@@ -29,6 +30,7 @@ class TransactionItem extends Model
         // 'itemId' => 'int',
         'quantity' =>'int',
         'amount' => 'double',
+        'isSync' => 'boolean',
         'total' => 'double'
     ];
 
