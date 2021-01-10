@@ -43,7 +43,7 @@ class OrderItem extends Model
 
         static::creating(function ($item) {
             $loggedUser = \Auth::user();
-            $prefix = Config::get('app.hosted') . ($loggedUser->company_id ?? "") . ($loggedUser->branch_id ?? "" );
+            $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
             $item->id = IdGenerator::generate(['table' => 'order_items', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
         });
     }

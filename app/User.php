@@ -106,7 +106,7 @@ class User extends Authenticatable implements JWTSubject
                 }
             }
             // \Debugger::dump(Config::get('app.hosted'));
-            $prefix = Config::get('app.hosted') . ($loggedUser->company_id ?? "") . ($loggedUser->branch_id ?? "" );
+            $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
             $user->id = IdGenerator::generate(['table' => 'users', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
         });
         

@@ -18,6 +18,9 @@ class UserAttendanceController extends Controller
             }
             foreach($users as $user) {
                 $affDate = new \Datetime($user['effectedDate']);
+                if($affDate > new \Datetime()) {
+                    return response()->json(['msg' => 'Invalid date selected'], 400);
+                }
                 $attendance = UserAttendance::where('effectedDate', $affDate)->where('user_id', $user['user_id'])->first();
                 if(!($attendance instanceof UserAttendance)) {
                     $attendance = new UserAttendance();
@@ -47,7 +50,7 @@ class UserAttendanceController extends Controller
         $users = $users->get();
 
         foreach($users as $user) {
-            $user['attendance'] = UserAttendance::select('user_attendances.*')->whereBetween('effectedDate', [$startDate, $endDate])->get();
+            $user['attendance'] = UserAttendance::select('user_attendances.*')->whereBetween('effectedDate', [$startDate, $endDate])->where('user_id', $user->id)->get();
         }
         return $users;
     }

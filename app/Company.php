@@ -53,7 +53,7 @@ class Company extends Model
         
         static::creating(function ($company) {
             $loggedUser = \Auth::user();
-            $prefix = Config::get('app.hosted') . ($loggedUser->company_id ?? "") . ($loggedUser->branch_id ?? "" );
+            $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
             $company->id = IdGenerator::generate(['table' => 'companies', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
         });
     }

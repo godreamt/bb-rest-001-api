@@ -102,6 +102,7 @@ class UserController extends Controller
                 $user->branch_id =  $request->branch_id;
                 $user->isSync = false;
                 $user->save();
+                return $user;
             });
         }catch(\Exception $e) {
             return response()->json(['msg' => ' Can not able to update user', 'error'=>$e->getMessage()], 400);

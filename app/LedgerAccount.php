@@ -68,7 +68,7 @@ class LedgerAccount extends Model
             if($loggedUser->roles != 'Super Admin') {
                 $item->company_id = $loggedUser->company_id;
             }
-            $prefix = Config::get('app.hosted') . ($loggedUser->company_id ?? "") . ($loggedUser->branch_id ?? "" );
+            $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
             $item->id = IdGenerator::generate(['table' => 'ledger_accounts', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
         });
 

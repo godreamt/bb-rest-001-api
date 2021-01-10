@@ -93,7 +93,7 @@ class MonthSheet extends Model
                     $monthlySheet->company_id = $branch->company_id;
                 }
             }
-            $prefix = Config::get('app.hosted') . ($loggedUser->company_id ?? "") . ($loggedUser->branch_id ?? "" );
+            $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
             $monthlySheet->id = IdGenerator::generate(['table' => 'month_sheets', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
         });
     }

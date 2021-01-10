@@ -112,8 +112,7 @@ class CreateUsersTable extends Migration
             $table->string('branch_id')->nullable(true);
             $table->foreign('branch_id')->references('id')->on('branches');  
             $table->string('company_id')->nullable(true);
-            $table->foreign('company_id')->references('id')->on('companies');  
-            $table->boolean('isSync')->default(false);
+            $table->foreign('company_id')->references('id')->on('companies'); 
         });
 
         Schema::table('branches', function(Blueprint $table) {
@@ -121,7 +120,6 @@ class CreateUsersTable extends Migration
             $table->foreign('appDefaultOrderType')->references('id')->on('branch_order_types'); 
             $table->string('adminDefaultOrderType')->nullable(true);
             $table->foreign('adminDefaultOrderType')->references('id')->on('branch_order_types');  
-            $table->boolean('isSync')->default(false);
         });
     }
 

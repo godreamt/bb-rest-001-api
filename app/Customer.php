@@ -81,7 +81,7 @@ class Customer extends Model
             $branch = Branch::find($customer->branch_id);
             $customer->company_id = $customer->company_id;
 
-            $prefix = Config::get('app.hosted') . ($loggedUser->company_id ?? "") . ($loggedUser->branch_id ?? "" );
+            $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
             $customer->id = IdGenerator::generate(['table' => 'customers', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
         });
     }
