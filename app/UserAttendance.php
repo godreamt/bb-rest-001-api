@@ -17,6 +17,7 @@ class UserAttendance extends Model
     
 
     protected $fillable = [
+        'id',
         'effectedDate', 
         'isPresent', 
         'description', 
@@ -36,9 +37,16 @@ class UserAttendance extends Model
         parent::boot();
 
         static::creating(function ($item) {
-            $loggedUser = \Auth::user();
-            $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
-            $item->id = IdGenerator::generate(['table' => 'user_attendances', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+            if(empty($item->id)) {
+                $loggedUser = \Auth::user();
+                $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
+                $item->id = IdGenerator::generate(['table' => 'user_attendances', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+            }
         });
+    }
+
+    public function user()
+    {
+        return $this->belongsTo('App\User', 'user_id');
     }
 }

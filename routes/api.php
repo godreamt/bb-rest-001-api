@@ -25,12 +25,13 @@ Route::get('master-sync/{branchId}', 'MigrationController@masterSync');
 Route::get('master-sync-get-data/{branchId}', 'MigrationController@getMasterInfo');
 
 
-Route::get('sync', 'MigrationController@syncStart');
-Route::post('execute', 'MigrationController@syncExecute');
-
 
 Route::group(['middleware' => ['jwt.verify']], function() {
     Route::get('current-user', 'AuthController@getAuthenticatedUser');
+
+    Route::get('sync', 'MigrationController@syncStart');
+    Route::post('execute', 'MigrationController@syncExecute');
+    Route::post('online-execute', 'MigrationController@finalOnlineExecute');
 
     
     Route::group(['prefix'=>'order-manager'], function(){

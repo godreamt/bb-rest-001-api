@@ -24,6 +24,7 @@ class Product extends Model
      * consider https://slickpos.com/hardware/desktop-billing-software/
      */
     protected $fillable = [
+        'id',
         'productNumber', 
         'productName', 
         'productSlug', 
@@ -119,8 +120,10 @@ class Product extends Model
             $count = static::where("productSlug", "LIKE", $slug . '%')->count();
             $product->productSlug = $count ? "{$slug}-{$count}" : $slug;
 
-            $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
-            $product->id = IdGenerator::generate(['table' => 'products', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+            if(empty($product->id)) {
+                $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
+                $product->id = IdGenerator::generate(['table' => 'products', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+            }
            
         });
     }

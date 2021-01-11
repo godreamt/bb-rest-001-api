@@ -19,7 +19,13 @@ class Category extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'categoryName', 'description', 'featuredImage', 'isActive', 'branch_id', 'isSync'
+        'id',
+        'categoryName', 
+        'description', 
+        'featuredImage', 
+        'isActive', 
+        'branch_id', 
+        'isSync'
     ];
 
 
@@ -78,8 +84,10 @@ class Category extends Model
             // throw new ValidationException($branch);
             $category->company_id = $branch->company_id;
 
-            $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
-            $category->id = IdGenerator::generate(['table' => 'categories', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+            if(empty($category->id)) {
+                $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
+                $category->id = IdGenerator::generate(['table' => 'categories', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+            }
         });
     }
     

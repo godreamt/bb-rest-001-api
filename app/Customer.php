@@ -18,7 +18,13 @@ class Customer extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'customerName', 'mobileNumber', 'emailId', 'branch_id', 'isSync'
+        'id',
+        'customerName', 
+        'mobileNumber', 
+        'emailId', 
+        'company_id', 
+        'branch_id', 
+        'isSync'
     ];
 
 
@@ -81,8 +87,10 @@ class Customer extends Model
             $branch = Branch::find($customer->branch_id);
             $customer->company_id = $customer->company_id;
 
-            $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
-            $customer->id = IdGenerator::generate(['table' => 'customers', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+            if(empty($customer->id )) {
+                $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
+                $customer->id = IdGenerator::generate(['table' => 'customers', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+            }
         });
     }
 }

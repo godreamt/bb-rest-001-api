@@ -19,9 +19,11 @@ class Order extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
+        'id',
         'customerId', 
         'relatedInfo', 
         'customerAddress',
+        'company_id',
         'branch_id', 
         'cgst', 
         'sgst', 
@@ -35,6 +37,7 @@ class Order extends Model
         'takenBy', 
         'taxDisabled', 
         'taxPercent',
+        'orderType',
         'isSync'
     ];
 
@@ -99,12 +102,14 @@ class Order extends Model
                 if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin' && $loggedUser->roles != 'Company Accountant') {
                     $order->branch_id = $loggedUser->branch_id;
                 }
+                $branch = Branch::find($order->branch_id);
+                $order->company_id = $branch->company_id;
+                $order->takenBy = $loggedUser->id;
+                if(empty($order->id)) {
+                    $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
+                    $order->id = IdGenerator::generate(['table' => 'orders', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+                }
             }
-            $branch = Branch::find($order->branch_id);
-            $order->company_id = $branch->company_id;
-            $order->takenBy = $loggedUser->id;
-            $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
-            $order->id = IdGenerator::generate(['table' => 'orders', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
         });
     }
 

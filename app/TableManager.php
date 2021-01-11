@@ -19,7 +19,15 @@ class TableManager extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'id', 'tableId', 'description', 'noOfChair', 'bookedChairs', 'isReserved', 'isActive', 'branch_id', 'isSync'
+        'id', 
+        'tableId', 
+        'description', 
+        'noOfChair', 
+        'bookedChairs', 
+        'isReserved', 
+        'isActive', 
+        'branch_id', 
+        'isSync'
     ];
 
     

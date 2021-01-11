@@ -18,6 +18,7 @@ class InventoryItem extends Model
 
     public $timestamps = false;
     protected $fillable = [
+        'id',
         'itemName', 
         'unitId', 
         'description', 
@@ -59,9 +60,13 @@ class InventoryItem extends Model
 
         
         static::creating(function ($item) {
-            $user = \Auth::user();
-            if($user->roles != 'Super Admin') {
-                $item->company_id = $user->company_id;
+            $loggedUser = \Auth::user();
+            if($loggedUser->roles != 'Super Admin') {
+                $item->company_id = $loggedUser->company_id;
+            }
+            if(empty($item->id)) {
+                $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
+                $item->id = IdGenerator::generate(['table' => 'inventory_items', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
             }
         });
 
@@ -71,8 +76,6 @@ class InventoryItem extends Model
             if($loggedUser->roles != 'Super Admin') {
                 $item->company_id = $loggedUser->company_id;
             }
-            $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
-            $item->id = IdGenerator::generate(['table' => 'inventory_items', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
         });
     }
 } 
