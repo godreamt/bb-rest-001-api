@@ -17,6 +17,7 @@ use GuzzleHttp\Client;
 use App\UserAttendance;
 use App\BranchOrderType;
 use Illuminate\Http\Request;
+use App\ProductAdvancedPricing;
 use Illuminate\Support\Facades\Http;
 
 class MigrationController extends Controller
@@ -128,6 +129,7 @@ class MigrationController extends Controller
             $result['user_attendances'] = UserAttendance::select('user_attendances.*')->leftJoin('users', 'users.id', 'user_attendances.user_id')->where('users.branch_id', $branchId)->where('user_attendances.isSync', false)->get();
             $result['categories'] = Category::where('branch_id', $branchId)->where('isSync', false)->get();
             $result['products'] = Product::where('branch_id', $branchId)->where('isSync', false)->get();
+            $result['product_advanced_pricings'] = ProductAdvancedPricing::select('product_advanced_pricings.*')->leftJoin('products', 'products.id', 'product_advanced_pricings.productId')->where('products.branch_id', $branchId)->where('isSync', false)->get();
             $result['table_managers'] = TableManager::where('branch_id', $branchId)->where('isSync', false)->get();
             $result['customers'] = Customer::where('branch_id', $branchId)->where('isSync', false)->get();
             $result['orders'] = Order::where('branch_id', $branchId)->where('isSync', false)->get();
@@ -211,6 +213,22 @@ class MigrationController extends Controller
                     $item['isSync'] = true;
                     $onlineResponse['products'][] = $item['id'];
                     Product::updateOrCreate(
+                        ['id' => $item['id']],
+                        $item
+                    );
+                }
+    
+                // !product advanced pricing
+                $onlineResponse['product_advanced_pricings'] = [];
+                foreach($res['product_advanced_pricings']['syncDone'] as $itemId) {
+                    $item = ProductAdvancedPricing::find($itemId);
+                    $item->isSync = true;
+                    $item->save();
+                }
+                foreach($res['product_advanced_pricings']['onlineRecords'] as $item) {
+                    $item['isSync'] = true;
+                    $onlineResponse['product_advanced_pricings'][] = $item['id'];
+                    ProductAdvancedPricing::updateOrCreate(
                         ['id' => $item['id']],
                         $item
                     );
@@ -392,6 +410,23 @@ class MigrationController extends Controller
                 );
             }
             $result['products']['onlineRecords'] = Product::where('branch_id', $branchId)->where('isSync', false)->get();
+
+
+            // !product_advanced_pricings
+            $product_advanced_pricings = $data['product_advanced_pricings'];
+            $result['product_advanced_pricings'] = [
+                'syncDone' => [],
+                'onlineRecords' => []
+            ];
+            foreach($product_advanced_pricings as $item) {
+                $item['isSync'] = true;
+                $result['product_advanced_pricings']['syncDone'][] = $item['id'];
+                ProductAdvancedPricing::updateOrCreate(
+                    ['id' => $item['id']],
+                    $item
+                );
+            }
+            $result['product_advanced_pricings']['onlineRecords'] = ProductAdvancedPricing::select('product_advanced_pricings.*')->leftJoin('products', 'products.id', 'product_advanced_pricings.productId')->where('products.branch_id', $branchId)->where('isSync', false)->get();
             
 
             // table_managers
@@ -515,6 +550,14 @@ class MigrationController extends Controller
             $products = $data['products'];
             foreach($products as $itemId) {
                 $item = Product::find($itemId);
+                $item->isSync = true;
+                $item->save();
+            }
+
+            // !product_advanced_pricings
+            $product_advanced_pricings = $data['product_advanced_pricings'];
+            foreach($product_advanced_pricings as $itemId) {
+                $item = ProductAdvancedPricing::find($itemId);
                 $item->isSync = true;
                 $item->save();
             }

@@ -2,7 +2,7 @@
 
 namespace App;
 
-use League\Flysystem\Config;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Model;
 use Haruncpi\LaravelIdGenerator\IdGenerator;
 
@@ -16,13 +16,17 @@ class ProductAdvancedPricing extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'productId', 'combinationId', 'price', 'isSync'
+        'id',
+        'productId', 
+        'title', 
+        'price', 
+        'isSync'
     ];
 
     
     protected $casts = [
         'isSync' => 'boolean',
-        // 'productId' => 'int',
+        'price' => 'double'
         // 'combinationId' => 'int',
     ];
 
@@ -31,9 +35,11 @@ class ProductAdvancedPricing extends Model
         parent::boot();
 
         static::creating(function ($item) {
-            $loggedUser = \Auth::user();
-            $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
-            $item->id = IdGenerator::generate(['table' => 'product_advanced_pricings', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+            if(empty($item->id)) {
+                $loggedUser = \Auth::user();
+                $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
+                $item->id = IdGenerator::generate(['table' => 'product_advanced_pricings', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+            }
         });
     }
 }

@@ -9,6 +9,7 @@ use App\OrderItem;
 use App\OrderTable;
 use App\TableManager;
 use Illuminate\Http\Request;
+use App\ProductAdvancedPricing;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\Paginator;
 
@@ -436,12 +437,23 @@ class OrderController extends Controller
                             $product = Product::find( $item['productId']);
                             $orderItem->quantity = (int)$item['quantity'];
                             $orderItem->servedQuantity = $item['servedItems'];
-                            $orderItem->price = (float)$item['price'];
                             $orderItem->productId = $product->id;
                             $orderItem->orderId = $order->id;
                             $orderItem->isParcel = $item['isParcel'] ?? false;
+                            $orderItem->price = (float)$item['price'];
+                            if($product->isAdvancedPricing) {
+                                $pricing = ProductAdvancedPricing::find($item['advancedPriceId']);
+                                if($pricing instanceof ProductAdvancedPricing) {
+                                    $orderItem->advancedPriceId = $pricing->id;
+                                    $orderItem->price = $pricing->price;
+                                    $orderItem->advancedPriceTitle = $pricing->title;
+                                }
+                            }else {
+                                $orderItem->advancedPriceId = null;
+                                $orderItem->advancedPriceTitle = null;
+                            }
                             $orderItem->packagingCharges = $product->packagingCharges;
-                            $totalPrice = $orderItem->quantity * $product->price;
+                            $totalPrice = $orderItem->quantity * $orderItem->price;
                             if($orderItem->isParcel) {
                                 $totalPrice = $totalPrice + ($orderItem->quantity * $orderItem->packagingCharges);
                             }else {
@@ -473,7 +485,7 @@ class OrderController extends Controller
                     return $order;
                 });
         }catch(\Exception $e) {
-            return response()->json(['msg' => 'Can not able to update', 'error'=>$e], 400);
+            return response()->json(['msg' => 'Can not able to update', 'error'=>$e->getMessage()], 400);
         }
     }
 

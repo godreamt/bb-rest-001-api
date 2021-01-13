@@ -61,6 +61,10 @@ class Product extends Model
         return $this->belongsTo('App\Branch', 'branch_id');
     }
 
+    public function advancedPricing() {
+        return $this->hasMany('App\ProductAdvancedPricing', 'productId');
+    }
+
     public function categories()
     {
         return $this->belongsToMany('App\Category', 'product_categories', 'product_id', 'category_id');

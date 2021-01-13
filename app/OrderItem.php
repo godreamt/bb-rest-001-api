@@ -28,6 +28,8 @@ class OrderItem extends Model
         'productionAcceptedQuantity', 
         'productionReadyQuantity', 
         'productionRejectedQuantity',
+        'advancedPriceId',
+        'advancedPriceTitle',
         'isSync'
     ];
 

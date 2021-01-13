@@ -97,69 +97,18 @@ class OrderManager extends Migration
             $table->boolean('isSync')->default(false);
         });
 
-        //advanced pricing tables
-        Schema::create('product_price_models', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->string('title');
-            $table->string('description');
-            $table->string('productId');
-            $table->foreign('productId')->references('id')->on('products')->onDelete('cascade');  
-            $table->unique(['title', 'productId']);
-            $table->timestamps();
-            $table->boolean('isSync')->default(false);
-        });
-
-        Schema::create('product_price_model_units', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->string('title');
-            $table->text('description')->nullable(true);
-            $table->string('priceModelId');
-            $table->foreign('priceModelId')->references('id')->on('product_price_models')->onDelete('cascade');  
-            $table->unique(['title', 'priceModelId']);
-            $table->timestamps();
-            $table->boolean('isSync')->default(false);
-        });
-
-        Schema::create('product_price_model_combinations', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->string('productId');
-            $table->foreign('productId')->references('id')->on('products')->onDelete('cascade');  
-            $table->timestamps();
-        });
-
-        Schema::create('product_p_m_combination_items', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->string('combinationId');
-            $table->foreign('combinationId')->references('id')->on('product_price_model_combinations')->onDelete('cascade');  
-            $table->string('priceModelUnitId');
-            $table->foreign('priceModelUnitId')->references('id')->on('product_price_model_units')->onDelete('cascade');  
-            $table->unique(['combinationId', 'priceModelUnitId'], 'combination_with_units');
-            $table->timestamps();
-            $table->boolean('isSync')->default(false);
-        });
 
         Schema::create('product_advanced_pricings', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->string('productId');
             $table->foreign('productId')->references('id')->on('products')->onDelete('cascade');  
-            $table->string('combinationId');
-            $table->foreign('combinationId')->references('id')->on('product_price_model_combinations');  
+            $table->string('title'); 
             $table->string('price')->deafult('0');
-            $table->timestamps();
             $table->boolean('isSync')->default(false);
+            $table->unique(['productId', 'title']);
+            $table->timestamps();
         });
 
-        Schema::create('product_advanced_pricing_images', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->string('productId');
-            $table->foreign('productId')->references('id')->on('products');  
-            $table->string('advancedPricingId')->nullable(true);
-            $table->foreign('advancedPricingId')->references('id')->on('product_advanced_pricings');  
-            $table->string('price')->deafult('0');
-            $table->timestamps();
-            $table->boolean('isSync')->default(false);
-        });
-        //advanced pricing tables
 
         
         Schema::create('product_categories', function (Blueprint $table) {
@@ -205,6 +154,7 @@ class OrderManager extends Migration
         Schema::create('order_items', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->string('price');
+            $table->string('advancedPriceTitle')->nullable(true);
             $table->string('quantity')->nullable();
             $table->integer('servedQuantity')->default(0);
             $table->integer('productionAcceptedQuantity')->default(0);
@@ -216,6 +166,8 @@ class OrderManager extends Migration
             $table->foreign('orderId')->references('id')->on('orders');  
             $table->string('productId');
             $table->foreign('productId')->references('id')->on('products');  
+            $table->string('advancedPriceId')->nullable(true);
+            $table->foreign('advancedPriceId')->references('id')->on('product_advanced_pricings')->onDelete('set null');  
             $table->boolean('isParcel')->default(false);
             $table->timestamps();
             $table->boolean('isSync')->default(false);

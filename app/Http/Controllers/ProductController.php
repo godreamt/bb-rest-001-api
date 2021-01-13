@@ -6,6 +6,7 @@ use App\Product;
 use App\Category;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\ProductAdvancedPricing;
 use Illuminate\Pagination\Paginator;
 
 class ProductController extends Controller
@@ -122,7 +123,7 @@ class ProductController extends Controller
         if($fields != '*'){
             $fields = explode(',',$fields);
         }
-        $products = Product::select($fields)->with('branch');
+        $products = Product::select($fields)->with('branch')->with('advancedPricing');
 
 
 
@@ -158,7 +159,7 @@ class ProductController extends Controller
     }
 
     public function getProductDetail(Request $request, $id) {
-        return Product::with('branch')->with('categories')->find($id);
+        return Product::with('branch')->with('categories')->with('advancedPricing')->find($id);
     }
 
     public function updateProduct(Request $request) {
@@ -189,10 +190,34 @@ class ProductController extends Controller
                 $product->isVeg = $request->isVeg ?? true;
                 $product->branch_id = $request->branch_id;
                 $product->kitchen_id = $request->kitchen_id;
+                $product->isAdvancedPricing = $request->isAdvancedPricing ?? false;
                 $categories = ($request->categories == "")?[]:$request->categories;
-        //         // if(sizeof($categories) > 0)
+                
                 $product->isSync = false;
                 $product->save();
+
+                if($product->isAdvancedPricing) {
+                    foreach($request->pricingGroups as $group) {
+                        if(!empty($group['deletedFlag']) && $group['deletedFlag'] == 'true') {
+                            $pricing = ProductAdvancedPricing::find($group['id']);
+                            $pricing->delete();
+                        }else {
+                            if(!empty($group['title']) && !empty($group['price'])) {
+                                if(empty($group['id'])){
+                                    $pricing = new ProductAdvancedPricing();
+                                }else {
+                                    $pricing = ProductAdvancedPricing::find($group['id']);
+                                }
+                                $pricing->productId = $product->id;
+                                $pricing->title = $group['title'];
+                                $pricing->price = $group['price'];
+                                $pricing->isSync = false;
+                                $pricing->save();
+                            }
+                        }
+                    } 
+                }
+                
                 $product->categories()->sync($categories);
                 return ['data' => $product, 'msg'=> "Product updated successfully"];
             }catch(\Exception $e) {
@@ -239,13 +264,13 @@ class ProductController extends Controller
     public function getCategoryGroupedProduct(Request $request) {
         $categories = Category::where('isActive', true)->get();
         foreach($categories as $category) {
-            $category['products'] = Product::leftJoin('product_categories', 'product_categories.product_id', 'products.id')
+            $category['products'] = Product::leftJoin('product_categories', 'product_categories.product_id', 'products.id')->with('advancedPricing')
                     ->where('isActive', true)
                     ->where('product_categories.category_id', $category->id)->distinct()->get();
         }
         
 
-        $otherProducts = Product::join('product_categories', 'product_categories.product_id', '=', 'products.id', 'left outer')->where('product_categories.product_id', NULL)->get();
+        $otherProducts = Product::join('product_categories', 'product_categories.product_id', '=', 'products.id', 'left outer')->with('advancedPricing')->where('product_categories.product_id', NULL)->get();
         $categories[] = [
             'id' => 'other',
             'categoryName' => 'Others',
