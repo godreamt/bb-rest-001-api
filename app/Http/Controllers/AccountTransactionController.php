@@ -9,10 +9,12 @@ use App\Transaction;
 use App\YearlySheet;
 use App\Helper\Helper;
 use App\InventoryItem;
+use App\LedgerAccount;
 use App\TransactionItem;
 use Illuminate\Http\Request;
 use App\InventoryItemManager;
 use App\TransactionOnAccount;
+use App\TransactionAccountJournal;
 use Illuminate\Pagination\Paginator;
 use App\Http\Requests\TransactionUpdateValidationRequest;
 
@@ -24,9 +26,12 @@ class AccountTransactionController extends Controller
                 $date = new \Datetime();
                 $before3days = $date->modify('-3 days');
                 $transactionDate = new \Datetime($request->transactionDate);
+
+                $ledgerAccount = LedgerAccount::find($request->accountId);
                 if(empty($request->id)) {
                     $transaction = new Transaction();
-                    $transaction->transactionType = $request->transactionType;
+                    $mainTransactionJournal = new TransactionAccountJournal();
+                    $transaction->transactionType = strtolower($request->transactionType);
                     $transaction->company_id = $request->company_id;
                     $transaction->branch_id = $request->branch_id;
 
@@ -41,6 +46,14 @@ class AccountTransactionController extends Controller
                     }
                 }else {
                     $transaction = Transaction::find($request->id);
+                    $mainTransactionJournal = TransactionAccountJournal::where('transactionId', $transaction->id) ->where('transactionAccountId', null)->first();
+
+                    
+                    if($mainTransactionJournal->accountId != $ledgerAccount->id) {
+                        $this->handleEndingBalanceOdAccount($mainTransactionJournal, 0);
+                    }
+
+
                     if($transaction->transactionDate < $before3days) {
                         return response()->json(['Can not update now'], 400);
                     }
@@ -65,30 +78,16 @@ class AccountTransactionController extends Controller
                 $res = $this->getMonthSheet($month, $year, $transaction->company_id, $transaction->branch_id);
                 $monthlySheet = $res['monthly'];
                 $yearlySheet = $res['yearly'];
-
-
-
-                // $transaction->transactionRefNumber = $request->transactionRefNumber;
-                $transaction->accountId = $request->accountId;
+                $transaction->accountId = $ledgerAccount->id;
                 $transaction->description = $request->description;
                 $transaction->grandTotal = $request->grandTotal;
                 $transaction->monthly_sheet_id = $monthlySheet->id;
-                // $transaction->branch_id = $request->branch_id;
-                // $transaction->company_id = $request->company_id;
                 $transaction->isSync = false;
                 $transaction->save();
 
-                
-                // handle present month sheet and yearly sheet managment
-                if($transaction->transactionType == 'purchase' || $transaction->transactionType == 'payment') {
-                    $monthlySheet->totalMonthlyExpense = (float)$monthlySheet->totalMonthlyExpense - (float)$transaction->grandTotal;
-                }else {//if type = sales, receipt
-                    $monthlySheet->totalMonthlyIncome = (float)$monthlySheet->totalMonthlyIncome - (float)$transaction->grandTotal;
-                }
-                $monthlySheet->isSync = false;
-                $monthlySheet->save();
-                // ! Todo : Handle all month carrid down aaounts
 
+
+                $orderItemTotal = 0;
 
                 if($request->transactionType == 'purchase' || $request->transactionType == 'sales') {
                     foreach($request->items as $item) {
@@ -130,7 +129,8 @@ class AccountTransactionController extends Controller
                             $transactionItem->itemId = $item['itemId'];
                             $transactionItem->quantity = $item['quantity'];
                             $transactionItem->amount = $item['amount'];
-                            $transactionItem->total = $item['total'];
+                            $transactionItem->total = $transactionItem->quantity * $transactionItem->amount;
+                            $orderItemTotal = $transactionItem->total + $orderItemTotal;
                             $transactionItem->isSync = false;
                             $transactionItem->save();
 
@@ -140,6 +140,7 @@ class AccountTransactionController extends Controller
                     }
                 }
 
+                $accountsTotal = 0;
                 foreach($request->accounts as $account) {
                     if(!empty($account['deletedFlag']) && $account['deletedFlag'] == 'true') {
                         $transactionAccount = TransactionOnAccount::find($account['id']);
@@ -147,24 +148,120 @@ class AccountTransactionController extends Controller
                     }else {
                         if(empty($account['id'])){
                             $transactionAccount = new TransactionOnAccount();
+                            $transactionJournal = new TransactionAccountJournal();
                         }else {
                             $transactionAccount = TransactionOnAccount::find($account['id']);
+                            $transactionJournal = TransactionAccountJournal::where('transactionAccountId', $transactionAccount->id)->first();
+
+                            if($transactionAccount->accountId != $account['accountId']) {
+                                $this->handleEndingBalanceOdAccount($transactionJournal, 0);
+                            }
                         }
+
+
                         $transactionAccount->transactionId = $transaction->id;
                         $transactionAccount->accountId = $account['accountId'];
                         $transactionAccount->amountProcessType = $account['amountProcessType'];
                         $transactionAccount->amountValue = $account['amountValue'];
-                        $transactionAccount->totalAmount = $account['totalAmount'];
+                        if($transactionAccount->amountProcessType == 'percent') {
+                            $transactionAccount->totalAmount = $orderItemTotal * $transactionAccount->amountValue / 100;
+                        }else {
+                            $transactionAccount->totalAmount = $transactionAccount->amountValue;
+                        }
+                        $accountsTotal = $accountsTotal + $transactionAccount->totalAmount;
                         $transactionAccount->isSync = false;
                         $transactionAccount->save();
+                        
+                        // ! Todo adjust the balance while changing previous account
+                        if($transaction->transactionType == 'sales') {
+                            $description = "Sales has done to ".$ledgerAccount->ledgerName;
+                        }else if($transaction->transactionType == 'purchase') {
+                            $description = "Purchase has done from ".$ledgerAccount->ledgerName;
+                        }else if($transaction->transactionType == 'payment') {
+                            $description = "Payment has done from ".$ledgerAccount->ledgerName;
+                        }else if($transaction->transactionType == 'receipt') {
+                            $description = "Recept amount has added to ".$ledgerAccount->ledgerName;
+                        }
+                        $transactionJournal->description = $description;
+                        $transactionJournal->transactionDate = $transaction->transactionDate;
+                        $transactionJournal->transactionAccountId = $transactionAccount->id;
+                        $transactionJournal->accountId = $account['accountId'];
+                        $transactionJournal->transactionAmount = $transactionAccount->totalAmount;
+                        $transactionJournal->transactionId = $transaction->id;
+                        $transactionJournal->save();
+                        $this->handleEndingBalanceOdAccount($transactionJournal, $transactionAccount->totalAmount);
                     }
                 }
+                $transaction->grandTotal = $orderItemTotal + $accountsTotal;
+                
+                // handle present month sheet and yearly sheet managment
+                if($transaction->transactionType == 'purchase' || $transaction->transactionType == 'payment') {
+                    $monthlySheet->totalMonthlyExpense = (float)$monthlySheet->totalMonthlyExpense - (float)$transaction->grandTotal;
+                }else {//if type = sales, receipt
+                    $monthlySheet->totalMonthlyIncome = (float)$monthlySheet->totalMonthlyIncome - (float)$transaction->grandTotal;
+                }
+                $monthlySheet->isSync = false;
+                $monthlySheet->save();
+                $transaction->save();
+
+
+
+                if($transaction->transactionType == 'sales') {
+                    $description = "Sales has done ";
+                }else if($transaction->transactionType == 'purchase') {
+                    $description = "Purchase has done";
+                }else if($transaction->transactionType == 'payment') {
+                    $description = "Payment has made";
+                }else if($transaction->transactionType == 'receipt') {
+                    $description = "Recept amount has received";
+                }
+                $mainTransactionJournal->description = $description;
+                $mainTransactionJournal->transactionDate = $transaction->transactionDate;
+                $mainTransactionJournal->accountId = $ledgerAccount->id;
+                $mainTransactionJournal->transactionAmount = $transaction->grandTotal;
+                $mainTransactionJournal->transactionId = $transaction->id;
+                $mainTransactionJournal->save();
+                $this->handleEndingBalanceOdAccount($mainTransactionJournal, $transaction->grandTotal);
+
+
+
+                // ! Todo : Handle all month carrid down aaounts
                 return $transaction;
             });
         }catch(\Exception $e) {
             return response()->json(['msg' => ' Can not able to save transaction', 'error'=>$e->getMessage()], 400);
         }
     }
+
+    public function handleEndingBalanceOdAccount(TransactionAccountJournal $journal, $transactionAccount) {
+        $previousTransaction = TransactionAccountJournal::where('accountId', $journal->accountId)->where('transactionDate', '<=' ,$journal->transactionDate)->where('id', '<' ,$journal->id)->orderBy('transactionDate', 'DESC')->orderBy('id', 'DESC')->first();
+        // \Debugger::dump($previousTransaction);
+        // throw new \Exception("Resdd");
+        $lastEndingBalance=0;
+        if($previousTransaction instanceof TransactionAccountJournal) {
+            $lastEndingBalance = $previousTransaction->endingBalance;
+        }
+        $transaction = Transaction::find($journal->transactionId);
+        if($transaction->transactionType == 'sales' || $transaction->transactionType == 'receipt') {
+            $journal->endingBalance = $lastEndingBalance + $transactionAccount;
+        }else if($transaction->transactionType == 'payment' || $transaction->transactionType == 'purchase') {
+            $journal->endingBalance = $lastEndingBalance - $transactionAccount;
+        }
+        $lastEndingBalance = $journal->endingBalance;
+        $journal->save();
+        $nextEntries = TransactionAccountJournal::where('accountId', $journal->accountId)->where('transactionDate', '>=' ,$journal->transactionDate)->where('id', '>' ,$journal->id)->orderBy('transactionDate', 'ASC')->orderBy('id', 'ASC')->get();
+        foreach($nextEntries as $journal) {
+            $transaction = Transaction::find($journal->transactionId);
+            if($transaction->transactionType == 'sales' || $transaction->transactionType == 'receipt') {
+                $journal->endingBalance = $lastEndingBalance + $journal->transactionAmount;
+            }else if($transaction->transactionType == 'payment' || $transaction->transactionType == 'purchase') {
+                $journal->endingBalance = $lastEndingBalance - $journal->transactionAmount;
+            }
+            $lastEndingBalance = $journal->endingBalance;
+            $journal->save();
+        }
+    }
+    
 
     public function getMonthSheet($month, $year, $company_id, $branch_id=null) {
         $yearlySheet = $this->getYearlySheet($month, $year, $company_id, $branch_id);

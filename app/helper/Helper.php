@@ -21,7 +21,7 @@ class Helper {
                                                                     ->where('branch_id', $branchId)
                                                                     ->first();
 
-        \Debugger::dump($inventoryId,$companyId, $branchId, $inventoryManager);
+        // \Debugger::dump($inventoryId,$companyId, $branchId, $inventoryManager);
         if(!($inventoryManager instanceof InventoryItemManager)) {
             $inventoryManager = new InventoryItemManager();
             $inventoryManager->inventoryId =  $inventoryId;

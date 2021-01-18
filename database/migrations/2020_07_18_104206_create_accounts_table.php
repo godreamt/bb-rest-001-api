@@ -137,10 +137,10 @@ class CreateAccountsTable extends Migration
             $table->dateTimeTz('transactionDate');
             $table->string('transactionRefNumber')->nullable(true);
             $table->enum('transactionType', [
-                'Purchase',
-                'Sales',
-                'Payment',
-                'Receipt',
+                'purchase',
+                'sales',
+                'payment',
+                'receipt',
             ]);
             $table->string('grandTotal')->nullable(true);
             $table->text('description')->nullable(true);
@@ -183,6 +183,27 @@ class CreateAccountsTable extends Migration
             $table->timestamps();
             $table->boolean('isSync')->default(false);
         });
+
+        Schema::create('transaction_account_journals', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->text('description');
+            $table->dateTimeTz('transactionDate');
+            $table->string('branch_id')->nullable(true);
+            $table->string('endingBalance')->default(0);
+            $table->string('transactionAmount')->default(0);
+            $table->foreign('branch_id')->references('id')->on('branches'); 
+            $table->string('company_id');
+            $table->foreign('company_id')->references('id')->on('companies'); 
+            $table->string('transactionId')->nullable(true);
+            $table->foreign('transactionId')->references('id')->on('transactions');  
+            $table->string('transactionAccountId')->nullable(true);
+            $table->foreign('transactionAccountId')->references('id')->on('transaction_on_accounts');  
+            $table->string('accountId');
+            $table->foreign('accountId')->references('id')->on('ledger_accounts')->onDelete('cascade');  
+            $table->timestamps();
+            $table->boolean('isSync')->default(false);
+        });
+        
     }
 
     /**

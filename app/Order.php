@@ -43,9 +43,6 @@ class Order extends Model
 
 
     protected $casts = [
-        // 'branch_id' => 'int',
-        // 'takenBy' => 'int',
-        // 'customerId' => 'int',
         'taxDisabled' => 'boolean',
         'isSync' => 'boolean',
         'taxPercent' => 'float'
