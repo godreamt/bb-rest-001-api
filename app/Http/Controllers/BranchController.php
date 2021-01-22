@@ -6,6 +6,7 @@ use App\Branch;
 use App\BranchKitchen;
 use App\BranchOrderType;
 use Illuminate\Http\Request;
+use App\BranchPaymentMethods;
 use Illuminate\Pagination\Paginator;
 
 class BranchController extends Controller
@@ -44,7 +45,7 @@ class BranchController extends Controller
     }
 
     public function getBranchDetails(Request $request, $id) {
-        return Branch::with('kitchens')->with('orderTypes')->where('id', $id)->first();
+        return Branch::with('kitchens')->with('orderTypes')->with('paymentMethods')->where('id', $id)->first();
     }
 
     public function updateBranch(Request $request) {
@@ -78,23 +79,23 @@ class BranchController extends Controller
                 $branch->isSync = false;
                 $branch->save();
 
-                    $kitchens = $request->kitchens ?? [];
-                    foreach($kitchens as $kitchen) {
-                        if(!empty($kitchen['deletedFlag'])) {
-                            $kitchen = BranchKitchen::find($kitchen['id']);
-                            $kitchen->delete();
+                $kitchens = $request->kitchens ?? [];
+                foreach($kitchens as $kitchen) {
+                    if(!empty($kitchen['deletedFlag'])) {
+                        $kitchen = BranchKitchen::find($kitchen['id']);
+                        $kitchen->delete();
+                    }else {
+                        if(empty($kitchen['id'])) {
+                            $kitchenObj = new BranchKitchen();
                         }else {
-                            if(empty($kitchen['id'])) {
-                                $kitchenObj = new BranchKitchen();
-                            }else {
-                                $kitchenObj = BranchKitchen::find($kitchen['id']);
-                            }
-                            $kitchenObj->kitchenTitle = $kitchen['kitchenTitle'];
-                            $kitchenObj->branch_id = $branch->id;
-                            $kitchenObj->isSync = false;
-                            $kitchenObj->save();
+                            $kitchenObj = BranchKitchen::find($kitchen['id']);
                         }
+                        $kitchenObj->kitchenTitle = $kitchen['kitchenTitle'];
+                        $kitchenObj->branch_id = $branch->id;
+                        $kitchenObj->isSync = false;
+                        $kitchenObj->save();
                     }
+                }
 
 
                 $orderTypes = $request->orderTypes ?? [];
@@ -115,6 +116,24 @@ class BranchController extends Controller
                         $typeObj->branch_id = $branch->id;
                         $typeObj->isSync = false;
                         $typeObj->save();
+                    }
+                }
+
+                $paymentMethods = $request->paymentMethods ?? [];
+                foreach($paymentMethods as $method) {
+                    if(!empty($method['deletedFlag'])) {
+                        $method = BranchPaymentMethods::find($method['id']);
+                        $method->delete();
+                    }else {
+                        if(empty($method['id'])) {
+                            $methodObj = new BranchPaymentMethods();
+                        }else {
+                            $methodObj = BranchPaymentMethods::find($method['id']);
+                        }
+                        $methodObj->methodTitle = $method['methodTitle'];
+                        $methodObj->branch_id = $branch->id;
+                        $methodObj->isSync = false;
+                        $methodObj->save();
                     }
                 }
 

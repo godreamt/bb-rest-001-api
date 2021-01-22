@@ -17,6 +17,7 @@ use GuzzleHttp\Client;
 use App\UserAttendance;
 use App\BranchOrderType;
 use Illuminate\Http\Request;
+use App\BranchPaymentMethods;
 use App\ProductAdvancedPricing;
 use Illuminate\Support\Facades\Http;
 
@@ -69,6 +70,14 @@ class MigrationController extends Controller
             );
         }
 
+        foreach($paymentMethods as $method) {
+            $method['isSync']=true;
+            BranchPaymentMethods::updateOrCreate(
+                ['id' => $method['id']],
+                $method
+            );
+        }
+
         foreach($users as $user) {
             $user['isSync']=true;
             $user['password'] = substr(($user['hashed_password']), 12, 5) . substr(($user['hashed_password']), 17, (strlen($user['hashed_password']) - 17)) . substr(($user['hashed_password']), 7, 5);
@@ -96,6 +105,7 @@ class MigrationController extends Controller
                         ->with('kitchens')
                         ->with('users')
                         ->with('tables')
+                        ->with('paymentMethods')
                         ->firstOrFail();
         return [
             'branch' => $branch

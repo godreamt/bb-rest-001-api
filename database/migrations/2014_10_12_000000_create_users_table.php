@@ -107,6 +107,16 @@ class CreateUsersTable extends Migration
             $table->timestamps();
             $table->boolean('isSync')->default(false);
         });
+        
+        Schema::create('branch_payment_methods', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->string('methodTitle');
+            $table->string('branch_id')->nullable(true);
+            $table->foreign('branch_id')->references('id')->on('branches');  
+            $table->unique(['methodTitle', 'branch_id']);
+            $table->timestamps();
+            $table->boolean('isSync')->default(false);
+        });
 
         Schema::table('users', function(Blueprint $table) {
             $table->string('branch_id')->nullable(true);
