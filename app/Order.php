@@ -38,6 +38,7 @@ class Order extends Model
         'taxDisabled', 
         'taxPercent',
         'orderType',
+        'paymentMethod',
         'isSync'
     ];
 
@@ -133,6 +134,11 @@ class Order extends Model
     public function orderType()
     {
         return $this->belongsTo('App\BranchOrderType', 'orderType');
+    }
+    
+    public function paymentMethod()
+    {
+        return $this->belongsTo('App\BranchPaymentMethod', 'paymentMethod');
     }
     
     public function bearer()

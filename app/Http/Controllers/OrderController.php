@@ -405,6 +405,7 @@ class OrderController extends Controller
                         $order->branch_id = $loggedUser->branch_id;
                     }
                     $order->orderType = $request->orderType;
+                    $order->paymentMethod = $request->paymentMethod;
                     if(!empty($request->mobileNumber)) {
                         $customer = $this->handleCustomerCreation($request->all(), $order->branch_id);
                         $order->customerId = $customer->id;

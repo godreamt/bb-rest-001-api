@@ -145,6 +145,8 @@ class OrderManager extends Migration
             $table->enum('orderStatus', ['new', 'accepted', 'prepairing', 'packing', 'dispatched', 'delivered', 'completed', 'cancelled'])->default('new');
             $table->string('orderType');
             $table->foreign('orderType')->references('id')->on('branch_order_types');  
+            $table->string('paymentMethod');
+            $table->foreign('paymentMethod')->references('id')->on('branch_payment_methods'); 
             $table->timestamps();
             $table->boolean('isSync')->default(false);
         });

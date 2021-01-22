@@ -13,14 +13,9 @@ class CreateBranchPaymentMethodsTable extends Migration
      */
     public function up()
     {
-        Schema::create('branch_payment_methods', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->string('methodTitle');
-            $table->string('branch_id')->nullable(true);
-            $table->foreign('branch_id')->references('id')->on('branches');  
-            $table->unique(['methodTitle', 'branch_id']);
-            $table->timestamps();
-            $table->boolean('isSync')->default(false);
+        Schema::table('orders', function (Blueprint $table) {
+            $table->string('paymentMethod')->nullable(true);
+            $table->foreign('paymentMethod')->references('id')->on('branch_payment_methods'); 
         });
     }
 
@@ -31,6 +26,6 @@ class CreateBranchPaymentMethodsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('branch_payment_methods');
+        // Schema::dropIfExists('branch_payment_methods');
     }
 }
