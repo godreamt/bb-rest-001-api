@@ -13,9 +13,6 @@ class UpdateOrderRelatedStuff24012021 extends Migration
      */
     public function up()
     {
-        Schema::table('order_items', function (Blueprint $table) {
-            $table->string('orderGroup')->default('1');
-        });
         Schema::table('orders', function (Blueprint $table) { 
             $table->boolean('isPaid')->default(false); 
             $table->dateTimeTz('finalisedDate')->nullable(true);

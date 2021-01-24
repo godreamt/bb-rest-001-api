@@ -195,6 +195,7 @@ class OrderController extends Controller
         $tables = TableManager::where('isActive', true)->get();
                 
         foreach($tables as $table) {
+            $runningOrderIdList = [];   
             $selectedChairs="";
             $orderSelectedChairs="";
             foreach($orderTables as $ot) {
@@ -204,12 +205,13 @@ class OrderController extends Controller
                     }
 
                     $selectedChairs = $selectedChairs.$ot->selectedChairs.",";
-                    
+                    $runningOrderIdList[] = $ot->orderId;
                 }
             }
 
             $table['orderSelectedChairs']=$orderSelectedChairs;
             $table['selectedChairs']=$selectedChairs;
+            $table['runningOrderIds']=array_unique($runningOrderIdList);
         }
 
         return $tables;
@@ -227,7 +229,7 @@ class OrderController extends Controller
             ->distinct()->get();
 
         $tables = TableManager::where('isActive', true)->get();
-                
+        $runningOrderIdList = [];        
         foreach($tables as $table) {
             $selectedChairs="";
             $orderSelectedChairs="";
@@ -238,12 +240,13 @@ class OrderController extends Controller
                     }
 
                     $selectedChairs = $selectedChairs.$ot->selectedChairs.",";
-                    
+                    $runningOrderIdList[] = $ot->orderId;
                 }
             }
 
             $table['orderSelectedChairs']=$orderSelectedChairs;
             $table['selectedChairs']=$selectedChairs;
+            $table['runningOrderIds']=$runningOrderIdList;
         }
 
         return $tables;
@@ -440,11 +443,7 @@ class OrderController extends Controller
                         
                        
                     $totalOrderAmount=0;
-                    $lastGroupItem = OrderItem::where('orderId', $order->id)->orderBy('id', 'DESC')->first();
-                    $nextGroup=1;
-                    if($lastGroupItem instanceof OrderItem) {
-                        $nextGroup = (int) $lastGroupItem->orderGroup + 1;
-                    }
+                    
                     foreach($request->items as $item) {
                         if($item['deletedFlag']) {
                             $orderItem = OrderItem::find($item['id']);
@@ -453,7 +452,6 @@ class OrderController extends Controller
                         else if(!empty($item['quantity']) && !empty($item['productId'])){
                             if(empty($item['id'])) {
                                 $orderItem = new OrderItem();
-                                $orderItem->orderGroup = $nextGroup;
                             }else {
                                 $orderItem = OrderItem::find($item['id']);
                             }

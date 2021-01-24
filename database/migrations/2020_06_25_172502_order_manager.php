@@ -169,7 +169,6 @@ class OrderManager extends Migration
             $table->integer('productionRejectedQuantity')->default(0);
             $table->string('packagingCharges')->nullable();
             $table->string('totalPrice')->nullable();
-            $table->string('orderGroup')->default('1');
             $table->string('orderId');
             $table->foreign('orderId')->references('id')->on('orders');  
             $table->string('productId');
