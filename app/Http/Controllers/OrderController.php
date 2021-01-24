@@ -255,7 +255,7 @@ class OrderController extends Controller
         if($fields != 'orders.*'){
             $fields = explode(',',$fields);
         }
-        $orders = Order::with('customer')->select($fields)->with('branch')->with('orderitems')->with('bearer')->with('orderTables')->with('orderTables.table')->with('orderType')
+        $orders = Order::with('customer')->select($fields)->with('branch')->with('orderitems')->with('bearer')->with('orderTables')->with('orderTables.table')->with('orderType')->with('paymentMethod')
                         ->leftJoin('users as bearer', 'orders.takenBy', 'bearer.id');
  
         if(!empty($request->searchString)) {
@@ -281,6 +281,11 @@ class OrderController extends Controller
         if(!empty($request->typeOfOrder)) {
             $typeOfOrder = \explode(",",$request->typeOfOrder);
             $orders = $orders->whereIn('orders.orderType', $typeOfOrder);
+        }
+
+        if(!empty($request->paymentMethod)) {
+            $paymentMethod = \explode(",",$request->paymentMethod);
+            $orders = $orders->whereIn('orders.paymentMethod', $paymentMethod);
         }
 
 
@@ -330,7 +335,7 @@ class OrderController extends Controller
     }
 
     public function getOrderDetails(Request $request, $id) {
-        $order =  Order::with('branch')->with('customer')->with('orderTables')->with('orderItems')->with('orderItems.product')->with('branch')->with('bearer')->with('orderType')
+        $order =  Order::with('branch')->with('customer')->with('orderTables')->with('orderItems')->with('orderItems.product')->with('branch')->with('bearer')->with('orderType')->with('paymentMethod')
                     ->where('id', $id)->first();
         $this->handleOrderDerivedData($order);
 
@@ -409,6 +414,8 @@ class OrderController extends Controller
                     if(!empty($request->mobileNumber)) {
                         $customer = $this->handleCustomerCreation($request->all(), $order->branch_id);
                         $order->customerId = $customer->id;
+                    }else {
+                        $order->customerId = null;
                     }
                     $order->customerAddress = $request->customerAddress;
                     $order->relatedInfo = $request->relatedInfo;

@@ -142,7 +142,7 @@ class Order extends Model
     
     public function paymentMethod()
     {
-        return $this->belongsTo('App\BranchPaymentMethod', 'paymentMethod');
+        return $this->belongsTo('App\BranchPaymentMethods', 'paymentMethod');
     }
     
     public function bearer()
