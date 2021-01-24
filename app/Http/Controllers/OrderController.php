@@ -412,10 +412,20 @@ class OrderController extends Controller
                     }
                     $order->customerAddress = $request->customerAddress;
                     $order->relatedInfo = $request->relatedInfo;
-                    // $order->packingCharge = $request->packingCharge;
-                    $order->orderStatus = $request->orderStatus;
+                    $order->discountReason = $request->discountReason;
+                    $order->discountValue = $request->discountValue ?? 0;
                     $order->taxPercent = (float)$request->taxPercent;
+                    $order->isPaid = $request->isPaid ?? false;
                     $order->taxDisabled = $request->taxDisabled ?? false;
+                    
+                    if($request->orderStatus != $order->orderStatus && ($request->orderStatus == 'completed' || $request->orderStatus == 'cancelled')) {
+                        $order->finalisedBy = $loggedUser->id;
+                        $order->finalisedDate = new \Datetime(); 
+                        $order->isPaid = true;
+                    }
+                    
+                    $order->orderStatus = $request->orderStatus;
+
                     if(empty($request->id)) {
                         $order->isSync = false;
                         $order->save();
@@ -423,7 +433,11 @@ class OrderController extends Controller
                         
                        
                     $totalOrderAmount=0;
-
+                    $lastGroupItem = OrderItem::where('orderId', $order->id)->orderBy('id', 'DESC')->first();
+                    $nextGroup=1;
+                    if($lastGroupItem instanceof OrderItem) {
+                        $nextGroup = (int) $lastGroupItem->orderGroup + 1;
+                    }
                     foreach($request->items as $item) {
                         if($item['deletedFlag']) {
                             $orderItem = OrderItem::find($item['id']);
@@ -432,6 +446,7 @@ class OrderController extends Controller
                         else if(!empty($item['quantity']) && !empty($item['productId'])){
                             if(empty($item['id'])) {
                                 $orderItem = new OrderItem();
+                                $orderItem->orderGroup = $nextGroup;
                             }else {
                                 $orderItem = OrderItem::find($item['id']);
                             }
@@ -511,6 +526,9 @@ class OrderController extends Controller
             $order->sgst = 0;
         }
 
+        if(!empty($order->discountValue)) {
+            $totalOrderAmount = $totalOrderAmount - (float)$order->discountValue;
+        }
         
         $order->orderAmount = $totalOrderAmount;
         return $order;
@@ -557,6 +575,24 @@ class OrderController extends Controller
                 });
         }catch(\Exception $e) {
             return response()->json(['msg' => 'Can not able to update', 'error'=>$e], 400);
+        }
+    }
+
+    public function changeStatusBack(Request $request) {
+        try {
+            $order = Order::find($request->id);
+            if($order instanceof Order) {
+                if($order->orderStatus == 'cancelled' || $order->orderStatus == 'completed'){
+                    $order->orderStatus = $request->status;
+                    $order->save();
+                }else {
+                return response()->json(['msg' => 'Order is not closed till now'], 400);
+            }
+            }else {
+                return response()->json(['msg' => 'Order not found'], 400);
+            }
+        }catch(\Exception $e) {
+            return response()->json(['msg' => $e->getMessage()], 400);
         }
     }
 }

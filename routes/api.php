@@ -107,6 +107,7 @@ Route::group(['middleware' => ['jwt.verify']], function() {
         });
 
         Route::group(['prefix'=>'order'], function(){
+            Route::post('change-order-status', 'OrderController@changeStatusBack');
             Route::get('', 'OrderController@getOrderList');
             Route::get('{id}', 'OrderController@getOrderDetails');
             Route::post('', 'OrderController@updateOrder');//->middleware(['role:Super Admin,Admin,Order Manager']);

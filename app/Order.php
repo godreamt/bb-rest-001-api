@@ -30,7 +30,10 @@ class Order extends Model
         'igst', 
         'orderAmount', 
         'packingCharge', 
-        'extraCharge', 
+        'discountReason', 
+        'discountValue', 
+        'finalisedBy', 
+        'finalisedDate',
         'excludeFromReport', 
         'deliverCharge', 
         'orderStatus', 
@@ -39,6 +42,7 @@ class Order extends Model
         'taxPercent',
         'orderType',
         'paymentMethod',
+        'isPaid',
         'isSync'
     ];
 
