@@ -2,6 +2,7 @@
 
 namespace App;
 
+use Panoscape\History\HasHistories;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -9,6 +10,7 @@ use Haruncpi\LaravelIdGenerator\IdGenerator;
 
 class OrderTable extends Model
 {
+    
     protected $primaryKey = 'id'; // or null
 
     public $incrementing = false;
@@ -46,5 +48,10 @@ class OrderTable extends Model
 
     public function table() {
         return $this->belongsTo('App\TableManager', 'tableId');
+    }
+
+    public function getModelLabel()
+    {
+        return "Table";
     }
 }

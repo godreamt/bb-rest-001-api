@@ -15,6 +15,7 @@
         "haruncpi/laravel-id-generator": "^1.0",
         "laravel/framework": "^7.0",
         "laravel/tinker": "^2.0",
+        "panoscape/history": "^2.2",
         "tymon/jwt-auth": "^1.0"
     },
     "require-dev": {

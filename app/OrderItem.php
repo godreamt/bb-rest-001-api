@@ -2,12 +2,15 @@
 
 namespace App;
 
+use Panoscape\History\HasHistories;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Model;
 use Haruncpi\LaravelIdGenerator\IdGenerator;
 
 class OrderItem extends Model
 {
+    use HasHistories;
+    
     protected $primaryKey = 'id'; // or null
 
     public $incrementing = false;
@@ -55,5 +58,11 @@ class OrderItem extends Model
 
     public function product() {
         return $this->belongsTo('App\Product', 'productId');
+    }
+
+    
+    public function getModelLabel()
+    {
+        return $this->product->productName;
     }
 }

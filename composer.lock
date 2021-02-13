@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f1c1316f9502f4cab36dac5b8ff1a478",
+    "content-hash": "874881b0f89b7d47f89c94e5eb728ff7",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -1802,6 +1802,72 @@
                 "source": "https://github.com/opis/closure/tree/3.6.1"
             },
             "time": "2020-11-07T02:01:34+00:00"
+        },
+        {
+            "name": "panoscape/history",
+            "version": "2.2.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/seancheung/history.git",
+                "reference": "4fd4d035361396423009d3e4208ce654c6d0d8b0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/seancheung/history/zipball/4fd4d035361396423009d3e4208ce654c6d0d8b0",
+                "reference": "4fd4d035361396423009d3e4208ce654c6d0d8b0",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/support": "^6.0|^7.0|^8.0",
+                "php": "^7.2|^7.2.5|^7.3|^8.0"
+            },
+            "require-dev": {
+                "mockery/mockery": "^1.2",
+                "orchestra/testbench": "^4.8|^5.2|^6.2",
+                "php-coveralls/php-coveralls": "^2.1",
+                "phpunit/phpunit": "^8.3|^8.4|^9.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Panoscape\\History\\HistoryServiceProvider"
+                    ],
+                    "aliases": {
+                        "History": "Panoscape\\History\\History"
+                    }
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Panoscape\\History\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Sean Cheung",
+                    "email": "theoxuanx@gmail.com"
+                }
+            ],
+            "description": "Eloquent model history tracking for Laravel",
+            "homepage": "https://github.com/seancheung/history",
+            "keywords": [
+                "eloquent",
+                "history",
+                "laravel",
+                "log",
+                "model",
+                "tracking"
+            ],
+            "support": {
+                "issues": "https://github.com/seancheung/history/issues",
+                "source": "https://github.com/seancheung/history/tree/2.2.1"
+            },
+            "time": "2021-01-13T14:42:32+00:00"
         },
         {
             "name": "phpoption/phpoption",

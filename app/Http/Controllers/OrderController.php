@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Order;
 use App\Product;
+use App\Category;
 use App\Customer;
 use App\OrderItem;
 use App\OrderTable;
@@ -425,19 +426,19 @@ class OrderController extends Controller
                     $order->discountReason = $request->discountReason;
                     $order->discountValue = $request->discountValue ?? 0;
                     $order->taxPercent = (float)$request->taxPercent;
-                    $order->isPaid = $request->isPaid ?? false;
-                    $order->taxDisabled = $request->taxDisabled ?? false;
+                    $order->isPaid = $request->isPaid == true ? 1:0;
+                    $order->taxDisabled = $request->taxDisabled == true ? 1:0;
                     
                     if($request->orderStatus != $order->orderStatus && ($request->orderStatus == 'completed' || $request->orderStatus == 'cancelled')) {
                         $order->finalisedBy = $loggedUser->id;
                         $order->finalisedDate = new \Datetime(); 
-                        $order->isPaid = true;
+                        $order->isPaid = 1;
                     }
                     
                     $order->orderStatus = $request->orderStatus;
 
                     if(empty($request->id)) {
-                        $order->isSync = false;
+                        $order->isSync = 0;
                         $order->save();
                     }
                         
@@ -460,7 +461,7 @@ class OrderController extends Controller
                             $orderItem->servedQuantity = $item['servedItems'];
                             $orderItem->productId = $product->id;
                             $orderItem->orderId = $order->id;
-                            $orderItem->isParcel = $item['isParcel'] ?? false;
+                            $orderItem->isParcel = $item['isParcel'] == true ? 1:0;
                             $orderItem->price = (float)$item['price'];
                             if($product->isAdvancedPricing) {
                                 $pricing = ProductAdvancedPricing::find($item['advancedPriceId']);
@@ -488,7 +489,7 @@ class OrderController extends Controller
                     }
                     $order->orderItemTotal = $totalOrderAmount;
                     $order = $this->handleFinalCalculationOrder($order);
-                    $order->isSync = false;
+                    $order->isSync = 0;
                     $order->save();
 
 
@@ -499,7 +500,7 @@ class OrderController extends Controller
                         $orderTable->tableId = $table['id'];
                         $orderTable->selectedChairs = $table['chairs'];
                         $orderTable->orderId = $order->id;
-                        $orderTable->isSync = false;
+                        $orderTable->isSync = 0;
                         $orderTable->save();
                     }
 
@@ -599,5 +600,11 @@ class OrderController extends Controller
         }catch(\Exception $e) {
             return response()->json(['msg' => $e->getMessage()], 400);
         }
+    }
+
+
+    public function orderItemReportBasedOnProduct(Request $request) {
+        $categories = Category::where('isActive', true)->get();
+        
     }
 }

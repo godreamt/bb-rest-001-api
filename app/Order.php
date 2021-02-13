@@ -4,6 +4,7 @@ namespace App;
 
 use App\User;
 use App\Branch;
+use Panoscape\History\HasHistories;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -11,6 +12,8 @@ use Haruncpi\LaravelIdGenerator\IdGenerator;
 
 class Order extends Model
 {
+    use HasHistories;
+    
     protected $primaryKey = 'id'; // or null
 
     public $incrementing = false;
@@ -148,5 +151,10 @@ class Order extends Model
     public function bearer()
     {
         return $this->belongsTo('App\User', 'takenBy');
+    }
+
+    public function getModelLabel()
+    {
+        return $this->id;
     }
 }

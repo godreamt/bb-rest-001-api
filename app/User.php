@@ -3,6 +3,7 @@
 namespace App;
 
 use App\User;
+use Panoscape\History\HasOperations;
 use Illuminate\Support\Facades\Config;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Notifications\Notifiable;
@@ -14,6 +15,9 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable implements JWTSubject
 {
+
+    use Notifiable, HasOperations;
+
     protected $primaryKey = 'id'; // or null
 
     public $incrementing = false;
@@ -21,7 +25,6 @@ class User extends Authenticatable implements JWTSubject
     // In Laravel 6.0+ make sure to also set $keyType
     protected $keyType = 'string';
 
-    use Notifiable;
 
     /**
      * The attributes that are mass assignable.
