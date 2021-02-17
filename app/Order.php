@@ -55,11 +55,11 @@ class Order extends Model
         'isSync' => 'boolean',
         'taxPercent' => 'float'
     ];
-    protected $appends = ['order_ready_count'];
+    // protected $appends = ['order_ready_count'];
 
-    public function getOrderReadyCountAttribute() {
-        return 5;
-    }
+    // public function getOrderReadyCountAttribute() {
+    //     return 5;
+    // }
 
 
     protected static function boot()

@@ -42,6 +42,7 @@ Route::group(['middleware' => ['jwt.verify']], function() {
             Route::post('', 'UserController@updateUser');
             Route::post('change-current-user-image', 'UserController@uploadCurrentUserImage');//->middleware(['role:Super Admin,Admin']);
             Route::post('change-current-user-password', 'UserController@changeCurrentUserPassword');
+            Route::post('change-other-user-password', 'UserController@changeOtherUserPassword');
             // Route::put('{id}', 'UserController@updateUser');
             Route::delete('{id}', 'UserController@deleteUser');
         });
@@ -109,10 +110,12 @@ Route::group(['middleware' => ['jwt.verify']], function() {
         Route::group(['prefix'=>'order'], function(){
             Route::post('change-order-status', 'OrderController@changeStatusBack');
             Route::get('', 'OrderController@getOrderList');
+            Route::get('item-sales-report', 'OrderController@orderItemReportBasedOnProduct');
             Route::get('{id}', 'OrderController@getOrderDetails');
             Route::post('', 'OrderController@updateOrder');//->middleware(['role:Super Admin,Admin,Order Manager']);
             Route::post('rejected-item-remove', 'OrderController@removeRejectedItems');//->middleware(['role:Super Admin,Admin,Order Manager']);
-            // Route::delete('{id}', 'ProductController@deleteProduct');
+            Route::post('kot-print', 'OrderController@kotPrintedItems');//->middleware(['role:Super Admin,Admin,Order Manager']);
+            Route::delete('{orderIds}', 'OrderController@deleteBulkOrders');
             // Route::put('status/{id}', 'ProductController@changeProductStatus');
         });
     });

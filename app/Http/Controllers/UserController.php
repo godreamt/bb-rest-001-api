@@ -147,6 +147,21 @@ class UserController extends Controller
             return response()->json(['msg' => ' Can not able to update password', 'error'=>$e], 400);
         }
     }
+    
+
+    public function changeOtherUserPassword(Request $request) {
+        try {
+            return \DB::transaction(function() use ($request) {
+                $user = User::find($request->userId);
+                $user->password = Hash::make($request->password);
+                $user->isSync = false;
+                $user->save();
+                return $user;
+            });
+        }catch(\Exception $e) {
+            return response()->json(['msg' => ' Can not able to update password', 'error'=>$e], 400);
+        }
+    }
 
     public function deleteUser(Request $request, $id) {
         return \DB::transaction(function() use($request, $id) {

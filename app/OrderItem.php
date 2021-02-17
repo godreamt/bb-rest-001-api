@@ -31,6 +31,7 @@ class OrderItem extends Model
         'productionAcceptedQuantity', 
         'productionReadyQuantity', 
         'productionRejectedQuantity',
+        'kotPrintedQuantity',
         'advancedPriceId',
         'advancedPriceTitle',
         'isSync'
@@ -43,6 +44,8 @@ class OrderItem extends Model
         'isParcel' => 'boolean',
     ];
 
+    protected $appends = ['kot_pending'];
+
     protected static function boot()
     {
         parent::boot();
@@ -53,7 +56,16 @@ class OrderItem extends Model
                 $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
                 $item->id = IdGenerator::generate(['table' => 'order_items', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
             }
+            // $item->kotPendingQuantity = $item->quantity;
         });
+
+        // static::updating(function ($item) {
+        //     \Debugger::dump($item->getDirty());
+        //     // if($item->isDirty('quantity')) {
+
+        //     // }
+        //     throw \Exception("0000");
+        // });
     }
 
     public function product() {
@@ -64,5 +76,10 @@ class OrderItem extends Model
     public function getModelLabel()
     {
         return $this->product->productName;
+    }
+
+
+    public function getKotPendingAttribute() {
+        return (int)$this->quantity - $this->kotPrintedQuantity;
     }
 }

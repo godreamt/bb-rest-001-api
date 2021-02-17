@@ -24,6 +24,7 @@ class Branch extends Model
         'branchCode', 
         'branchTitle', 
         'branchAddress', 
+        'gstNumber',
         'description', 
         'isActive', 
         'taxPercent', 

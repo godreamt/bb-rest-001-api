@@ -584,6 +584,17 @@ class OrderController extends Controller
         }
     }
 
+    public function kotPrintedItems(Request $request) {
+        foreach($request->items as $item) {
+            $orderItem = OrderItem::find($item['id']);
+            if($orderItem instanceof OrderItem) {
+                $orderItem->kotPrintedQuantity = $orderItem->kotPrintedQuantity + $item['kot_pending'];
+                $orderItem->save();
+            }
+        }
+        return response()->json(['msg'=> 'Saved successfully']);
+    }
+
     public function changeStatusBack(Request $request) {
         try {
             $order = Order::find($request->id);
@@ -604,7 +615,39 @@ class OrderController extends Controller
 
 
     public function orderItemReportBasedOnProduct(Request $request) {
-        $categories = Category::where('isActive', true)->get();
+        $orderItems = OrderItem::leftJoin('orders', 'orders.id', 'order_items.orderId')
+                                ->leftJoin('products', 'products.id', 'order_items.productId')
+                                ->leftJoin('product_advanced_pricings', 'product_advanced_pricings.id', 'order_items.advancedPriceId')
+                                ->select('order_items.productId', 'order_items.advancedPriceId', \DB::raw('count(*) as total'), 'products.productName', 'products.isAdvancedPricing', 'product_advanced_pricings.title')
+                                ->where('orders.orderStatus', 'completed');
+
+
+        if(!empty($request->searchString)) {
+            $orderItems = $orderItems->where(function($q) use ($request) {
+                $q->where('products.productName', 'LIKE', '%'.$request->searchString.'%');
+            });
+        }
+
         
+        if(!empty($request->startDate) && !empty($request->endDate)) {
+            $endDate = (new \Datetime($request->endDate))->modify('+1 day');
+            $orderItems = $orderItems->whereBetween('orders.created_at', [new \Datetime($request->startDate), $endDate]);
+        }
+        
+        $orderItems = $orderItems->groupBy('order_items.productId', 'order_items.advancedPriceId')
+                                ->get();
+
+        return $orderItems->groupBy('productId');
+    }
+
+
+    public function deleteBulkOrders(Request $request) {
+        try { 
+            $orderIds = explode(',', $request->orderIds);
+            Order::whereIn('id', $orderIds)->delete();
+            return response()->json(['msg'=>'Deleted successfully'], 200);
+        }catch(\Exception $e) {
+            return response()->json(['msg'=>$e->getMessage()], 400);
+        }
     }
 }

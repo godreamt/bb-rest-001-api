@@ -167,10 +167,11 @@ class OrderManager extends Migration
             $table->integer('productionAcceptedQuantity')->default(0);
             $table->integer('productionReadyQuantity')->default(0);
             $table->integer('productionRejectedQuantity')->default(0);
+            $table->integer('kotPrintedQuantity')->default(0);
             $table->string('packagingCharges')->nullable();
             $table->string('totalPrice')->nullable();
             $table->string('orderId');
-            $table->foreign('orderId')->references('id')->on('orders');  
+            $table->foreign('orderId')->references('id')->on('orders')->onDelete('cascade');  
             $table->string('productId');
             $table->foreign('productId')->references('id')->on('products');  
             $table->string('advancedPriceId')->nullable(true);
@@ -184,7 +185,7 @@ class OrderManager extends Migration
             $table->string('id')->primary();
             $table->string('selectedChairs')->nullable();
             $table->string('orderId');
-            $table->foreign('orderId')->references('id')->on('orders');  
+            $table->foreign('orderId')->references('id')->on('orders')->onDelete('cascade'); 
             $table->string('tableId');
             $table->foreign('tableId')->references('id')->on('table_managers');  
             $table->timestamps();
@@ -196,7 +197,7 @@ class OrderManager extends Migration
             $table->string('rating');
             $table->string('comments')->nullable();
             $table->string('orderId');
-            $table->foreign('orderId')->references('id')->on('orders');  
+            $table->foreign('orderId')->references('id')->on('orders')->onDelete('cascade');  
             $table->string('customerId');
             $table->foreign('customerId')->references('id')->on('customers');  
             $table->timestamps();

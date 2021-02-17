@@ -59,6 +59,7 @@ class BranchController extends Controller
                 $branch->branchTitle = $request->branchTitle;
                 $branch->description = $request->description;
                 $branch->branchAddress = $request->branchAddress;
+                $branch->gstNumber = $request->gstNumber ?? null;
                 $branch->branchCode = $request->branchCode;
                 $branch->isActive = $request->isActive;
                 $branch->taxPercent = $request->taxPercent;

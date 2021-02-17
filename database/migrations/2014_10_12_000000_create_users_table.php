@@ -75,6 +75,7 @@ class CreateUsersTable extends Migration
             $table->string('branchTitle', 191)->unique();
             $table->text('description')->nullable();
             $table->text('branchAddress')->nullable();
+            $table->string('gstNumber')->nullable();
             $table->boolean('isActive')->default(true);
             $table->string('branchCode')->unique();
             $table->float('taxPercent');
