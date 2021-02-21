@@ -46,6 +46,7 @@ class Order extends Model
         'orderType',
         'paymentMethod',
         'isPaid',
+        'roundOfAmount',
         'isSync'
     ];
 
@@ -53,7 +54,8 @@ class Order extends Model
     protected $casts = [
         'taxDisabled' => 'boolean',
         'isSync' => 'boolean',
-        'taxPercent' => 'float'
+        'taxPercent' => 'float',
+        'roundOfAmount' => 'float'
     ];
     // protected $appends = ['order_ready_count'];
 

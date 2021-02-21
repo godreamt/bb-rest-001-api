@@ -144,6 +144,7 @@ class OrderManager extends Migration
             $table->foreign('finalisedBy')->references('id')->on('users'); 
             $table->dateTimeTz('finalisedDate')->nullable(true);
             $table->float('taxPercent')->default(0.0);
+            $table->float('roundOfAmount')->default(0.0);
             $table->boolean('taxDisabled')->default(false);
             $table->string('deliverCharge')->nullable();
             $table->enum('orderStatus', ['new', 'accepted', 'prepairing', 'packing', 'dispatched', 'delivered', 'completed', 'cancelled'])->default('new');

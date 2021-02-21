@@ -321,7 +321,7 @@ class OrderController extends Controller
         foreach($orders as $order) {
             $this->handleOrderDerivedData($order);
         }
-        return $orders;
+        return response()->json($orders, 200);
     }
 
     public function handleOrderDerivedData($order) {
@@ -332,6 +332,7 @@ class OrderController extends Controller
             $rejectedCount = $rejectedCount + ($item['productionRejectedQuantity']);
             $readyCount = $readyCount + ($item['productionReadyQuantity'] - $item['servedQuantity']);
         }
+        unset($order['orderitems']);
         $order['rejectedCount']=$rejectedCount;
         $order['readyCount']=$readyCount;
         $order['timeDif']=(new \Datetime())->diff(new \Datetime($order->created_at));
@@ -488,6 +489,12 @@ class OrderController extends Controller
                         }
                     }
                     $order->orderItemTotal = $totalOrderAmount;
+                    
+                    if(!empty($request->deliverCharge)) {
+                        $order->deliverCharge = (float)$request->deliverCharge;
+                    }else {
+                        $order->deliverCharge = 0;
+                    }
                     $order = $this->handleFinalCalculationOrder($order);
                     $order->isSync = 0;
                     $order->save();
@@ -515,11 +522,8 @@ class OrderController extends Controller
         $totalOrderAmount = $order->orderItemTotal;
         
         $order->igst = 0;
-        if(!empty($request->deliverCharge)) {
-            $order->deliverCharge = (float)$request->deliverCharge;
+        if(!empty($order->deliverCharge)) {
             $totalOrderAmount = $totalOrderAmount + $order->deliverCharge;
-        }else {
-            $order->deliverCharge = 0;
         }
         
         $taxAmount = ($totalOrderAmount * $order->taxPercent / 100);
@@ -535,8 +539,13 @@ class OrderController extends Controller
         if(!empty($order->discountValue)) {
             $totalOrderAmount = $totalOrderAmount - (float)$order->discountValue;
         }
-        
-        $order->orderAmount = $totalOrderAmount;
+        $floatSplit = explode('.', $totalOrderAmount);
+        if(sizeof($floatSplit) == 2) {
+            $order->roundOfAmount = (float)("0.".$floatSplit[1]);
+        }else{
+            $order->roundOfAmount = 0;
+        }
+        $order->orderAmount = $totalOrderAmount - $order->roundOfAmount;
         return $order;
     }
 
