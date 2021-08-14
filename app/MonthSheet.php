@@ -25,7 +25,6 @@ class MonthSheet extends Model
         'amountCarried',
         'month',
         'year',
-        'company_id',
         'branch_id',
         'yearly_sheet_id',
         'isSync'
@@ -39,7 +38,6 @@ class MonthSheet extends Model
         'totalMonthlyExpense' => 'double',
         'amountCarried' => 'double',
         'isSync' => 'boolean',
-        // 'company_id' => 'int',
         // 'branch_id' => 'int',
         // 'yearly_sheet_id' => 'int',
     ];
@@ -49,10 +47,10 @@ class MonthSheet extends Model
 
         static::addGlobalScope('role_handler', function (Builder $builder) {
             $user = \Auth::user();
-            if($user->roles != 'Super Admin') {
-                $builder->where('month_sheets.company_id',  $user->company_id);
+            if($user->roles != 'Super Admin' && $user->roles != 'Company Admin') {
+                $builder->where('month_sheets.branch_id',  $user->branch_id);
             }
-            if($user->roles != 'Super Admin' && $user->roles != 'Company Admin' && $user->roles != 'Company Accountant') {
+            if($user->roles != 'Super Admin' && $user->roles != 'Company Admin') {
                 $builder->where('month_sheets.branch_id',  $user->branch_id);
             }
         });
@@ -61,17 +59,8 @@ class MonthSheet extends Model
         static::updating(function ($monthlySheet) {
             $loggedUser = \Auth::user();
             if($loggedUser instanceof User) {
-                if($loggedUser->roles != 'Super Admin') {
-                    $monthlySheet->company_id = $loggedUser->company_id;
-                }
-                if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin' && $loggedUser->roles != 'Company Accountant') {
+                if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin') {
                     $monthlySheet->branch_id = $loggedUser->branch_id;
-                }
-            }
-            if(empty($monthlySheet->company_id)) {
-                $branch = Branch::find($monthlySheet->branch_id);
-                if($branch instanceof Branch) {
-                    $monthlySheet->company_id = $branch->company_id;
                 }
             }
         });
@@ -80,20 +69,11 @@ class MonthSheet extends Model
 
             $loggedUser = \Auth::user();
             if($loggedUser instanceof User) {
-                if($loggedUser->roles != 'Super Admin') {
-                    $monthlySheet->company_id = $loggedUser->company_id;
-                }
-                if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin' && $loggedUser->roles != 'Company Accountant') {
+                if($loggedUser->roles != 'Super Admin' && $user->roles != 'Company Admin') {
                     $monthlySheet->branch_id = $loggedUser->branch_id;
                 }
             }
-            if(empty($monthlySheet->company_id)) {
-                $branch = Branch::find($monthlySheet->branch_id);
-                if($branch instanceof Branch) {
-                    $monthlySheet->company_id = $branch->company_id;
-                }
-            }
-            $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
+            $prefix = Config::get('app.hosted') . substr(($loggedUser->branch_id ?? ""), -3);
             $monthlySheet->id = IdGenerator::generate(['table' => 'month_sheets', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
         });
     }

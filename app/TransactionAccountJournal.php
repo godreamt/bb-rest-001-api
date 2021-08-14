@@ -28,7 +28,6 @@ class TransactionAccountJournal extends Model
         'accountId', 
         'endingBalance',
         'branch_id', 
-        'company_id', 
         'isSync'
     ];
 
@@ -54,11 +53,8 @@ class TransactionAccountJournal extends Model
 
         static::addGlobalScope('role_handler', function (Builder $builder) {
             $user = \Auth::user();
-            if($user instanceof User) {
-                if($user->roles != 'Super Admin') {
-                    $builder->where('transaction_account_journals.company_id',  $user->company_id);
-                }
-                if($user->roles != 'Super Admin' && $user->roles != 'Company Admin' && $user->roles != 'Company Accountant') {
+            if($user instanceof User) {                
+                if($user->roles != 'Super Admin' && $user->roles != 'Company Admin') {
                     $builder->where('transaction_account_journals.branch_id',  $user->branch_id);
                 }
             }
@@ -70,15 +66,11 @@ class TransactionAccountJournal extends Model
             $loggedUser = \Auth::user();
             if($loggedUser instanceof User) {
                 // throw new ValidationException('test the code first');
-                if($loggedUser->roles != 'Super Admin') {
-                    $item->company_id = $loggedUser->company_id;
-                }
-                if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin' && $loggedUser->roles != 'Company Accountant') {
+               
+                if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin') {
                     $item->branch_id = $loggedUser->branch_id;
                 }
             }
-            $branch = Branch::find($item->branch_id);
-            $item->company_id = $branch->company_id;
         });
 
         static::creating(function ($item) {
@@ -86,16 +78,12 @@ class TransactionAccountJournal extends Model
             $loggedUser = \Auth::user();
             if($loggedUser instanceof User) {
                 // throw new ValidationException('test the code first');
-                if($loggedUser->roles != 'Super Admin') {
-                    $item->company_id = $loggedUser->company_id;
-                }
-                if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin' && $loggedUser->roles != 'Company Accountant') {
+                
+                if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin' ) {
                     $item->branch_id = $loggedUser->branch_id;
                 }
-                $branch = Branch::find($item->branch_id);
-                $item->company_id = $branch->company_id;
                 if(empty($item->id)) {
-                    $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
+                    $prefix = Config::get('app.hosted') . substr(($loggedUser->branch_id ?? ""), -3);
                     $item->id = IdGenerator::generate(['table' => 'transaction_account_journals', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
                 }
             }

@@ -20,7 +20,7 @@ class MeasureUnit extends Model
     protected $fillable = [
         'unitLabel', 
         'description', 
-        'company_id',
+        'branch_id',
         'isActive',
         'isSync'
     ];
@@ -28,16 +28,16 @@ class MeasureUnit extends Model
 
 
     protected $casts = [
-        // 'company_id' => 'int',
+        // 'branch_id' => 'int',
         'isSync' => 'boolean',
         'isActive' => 'boolean'
     ];
 
     
     
-    public function company()
+    public function branch()
     {
-        return $this->belongsTo('App\Company', 'company_id');
+        return $this->belongsTo('App\Branch', 'branch_id');
     }
     
     protected static function boot()
@@ -46,26 +46,26 @@ class MeasureUnit extends Model
 
         static::addGlobalScope('role_handler', function (Builder $builder) {
             $user = \Auth::user();
-            if($user->roles != 'Super Admin') {
-                $builder->where('measure_units.company_id',  $user->company_id);
+            if($user->roles != 'Super Admin' && $user->roles != 'Company Admin') {
+                $builder->where('measure_units.branch_id',  $user->branch_id);
             }
         });
 
         
         static::creating(function ($item) {
             $loggedUser = \Auth::user();
-            if($loggedUser->roles != 'Super Admin') {
-                $item->company_id = $loggedUser->company_id;
+            if($loggedUser->roles != 'Super Admin' && $user->roles != 'Company Admin') {
+                $item->branch_id = $loggedUser->branch_id;
             }
-            $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
+            $prefix = Config::get('app.hosted')  . substr(($loggedUser->branch_id ?? ""), -3);
             $item->id = IdGenerator::generate(['table' => 'measure_units', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
         });
 
         
         static::updating(function ($item) {
             $user = \Auth::user();
-            if($user->roles != 'Super Admin') {
-                $item->company_id = $user->company_id;
+            if($user->roles != 'Super Admin' && $user->roles != 'Company Admin') {
+                $item->branch_id = $user->branch_id;
             }
         });
     }
