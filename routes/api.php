@@ -81,6 +81,8 @@ Route::group(['middleware' => ['jwt.verify']], function() {
         
         Route::group(['prefix'=>'table-manager'], function(){
             Route::get('', 'OrderController@getTableManger'); //done
+            Route::post('table', 'OrderController@updateTable'); //done
+            Route::delete('table/{id}', 'OrderController@deleteTable'); //done
             // Route::get('{id}', 'OrderController@getOrderTypeDetails');
             Route::post('', 'OrderController@updateTableManager');//->middleware(['role:Super Admin,Admin']);
             // Route::put('{id}', 'OrderController@updateOrderType');//->middleware(['role:Super Admin,Admin']);

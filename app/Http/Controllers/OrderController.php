@@ -32,8 +32,15 @@ class OrderController extends Controller
             $tables = $tables->where('company_id', $request->companyId);
         }
 
+        if(!empty($request->branchId)) {
+            $tables = $tables->where('branch_id', $request->branchId);
+        }
+
         if(!empty($request->status)) {
             $tables = $tables->where('isActive', ($request->status == 'active')?true:false);
+        }
+        if(!empty($request->orderCol) && !empty($request->orderType)) {
+            $tables = $tables->orderBy($request->orderCol, $request->orderType);
         }
         $currentPage = $request->pageNumber;
         if(!empty($currentPage)){
@@ -45,6 +52,44 @@ class OrderController extends Controller
         }else {
             return $tables->get();
         }
+    }
+
+    public function updateTable(Request $request) {
+        return \DB::transaction(function() use($request) {
+            try {
+                if(empty($request->id)){
+                    $t1 = new TableManager();
+                }else {
+                    $t1 = TableManager::find($request->id);
+                }
+                $t1->branch_id = $request->branch_id;
+                $t1->tableId = $request->tableId;
+                $t1->description = $request->description;
+                $t1->noOfChair = $request->noOfChair;
+                $request->isActive = $request->isActive ?? false;
+                $t1->isSync = false;
+                $t1->save();
+                return $t1;
+            }catch(\Exception $e) {
+                return response()->json(['msg' => $e], 400);
+            }
+        });
+    }
+
+    public function deleteTable(Request $request, $id) {
+        return \DB::transaction(function() use($request, $id) {
+            try {
+                $table = TableManager::find($id);
+                if($table instanceof TableManager) {
+                    $table->delete();
+                    return ['data' => $table, 'msg'=> "Table deleted successfully"];
+                }else {
+                    return response()->json(['msg' => 'Table Does not exist'], 400);
+                }
+            }catch(\Exception $e) {
+                return response()->json(['msg' => 'Can not delete table', 'error'=> $e], 400);
+            }
+        });
     }
 
     // public function getOrderTypeDetails(Request $request, $id) {
