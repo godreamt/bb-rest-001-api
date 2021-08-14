@@ -29,7 +29,6 @@ class CreateUsersTable extends Migration
             $table->enum('roles', [
                 'Super Admin', 
                 'Company Admin', 
-                'Company Accountant', 
                 'Branch Admin', 
                 'Branch Accountant', 
                 'Branch Manager', 

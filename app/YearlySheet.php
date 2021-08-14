@@ -23,7 +23,6 @@ class YearlySheet extends Model
         'fromDate',
         'toDate',
         'amountCarried',
-        'company_id',
         'branch_id',
         'isSync'
     ];
@@ -34,8 +33,6 @@ class YearlySheet extends Model
         'toDate' => 'date',
         'amountCarried' => 'double',
         'isSync' => 'boolean'
-        // 'company_id' => 'int',
-        // 'branch_id' => 'int',
     ];
     
     protected static function boot() {
@@ -43,10 +40,8 @@ class YearlySheet extends Model
 
         static::addGlobalScope('role_handler', function (Builder $builder) {
             $user = \Auth::user();
-            if($user->roles != 'Super Admin') {
-                $builder->where('yearly_sheets.company_id',  $user->company_id);
-            }
-            if($user->roles != 'Super Admin' && $user->roles != 'Company Admin' && $user->roles != 'Company Accountant') {
+           
+            if($user->roles != 'Super Admin' && $user->roles != 'Company Admin' ) {
                 $builder->where('yearly_sheets.branch_id',  $user->branch_id);
             }
         });
@@ -55,39 +50,25 @@ class YearlySheet extends Model
         static::updating(function ($yearlySheet) {
             $loggedUser = \Auth::user();
             if($loggedUser instanceof User) {
-                if($loggedUser->roles != 'Super Admin') {
-                    $yearlySheet->company_id = $loggedUser->company_id;
-                }
-                if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin' && $loggedUser->roles != 'Company Accountant') {
+                
+                if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin') {
                     $yearlySheet->branch_id = $loggedUser->branch_id;
                 }
-            }
-            if(empty($yearlySheet->company_id)) {
-                $branch = Branch::find($yearlySheet->branch_id);
-                if($branch instanceof Branch) {
-                    $yearlySheet->company_id = $branch->company_id;
-                }
-            }
+            }          
+           
         });
 
         static::creating(function ($yearlySheet) {
 
             $loggedUser = \Auth::user();
             if($loggedUser instanceof User) {
-                if($loggedUser->roles != 'Super Admin') {
-                    $yearlySheet->company_id = $loggedUser->company_id;
-                }
-                if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin' && $loggedUser->roles != 'Company Accountant') {
+                
+                if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin' ) {
                     $yearlySheet->branch_id = $loggedUser->branch_id;
                 }
             }
-            if(empty($yearlySheet->company_id)) {
-                $branch = Branch::find($yearlySheet->branch_id);
-                if($branch instanceof Branch) {
-                    $yearlySheet->company_id = $branch->company_id;
-                }
-            }
-            $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
+            
+            $prefix = Config::get('app.hosted') . substr(($loggedUser->branch_id ?? ""), -3);
             $yearlySheet->id = IdGenerator::generate(['table' => 'user_attendances', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
         });
     }

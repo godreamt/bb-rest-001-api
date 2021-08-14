@@ -24,7 +24,6 @@ class Transaction extends Model
         'transactionType', 
         'description', 
         'grandTotal', 
-        'company_id', 
         'branch_id',
         'updatedBy',
         'monthly_sheet_id',
@@ -37,7 +36,6 @@ class Transaction extends Model
         'isSync' => 'boolean',
         // 'accountId' => 'int',
         'grandTotal' => 'double',
-        // 'company_id' => 'int',
         // 'branch_id' => 'int',
         // 'monthly_sheet_id' => 'int',
         // 'updatedBy' => 'int'
@@ -48,10 +46,8 @@ class Transaction extends Model
 
         static::addGlobalScope('role_handler', function (Builder $builder) {
             $user = \Auth::user();
-            if($user->roles != 'Super Admin') {
-                $builder->where('transactions.company_id',  $user->company_id);
-            }
-            if($user->roles != 'Super Admin' && $user->roles != 'Company Admin' && $user->roles != 'Company Accountant') {
+            
+            if($user->roles != 'Super Admin' && $user->roles != 'Company Admin') {
                 $builder->where('transactions.branch_id',  $user->branch_id);
             }
         });
@@ -59,18 +55,9 @@ class Transaction extends Model
         
         static::updating(function ($transaction) {
             $loggedUser = \Auth::user();
-            if($loggedUser instanceof User) {
-                if($loggedUser->roles != 'Super Admin') {
-                    $transaction->company_id = $loggedUser->company_id;
-                }
-                if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin' && $loggedUser->roles != 'Company Accountant') {
+            if($loggedUser instanceof User) {                
+                if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin' ) {
                     $transaction->branch_id = $loggedUser->branch_id;
-                }
-            }
-            if(empty($transaction->company_id)) {
-                $branch = Branch::find($transaction->branch_id);
-                if($branch instanceof Branch) {
-                    $transaction->company_id = $branch->company_id;
                 }
             }
         });
@@ -79,18 +66,9 @@ class Transaction extends Model
 
             $loggedUser = \Auth::user();
             $transaction->updatedBy = $loggedUser->id;
-            if($loggedUser instanceof User) {
-                if($loggedUser->roles != 'Super Admin') {
-                    $transaction->company_id = $loggedUser->company_id;
-                }
-                if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin' && $loggedUser->roles != 'Company Accountant') {
+            if($loggedUser instanceof User) {                
+                if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin' ) {
                     $transaction->branch_id = $loggedUser->branch_id;
-                }
-            }
-            if(empty($transaction->company_id)) {
-                $branch = Branch::find($transaction->branch_id);
-                if($branch instanceof Branch) {
-                    $transaction->company_id = $branch->company_id;
                 }
             }
 
@@ -100,7 +78,7 @@ class Transaction extends Model
                 $count = static::count();
                 $transaction->transactionRefNumber = $count ? $ref + $count : $ref;
             }
-            $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
+            $prefix = Config::get('app.hosted') . substr(($loggedUser->branch_id ?? ""), -3);
             $transaction->id = IdGenerator::generate(['table' => 'transactions', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
         });
     }
@@ -117,10 +95,7 @@ class Transaction extends Model
         return $this->belongsTo('App\LedgerAccount', 'accountId');
     }
 
-    public function company() {
-        return $this->belongsTo('App\Company', 'company_id');
-    }
-
+    
     public function branch() {
         return $this->belongsTo('App\Branch', 'branch_id');
     }

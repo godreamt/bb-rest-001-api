@@ -24,14 +24,12 @@ class InventoryItem extends Model
         'description', 
         'pricePerUnit', 
         'isActive', 
-        'company_id',
+        'branch_id',
         'isSync'
     ];
 
 
     protected $casts = [
-        // 'company_id' => 'int',
-        // 'unitId' => 'int',
         'isActive' => 'boolean',
         'isSync' => 'boolean',
         'pricePerUnit' => 'double',
@@ -43,7 +41,7 @@ class InventoryItem extends Model
     
     public function company()
     {
-        return $this->belongsTo('App\Company', 'company_id');
+        return $this->belongsTo('App\Company', 'branch_id');
     }
 
     
@@ -53,19 +51,19 @@ class InventoryItem extends Model
 
         static::addGlobalScope('role_handler', function (Builder $builder) {
             $user = \Auth::user();
-            if($user->roles != 'Super Admin') {
-                $builder->where('inventory_items.company_id',  $user->company_id);
+            if($user->roles != 'Super Admin' && $user->roles != 'Company Admin') {
+                $builder->where('inventory_items.branch_id',  $user->branch_id);
             }
         });
 
         
         static::creating(function ($item) {
             $loggedUser = \Auth::user();
-            if($loggedUser->roles != 'Super Admin') {
-                $item->company_id = $loggedUser->company_id;
+            if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin') {
+                $item->branch_id = $loggedUser->branch_id;
             }
             if(empty($item->id)) {
-                $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
+                $prefix = Config::get('app.hosted')  . substr(($loggedUser->branch_id ?? ""), -3);
                 $item->id = IdGenerator::generate(['table' => 'inventory_items', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
             }
         });
@@ -73,8 +71,8 @@ class InventoryItem extends Model
         
         static::updating(function ($item) {
             $loggedUser = \Auth::user();
-            if($loggedUser->roles != 'Super Admin') {
-                $item->company_id = $loggedUser->company_id;
+            if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin') {
+                $item->branch_id = $loggedUser->branch_id;
             }
         });
     }

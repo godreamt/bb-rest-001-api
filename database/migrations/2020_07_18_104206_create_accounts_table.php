@@ -17,8 +17,8 @@ class CreateAccountsTable extends Migration
             $table->string('id')->primary();
             $table->string('unitLabel');
             $table->text('description')->nullable(true);
-            $table->string('company_id');
-            $table->foreign('company_id')->references('id')->on('companies'); 
+            $table->string('branch_id');
+            $table->foreign('branch_id')->references('id')->on('branches'); 
             // $table->string('branch_id')->nullable(true);
             // $table->foreign('branch_id')->references('id')->on('branches'); 
             $table->boolean('isActive')->default(true);
@@ -34,9 +34,9 @@ class CreateAccountsTable extends Migration
             $table->string('lastPurchasedPrice')->default('0');
             $table->string('unitId')->nullable(true);
             $table->foreign('unitId')->references('id')->on('measure_units')->onDelete('cascade');  
-            $table->string('company_id');
-            $table->foreign('company_id')->references('id')->on('companies'); 
-            $table->unique(['itemName', 'company_id']);
+            $table->string('branch_id');
+            $table->foreign('branch_id')->references('id')->on('branches'); 
+            $table->unique(['itemName', 'branch_id']);
             $table->boolean('isSync')->default(false);
         });
 
@@ -64,11 +64,9 @@ class CreateAccountsTable extends Migration
             $table->string('lastPurchasedPrice')->default('0');
             $table->string('inventoryId');
             $table->foreign('inventoryId')->references('id')->on('inventory_items')->onDelete('cascade');
-            $table->string('company_id');
-            $table->foreign('company_id')->references('id')->on('companies'); 
             $table->string('branch_id')->nullable(true);
             $table->foreign('branch_id')->references('id')->on('branches'); 
-            $table->unique(['inventoryId', 'company_id', 'branch_id']);  
+            $table->unique(['inventoryId', 'branch_id']);  
             $table->timestamps();
             $table->boolean('isSync')->default(false);
         });
@@ -94,9 +92,9 @@ class CreateAccountsTable extends Migration
             $table->boolean('isActive')->default(true);
             $table->boolean('isAutoCreated')->default(false);
             $table->text('description')->nullable(true);
-            $table->string('company_id');
-            $table->foreign('company_id')->references('id')->on('companies'); 
-            $table->unique(['ledgerName', 'company_id']);
+            $table->string('branch_id');
+            $table->foreign('branch_id')->references('id')->on('branches'); 
+            $table->unique(['ledgerName', 'branch_id']);
             $table->boolean('isSync')->default(false);
         });
 
@@ -108,8 +106,6 @@ class CreateAccountsTable extends Migration
             $table->string('amountCarried')->default('0');
             $table->string('branch_id')->nullable(true);
             $table->foreign('branch_id')->references('id')->on('branches'); 
-            $table->string('company_id');
-            $table->foreign('company_id')->references('id')->on('companies'); 
             $table->timestamps();
             $table->boolean('isSync')->default(false);
         });
@@ -124,8 +120,6 @@ class CreateAccountsTable extends Migration
             $table->string('amountCarried')->default('0');
             $table->string('branch_id')->nullable(true);
             $table->foreign('branch_id')->references('id')->on('branches'); 
-            $table->string('company_id');
-            $table->foreign('company_id')->references('id')->on('companies'); 
             $table->string('yearly_sheet_id');
             $table->foreign('yearly_sheet_id')->references('id')->on('yearly_sheets'); 
             $table->timestamps();
@@ -148,8 +142,6 @@ class CreateAccountsTable extends Migration
             $table->foreign('accountId')->references('id')->on('ledger_accounts')->onDelete('cascade');  
             $table->string('branch_id')->nullable(true);
             $table->foreign('branch_id')->references('id')->on('branches'); 
-            $table->string('company_id');
-            $table->foreign('company_id')->references('id')->on('companies'); 
             $table->string('monthly_sheet_id');
             $table->foreign('monthly_sheet_id')->references('id')->on('month_sheets'); 
             $table->string('updatedBy')->nullable(true);
@@ -188,12 +180,10 @@ class CreateAccountsTable extends Migration
             $table->string('id')->primary();
             $table->text('description');
             $table->dateTimeTz('transactionDate');
-            $table->string('branch_id')->nullable(true);
             $table->string('endingBalance')->default(0);
             $table->string('transactionAmount')->default(0);
+            $table->string('branch_id')->nullable(true);
             $table->foreign('branch_id')->references('id')->on('branches'); 
-            $table->string('company_id');
-            $table->foreign('company_id')->references('id')->on('companies'); 
             $table->string('transactionId')->nullable(true);
             $table->foreign('transactionId')->references('id')->on('transactions');  
             $table->string('transactionAccountId')->nullable(true);

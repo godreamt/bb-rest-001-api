@@ -19,14 +19,12 @@ class InventoryItemManager extends Model
         'inventoryId',
         'availableStock',
         'lastPurchasedPrice',
-        'company_id',
         'branch_id',
         'isSync'
     ];
 
     protected $casts = [
         // 'inventoryId' => 'int',
-        // 'company_id' => 'int',
         // 'branch_id' => 'int',
         'availableStock' => 'double',
         'lastPurchasedPrice' => 'double',
@@ -39,7 +37,7 @@ class InventoryItemManager extends Model
         
         static::creating(function ($orderType) {
             $loggedUser = \Auth::user();
-            $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
+            $prefix = Config::get('app.hosted') . substr(($loggedUser->branch_id ?? ""), -3);
             $orderType->id = IdGenerator::generate(['table' => 'inventory_item_managers', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
         });
     }
