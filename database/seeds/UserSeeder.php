@@ -19,7 +19,7 @@ class UserSeeder extends Seeder
             'firstname' => 'Kiran Shetty',
             'email' => 'shiningkiru@gmail.com',
             'mobileNumber' => '7899866288',
-            'password' => Hash::make('K$M@0!63'),
+            'password' => Hash::make('12345'),
             'roles' => 'Super Admin',
         ]);
 
