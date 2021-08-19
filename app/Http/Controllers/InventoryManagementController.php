@@ -83,7 +83,7 @@ class InventoryManagementController extends Controller
                 $item->isActive =  $request->isActive;
                 $item->isSync = false;
                 $item->save();
-                return InventoryItem::with('company')->with('unit')->find($item->id);
+                return InventoryItem::with('branch')->with('unit')->find($item->id);
             });
         }catch(\Exception $e) {
             return response()->json(['msg' => ' Can not able to create item', 'error'=>$e], 400);
