@@ -14,15 +14,15 @@ use Illuminate\Pagination\Paginator;
 class InventoryManagementController extends Controller
 {
     public function getInventoryItems(Request $request) {
-        $items = InventoryItem::with('unit')->with('company')
+        $items = InventoryItem::with('unit')->with('branch')
                                 ->leftJoin('inventory_item_managers', 'inventory_item_managers.inventoryId', 'inventory_items.id')
                                 ->addSelect('inventory_items.*', 'inventory_item_managers.id as managerId', 'inventory_item_managers.availableStock', 'inventory_item_managers.lastPurchasedPrice');
 
         if(!empty($request->searchString)) {
             $items = $items->where('itemName', 'LIKE', '%'.$request->searchString.'%');
         }
-        if(!empty($request->companyId)) {
-            $items = $items->where('inventory_items.company_id', $request->companyId);
+        if(!empty($request->branch_id)) {
+            $items = $items->where('inventory_items.branch_id', $request->branch_id);
         }
 
         if(!empty($request->status)) {
@@ -46,7 +46,7 @@ class InventoryManagementController extends Controller
     }
 
     public function getInventoryItem(Request $request, $id) {
-        return InventoryItem::with('unit')->with('company')
+        return InventoryItem::with('unit')->with('branch')
                             ->leftJoin('inventory_item_managers', 'inventory_item_managers.inventoryId', 'inventory_items.id')
                             ->addSelect('inventory_items.*', 'inventory_item_managers.id as managerId', 'inventory_item_managers.availableStock', 'inventory_item_managers.lastPurchasedPrice')
                             ->where('inventory_items.id', $id)->first();

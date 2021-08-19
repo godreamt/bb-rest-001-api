@@ -19,8 +19,6 @@ class CreateAccountsTable extends Migration
             $table->text('description')->nullable(true);
             $table->string('branch_id');
             $table->foreign('branch_id')->references('id')->on('branches'); 
-            // $table->string('branch_id')->nullable(true);
-            // $table->foreign('branch_id')->references('id')->on('branches'); 
             $table->boolean('isActive')->default(true);
             $table->boolean('isSync')->default(false);
         });
@@ -77,15 +75,13 @@ class CreateAccountsTable extends Migration
             $table->enum('accountType', [
                 'Purchase Account',
                 'Sales Account',
-                'Sundry Creditor',
-                'Sundry Debitor',
+                'Creditor',
+                'Debitor',
                 'Duties and Taxes',
                 'Bank Account',
                 'Cash Account',
-                'Direct Expense',
-                'Indirect Expense',
-                'Direct Income',
-                'Indirect Income'
+                'Expenses',
+                'Incomes'
             ]);
             // $table->string('openingBalance')->nullable(true);
             // $table->string('taxPercentage')->nullable(true);

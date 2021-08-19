@@ -16,14 +16,14 @@ class AccountMasterController extends Controller
         if($fields != '*'){
             $fields = explode(',',$fields);
         }
-        $units = MeasureUnit::with('company')->select($fields);
+        $units = MeasureUnit::with('branch')->select($fields);
 
         if(!empty($request->searchString)) {
             $units = $units->where('unitLabel', 'LIKE', '%'.$request->searchString.'%');
         }
 
-        if(!empty($request->companyId)) {
-            $units = $units->where('company_id', $request->companyId);
+        if(!empty($request->branch_id)) {
+            $units = $units->where('branch_id', $request->branch_id);
         }
 
         if(!empty($request->status)) {
@@ -54,36 +54,16 @@ class AccountMasterController extends Controller
     public function updateUnit(Request $request) {
         try {
             
-            // Existing unit validation
-            $existingUnits = MeasureUnit::where('company_id', $request->company_id)
+            $existingUnits = MeasureUnit::where('branch_id', $request->branch_id)
                                     ->where('unitLabel', $request->unitLabel);
             if(!empty($request->id)) {
                 $existingUnits = $existingUnits->where('id', '<>', $request->id);
             }
-            // $existingUnits = $existingUnits->where(function($query) use ($request) {
-            //     $query->where('branch_id', NULL)->orWhere('branch_id', '');
-            //     if(!empty($request->branch_id)) {
-            //         $query->orWhere('branch_id', $request->branch_id);
-            //     }
-            // });
             $existingUnits = $existingUnits->get();
             if(sizeof($existingUnits) > 0) {
                 return response()->json(['msg' => 'Unit already exists in company.'], 400);
             }
 
-            // if(empty($request->branch_id)) {
-            //     $existingUnitsOnBranches = MeasureUnit::where('company_id', $request->company_id)
-            //                             ->where('branch_id', '<>', NULL)
-            //                             ->where('unitLabel', $request->unitLabel);
-            //     if(!empty($request->id)) {
-            //         $existingUnitsOnBranches = $existingUnitsOnBranches->where('id', '<>', $request->id);
-            //     }
-            //     $existingUnitsOnBranches = $existingUnitsOnBranches->get();
-            //     if(sizeof($existingUnitsOnBranches) > 0) {
-            //         return response()->json(['msg' => 'Unit already exists in branches. Please move that to company level.'], 400);
-            //     }
-            // }
-            // End of Existing unit validation
             
             return \DB::transaction(function() use($request) {
 
@@ -94,13 +74,12 @@ class AccountMasterController extends Controller
                     $unit = MeasureUnit::find($request->id);
                 }
                 $unit->unitLabel =  $request->unitLabel;
-                $unit->company_id =  $request->company_id;
-                // $unit->branch_id =  $request->branch_id ?? NULL;
+                $unit->branch_id =  $request->branch_id;
                 $unit->isActive =  $request->isActive ?? false;
                 $unit->description =  $request->description;
                 $unit->isSync = false;
                 $unit->save();
-                return MeasureUnit::with('company')->find($unit->id);
+                return MeasureUnit::with('branch')->find($unit->id);
             });
         }catch(\Exception $e) {
             return response()->json(['msg' => ' Can not able to update unit', 'error'=>$e->getMessage()], 400);
@@ -129,14 +108,14 @@ class AccountMasterController extends Controller
         if($fields != '*'){
             $fields = explode(',',$fields);
         }
-        $ledgers = LedgerAccount::with('company')->select($fields);
+        $ledgers = LedgerAccount::with('branch')->select($fields);
 
         if(!empty($request->searchString)) {
             $ledgers = $ledgers->where('ledgerName', 'LIKE', '%'.$request->searchString.'%');
         }
 
-        if(!empty($request->companyId)) {
-            $ledgers = $ledgers->where('company_id', $request->companyId);
+        if(!empty($request->branch_id)) {
+            $ledgers = $ledgers->where('branch_id', $request->branch_id);
         }
 
         if(!empty($request->status)) {
@@ -166,14 +145,14 @@ class AccountMasterController extends Controller
     public function updateLedger(Request $request) {
         try {            
             // Existing ledger validation
-            $existingLedgers = LedgerAccount::where('company_id', $request->company_id)
+            $existingLedgers = LedgerAccount::where('branch_id', $request->branch_id)
                                     ->where('ledgerName', $request->ledgerName);
             if(!empty($request->id)) {
                 $existingLedgers = $existingLedgers->where('id', '<>', $request->id);
             }
             $existingLedgers = $existingLedgers->get();
             if(sizeof($existingLedgers) > 0) {
-                return response()->json(['msg' => 'Ledger already exists in company.'], 400);
+                return response()->json(['msg' => 'Ledger already exists in branch.'], 400);
             }
             // End of Existing unit validation
             
@@ -187,35 +166,17 @@ class AccountMasterController extends Controller
                 }
                 $ledger->ledgerName =  $request->ledgerName;
                 $ledger->accountType =  $request->accountType;
-                $ledger->company_id =  $request->company_id;
+                $ledger->branch_id =  $request->branch_id;
                 $ledger->isActive =  $request->isActive ?? false;
                 $ledger->description =  $request->description;
                 $ledger->isSync = false;
                 $ledger->save();
-                return LedgerAccount::with('company')->find($ledger->id);
+                return LedgerAccount::with('branch')->find($ledger->id);
             });
         }catch(\Exception $e) {
             return response()->json(['msg' => ' Can not able to update ledger', 'error'=>$e], 400);
         }
     }
-
-    // public function updateLedger(Request $request, $id) {
-    //     try {
-    //         return \DB::transaction(function() use($request, $id) {
-
-    //             $ledger = LedgerAccount::find($id);
-    //             $ledger->ledgerName =  $request->ledgerName;
-    //             $ledger->accountType =  $request->accountType;
-    //             $ledger->taxPercentage =  $request->taxPercentage;
-    //             $ledger->openingBalance =  $request->openingBalance;
-    //             $ledger->description = $request->description;
-    //             $ledger->isActive =  $request->isActive?true:false;
-    //             $ledger->save();
-    //         });
-    //     }catch(\Exception $e) {
-    //         return response()->json(['msg' => ' Can not able to update ledger', 'error'=>$e], 400);
-    //     }
-    // }
 
     public function deleteLedger(Request $request, $id) {
         return \DB::transaction(function() use($request, $id) {
