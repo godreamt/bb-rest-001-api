@@ -39,9 +39,9 @@ class InventoryItem extends Model
         return $this->belongsTo('App\MeasureUnit', 'unitId');
     }
     
-    public function company()
+    public function branch()
     {
-        return $this->belongsTo('App\Company', 'branch_id');
+        return $this->belongsTo('App\Branch', 'branch_id');
     }
 
     

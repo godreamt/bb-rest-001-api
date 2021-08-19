@@ -56,7 +56,7 @@ class InventoryManagementController extends Controller
         try {
                            
             // Existing inventory validation
-            $existingInventory = InventoryItem::where('company_id', $request->company_id)
+            $existingInventory = InventoryItem::where('branch_id', $request->branch_id)
                     ->where('itemName', $request->inventoryName);
             if(!empty($request->id)) {
                 $existingInventory = $existingInventory->where('id', '<>', $request->id);
@@ -77,7 +77,7 @@ class InventoryManagementController extends Controller
                 }
                 $item->itemName =  $request->itemName;
                 $item->unitId =  $request->unitId;
-                $item->company_id =  $request->company_id;
+                $item->branch_id =  $request->branch_id;
                 $item->description =  $request->description;
                 $item->pricePerUnit =  $request->pricePerUnit;
                 $item->isActive =  $request->isActive;
