@@ -46,7 +46,7 @@ class InventoryManagementController extends Controller
     }
 
     public function getInventoryItem(Request $request, $id) {
-        return InventoryItem::with('unit')->with('branch')
+        return InventoryItem::with('unit')->with('branch')->with('branch.company')
                             ->leftJoin('inventory_item_managers', 'inventory_item_managers.inventoryId', 'inventory_items.id')
                             ->addSelect('inventory_items.*', 'inventory_item_managers.id as managerId', 'inventory_item_managers.availableStock', 'inventory_item_managers.lastPurchasedPrice')
                             ->where('inventory_items.id', $id)->first();
@@ -151,6 +151,9 @@ class InventoryManagementController extends Controller
     public function updateInventoryStock(Request $request) {
         return \DB::transaction(function() use ($request) {
             try {
+                if(empty($request->managerId)) {
+                    return response()->json(['msg' => 'Inventory has no transaction tracks.'], 400);
+                }
                 $invenotory = InventoryItem::find($request->inventoryId);
                 $invenotoryManager = InventoryItemManager::find($request->managerId);
                 if($request->quantity > $invenotoryManager->availableStock) {
