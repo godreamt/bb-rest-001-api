@@ -68,8 +68,13 @@ class YearlySheet extends Model
                 }
             }
             
-            $prefix = Config::get('app.hosted') . substr(($loggedUser->branch_id ?? ""), -3);
-            $yearlySheet->id = IdGenerator::generate(['table' => 'user_attendances', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+            $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
+            if(!empty($loggedUser->branch_id)) {
+                $prefix = $prefix . $loggedUser->branch->branchCode;
+            }else {
+                Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3);
+            }
+            $yearlySheet->id = IdGenerator::generate(['table' => 'yearly_sheets', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
         });
     }
 }

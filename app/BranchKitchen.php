@@ -33,6 +33,11 @@ class BranchKitchen extends Model
             if(empty($kitchen->id)) {
                 $loggedUser = \Auth::user();
                 $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
+                if(!empty($loggedUser->branch_id)) {
+                    $prefix = $prefix . $loggedUser->branch->branchCode;
+                }else {
+                    Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3);
+                }
                 $kitchen->id = IdGenerator::generate(['table' => 'branch_kitchens', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
             }
         });
