@@ -31,29 +31,33 @@ class InventoryCheckRule implements Rule
      */
     public function passes($attribute, $value)
     {
-        $company_id = $this->param['company_id'];
-        $branch_id = $this->param['branch_id'];
+        try {
+            
+            $branch_id = $this->param['branch_id'];
 
-        if($this->param['transactionType'] != 'sales')return true;
-        $itemList = $this->param['items'];
-        $itemGroup = [];
-        foreach($itemList as $item) {
-            $previousQuantity = 0;
-            if(!empty($item['id'])) {
-                $previousTransaction = TransactionItem::find($item['id']);
-                $previousQuantity = $previousTransaction['quantity'];
+            if($this->param['transactionType'] != 'sales')return true;
+            $itemList = $this->param['items'];
+            $itemGroup = [];
+            foreach($itemList as $item) {
+                $previousQuantity = 0;
+                if(!empty($item['id'])) {
+                    $previousTransaction = TransactionItem::find($item['id']);
+                    $previousQuantity = $previousTransaction['quantity'];
+                }
+                $itemGroup[$item['itemId']] = (($itemGroup[$item['itemId']] ?? 0) - $previousQuantity) + ($item['quantity'] ?? 0);
             }
-            $itemGroup[$item['itemId']] = (($itemGroup[$item['itemId']] ?? 0) - $previousQuantity) + ($item['quantity'] ?? 0);
-        }
-        $noError = true;
-        foreach($itemGroup as $itemId => $neededQuantity) {
-            $helper = new Helper();
-            $inventoryManager = $helper->getInventoryManager($itemId, $company_id, $branch_id);
-            $this->item = InventoryItem::find($itemId);
-            if($neededQuantity > $inventoryManager->availableStock) {
-                $noError = false;
-                break;
+            $noError = true;
+            foreach($itemGroup as $itemId => $neededQuantity) {
+                $helper = new Helper();
+                $inventoryManager = $helper->getInventoryManager($itemId, $branch_id);
+                $this->item = InventoryItem::find($itemId);
+                if($neededQuantity > $inventoryManager->availableStock) {
+                    $noError = false;
+                    break;
+                }
             }
+        }catch (\Exception $e) {
+            $noError = false;
         }
         return $noError;
     }

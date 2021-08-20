@@ -134,7 +134,8 @@ class InventoryManagementController extends Controller
                                                 ->leftJoin('users as updateUser', 'updateUser.id', 'inventory_item_journals.updatedBy')
                                                 ->select('transactionType', 'description', 'inventory_item_journals.id', 'quantity', 'pricePerUnit', 'totalAmount', 'inventory_item_journals.created_at as transactionDate', 'updateUser.id as userId', 'updateUser.firstName', 'updateUser.lastName')
                                                 ->union($transactions)
-                                                ->orderBy('transactionDate', 'desc');
+                                                ->orderBy('transactionDate', 'desc')
+                                                ->orderBy('id', 'desc');
         
         $currentPage = $request->pageNumber;
         if(!empty($currentPage)){

@@ -32,15 +32,11 @@ class AccountTransactionController extends Controller
                     $transaction = new Transaction();
                     $mainTransactionJournal = new TransactionAccountJournal();
                     $transaction->transactionType = strtolower($request->transactionType);
-                    $transaction->company_id = $request->company_id;
                     $transaction->branch_id = $request->branch_id;
 
                     $loggedUser = \Auth::user();
                     if($loggedUser instanceof User) {
-                        if($loggedUser->roles != 'Super Admin') {
-                            $transaction->company_id = $loggedUser->company_id;
-                        }
-                        if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin' && $loggedUser->roles != 'Company Accountant') {
+                        if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin') {
                             $transaction->branch_id = $loggedUser->branch_id;
                         }
                     }
@@ -62,7 +58,7 @@ class AccountTransactionController extends Controller
                     $previousTransactionDate = new \Datetime($transaction->transactionDate);
                     $month = $transactionDate->format('m');
                     $year = $transactionDate->format('Y');
-                    $res = $this->getMonthSheet($month, $year, $transaction->company_id, $transaction->branch_id);
+                    $res = $this->getMonthSheet($month, $year, $transaction->branch_id);
                     $previousMonthlySheet = $res['monthly'];
                     $previousYearlySheet = $res['yearly'];
                     if($transaction->transactionType == 'purchase' || $transaction->transactionType == 'payment') {
@@ -75,7 +71,7 @@ class AccountTransactionController extends Controller
                 $transaction->transactionDate = $transactionDate;
                 $month = $transactionDate->format('m');
                 $year = $transactionDate->format('Y');
-                $res = $this->getMonthSheet($month, $year, $transaction->company_id, $transaction->branch_id);
+                $res = $this->getMonthSheet($month, $year, $transaction->branch_id);
                 $monthlySheet = $res['monthly'];
                 $yearlySheet = $res['yearly'];
                 $transaction->accountId = $ledgerAccount->id;
@@ -92,7 +88,7 @@ class AccountTransactionController extends Controller
                 if($request->transactionType == 'purchase' || $request->transactionType == 'sales') {
                     foreach($request->items as $item) {
                         $helper = new Helper();
-                        $inventoryManager = $helper->getInventoryManager($item['itemId'], $transaction->company_id, $transaction->branch_id);
+                        $inventoryManager = $helper->getInventoryManager($item['itemId'], $transaction->branch_id);
                         if(!empty($item['deletedFlag']) && $item['deletedFlag'] == 'true') {
                             $transactionItem = TransactionItem::find($item['id']);
 
@@ -263,16 +259,11 @@ class AccountTransactionController extends Controller
     }
     
 
-    public function getMonthSheet($month, $year, $company_id, $branch_id=null) {
-        $yearlySheet = $this->getYearlySheet($month, $year, $company_id, $branch_id);
+    public function getMonthSheet($month, $year, $branch_id) {
+        $yearlySheet = $this->getYearlySheet($month, $year, $branch_id);
         $monthSheet = MonthSheet::where('month', $month)
                                 ->where('year', $year)
-                                ->where('company_id', $company_id);
-        
-        
-        if($branch_id != null  && !empty($branch_id)) {
-            $monthSheet = $monthSheet->where('branch_id', $branch_id);
-        }
+                                ->where('branch_id', $branch_id);
         $monthSheet = $monthSheet->first();
         if($monthSheet instanceof MonthSheet) {
             return [
@@ -283,7 +274,6 @@ class AccountTransactionController extends Controller
         $monthSheet = new MonthSheet();
         $monthSheet->month = $month;
         $monthSheet->year = $year;
-        $monthSheet->company_id = $company_id;
         $monthSheet->branch_id = $branch_id;
         $monthSheet->yearly_sheet_id = $yearlySheet->id;
         $monthSheet->isSync = false;
@@ -294,16 +284,13 @@ class AccountTransactionController extends Controller
         ];
     }
 
-    public function getYearlySheet($month, $year, $company_id, $branch_id) {
+    public function getYearlySheet($month, $year, $branch_id) {
         $searchingDate = new \Datetime($year.'-'.$month."-01");
-        $yearlySheet = YearlySheet::where('company_id', $company_id)
+        $yearlySheet = YearlySheet::where('branch_id', $branch_id)
                                 ->where(function($query) use ($searchingDate) {
                                     $query->where('fromDate', '<=', $searchingDate)
                                         ->where('toDate', '>=', $searchingDate);
                                 });
-        if($branch_id != null  && !empty($branch_id)) {
-            $yearlySheet = $yearlySheet->where('branch_id', $branch_id);
-        }
         $yearlySheet = $yearlySheet->first();
         if($yearlySheet instanceof YearlySheet) {
             return $yearlySheet;
@@ -318,7 +305,6 @@ class AccountTransactionController extends Controller
         }
         $yearlySheet->fromDate = new \Datetime(('01-04-'.$startYear));
         $yearlySheet->toDate = new \Datetime(('01-03-'.$endYear));
-        $yearlySheet->company_id = $company_id;
         $yearlySheet->branch_id = $branch_id;
         $yearlySheet->isSync = false;
         $yearlySheet->save();
@@ -333,7 +319,7 @@ class AccountTransactionController extends Controller
         if($fields != '*'){
             $fields = explode(',',$fields);
         }
-        $transactions = Transaction::select($fields)->with('branch')->with('company')->with('ledgerAccount');
+        $transactions = Transaction::select($fields)->with('branch')->with('ledgerAccount');
 
         if(!empty($request->searchString)) {
             $transactions = $transactions->where(function($query) use ($request) {
@@ -350,10 +336,6 @@ class AccountTransactionController extends Controller
 
         if(!empty($request->transactionType)) {
             $transactions = $transactions->where('transactionType', $request->transactionType);
-        }
-
-        if(!empty($request->companyId)) {
-            $transactions = $transactions->where('company_id', $request->companyId);
         }
 
         if(!empty($request->branchId)) {
@@ -380,11 +362,10 @@ class AccountTransactionController extends Controller
 
     public function getTransactionDetails(Request $request, $id) {
         $transaction = Transaction::with('ledgerAccount')
-                                ->with('company')
                                 ->with('branch')
                                 ->with('items')
                                 ->with('items.item')
-                                ->with('items.item.company')
+                                ->with('items.item.branch')
                                 ->with('items.item.unit')
                                 ->with('accounts')
                                 ->with('accounts.account')
