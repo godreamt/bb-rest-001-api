@@ -14,9 +14,7 @@ use Illuminate\Pagination\Paginator;
 class InventoryManagementController extends Controller
 {
     public function getInventoryItems(Request $request) {
-        $items = InventoryItem::with('unit')->with('branch')
-                                ->leftJoin('inventory_item_managers', 'inventory_item_managers.inventoryId', 'inventory_items.id')
-                                ->addSelect('inventory_items.*', 'inventory_item_managers.id as managerId', 'inventory_item_managers.availableStock', 'inventory_item_managers.lastPurchasedPrice');
+        $items = InventoryItem::with('unit')->with('branch');
 
         if(!empty($request->searchString)) {
             $items = $items->where('itemName', 'LIKE', '%'.$request->searchString.'%');
@@ -47,8 +45,7 @@ class InventoryManagementController extends Controller
 
     public function getInventoryItem(Request $request, $id) {
         return InventoryItem::with('unit')->with('branch')->with('branch.company')
-                            ->leftJoin('inventory_item_managers', 'inventory_item_managers.inventoryId', 'inventory_items.id')
-                            ->addSelect('inventory_items.*', 'inventory_item_managers.id as managerId', 'inventory_item_managers.availableStock', 'inventory_item_managers.lastPurchasedPrice')
+                            ->addSelect('inventory_items.*')
                             ->where('inventory_items.id', $id)->first();
     }
 

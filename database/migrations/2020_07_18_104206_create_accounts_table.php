@@ -30,6 +30,7 @@ class CreateAccountsTable extends Migration
             $table->boolean('isActive')->default(true);
             $table->text('description')->nullable(true);
             $table->string('lastPurchasedPrice')->default('0');
+            $table->string('availableStock')->default('0');
             $table->string('unitId')->nullable(true);
             $table->foreign('unitId')->references('id')->on('measure_units')->onDelete('cascade');  
             $table->string('branch_id');
@@ -56,18 +57,18 @@ class CreateAccountsTable extends Migration
         });
 
         
-        Schema::create('inventory_item_managers', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->string('availableStock')->default('0');
-            $table->string('lastPurchasedPrice')->default('0');
-            $table->string('inventoryId');
-            $table->foreign('inventoryId')->references('id')->on('inventory_items')->onDelete('cascade');
-            $table->string('branch_id')->nullable(true);
-            $table->foreign('branch_id')->references('id')->on('branches'); 
-            $table->unique(['inventoryId', 'branch_id']);  
-            $table->timestamps();
-            $table->boolean('isSync')->default(false);
-        });
+        // Schema::create('inventory_item_managers', function (Blueprint $table) {
+        //     $table->string('id')->primary();
+        //     $table->string('availableStock')->default('0');
+        //     $table->string('lastPurchasedPrice')->default('0');
+        //     $table->string('inventoryId');
+        //     $table->foreign('inventoryId')->references('id')->on('inventory_items')->onDelete('cascade');
+        //     $table->string('branch_id')->nullable(true);
+        //     $table->foreign('branch_id')->references('id')->on('branches'); 
+        //     $table->unique(['inventoryId', 'branch_id']);  
+        //     $table->timestamps();
+        //     $table->boolean('isSync')->default(false);
+        // });
 
         Schema::create('ledger_accounts', function (Blueprint $table) {
             $table->string('id')->primary();
@@ -75,8 +76,7 @@ class CreateAccountsTable extends Migration
             $table->enum('accountType', [
                 'Purchase Account',
                 'Sales Account',
-                'Creditor',
-                'Debitor',
+                'Others Account',
                 'Duties and Taxes',
                 'Bank Account',
                 'Cash Account',
@@ -136,7 +136,7 @@ class CreateAccountsTable extends Migration
             $table->text('description')->nullable(true);
             $table->string('accountId')->nullable(true);
             $table->foreign('accountId')->references('id')->on('ledger_accounts')->onDelete('cascade');  
-            $table->string('branch_id')->nullable(true);
+            $table->string('branch_id');
             $table->foreign('branch_id')->references('id')->on('branches'); 
             $table->string('monthly_sheet_id');
             $table->foreign('monthly_sheet_id')->references('id')->on('month_sheets'); 

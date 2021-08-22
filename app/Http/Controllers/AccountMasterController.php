@@ -122,6 +122,11 @@ class AccountMasterController extends Controller
             $ledgers = $ledgers->where('isActive', ($request->status == 'in-active')?false:true);
         }
 
+        if(!empty($request->accountTypes)) {
+            $accountTypes = explode(',', $request->accountTypes);;
+            $ledgers = $ledgers->whereIn('accountType', $accountTypes);
+        }
+
         if(!empty($request->orderCol) && !empty($request->orderType)) {
             $ledgers = $ledgers->orderBy($request->orderCol, $request->orderType);
         }

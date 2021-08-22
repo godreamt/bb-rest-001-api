@@ -25,7 +25,15 @@ class TransactionUpdateValidationRequest extends FormRequest
     public function rules()
     {
         return [
+            'branch_id' => 'required|exists:branches,id',
             'items' => ['nullable', new InventoryCheckRule($this->all())]
+        ];
+    }
+
+    public function messages() 
+    {
+        return [
+            'branch_id.required' => 'Please select branch'
         ];
     }
 }

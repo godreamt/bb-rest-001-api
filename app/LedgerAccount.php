@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\TransactionAccountJournal;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -36,6 +37,16 @@ class LedgerAccount extends Model
         'isAutoCreated' => 'boolean'
     ];
 
+    protected $appends = ['ending_balance'];
+
+
+    public function getEndingBalanceAttribute() {
+        $lastJournal = TransactionAccountJournal::where('accountId', $this->id)->orderBy('transactionDate', 'DESC')->orderBy('id', 'DESC')->first();
+        if($lastJournal instanceof TransactionAccountJournal){
+            return $lastJournal->endingBalance;
+        }
+        return "0.00";
+    }
     
     
     public function branch()

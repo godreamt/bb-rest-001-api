@@ -7,7 +7,6 @@ use App\Order;
 use App\MonthSheet;
 use App\Transaction;
 use App\YearlySheet;
-use App\Helper\Helper;
 use App\InventoryItem;
 use App\LedgerAccount;
 use App\TransactionItem;
@@ -51,7 +50,7 @@ class AccountTransactionController extends Controller
 
 
                     if($transaction->transactionDate < $before3days) {
-                        return response()->json(['Can not update now'], 400);
+                        return response()->json(['Can not update now, transaction update can be done for last 3 days'], 400);
                     }
 
                     // handle previous records month sheet and yearly sheet deductions
@@ -87,20 +86,19 @@ class AccountTransactionController extends Controller
 
                 if($request->transactionType == 'purchase' || $request->transactionType == 'sales') {
                     foreach($request->items as $item) {
-                        $helper = new Helper();
-                        $inventoryManager = $helper->getInventoryManager($item['itemId'], $transaction->branch_id);
+                        $inventoryItem = InventoryItem::find($item['itemId']);
                         if(!empty($item['deletedFlag']) && $item['deletedFlag'] == 'true') {
                             $transactionItem = TransactionItem::find($item['id']);
 
                             $oldQuantity = $transactionItem->quantity;
                             if($request->transactionType == 'purchase') {
-                                $inventoryManager->availableStock = $inventoryManager->availableStock - $oldQuantity;
+                                $inventoryItem->availableStock = $inventoryItem->availableStock - $oldQuantity;
                             }else if($request->transactionType == 'sales') {
-                                $inventoryManager->availableStock = $inventoryManager->availableStock + $oldQuantity;
+                                $inventoryItem->availableStock = $inventoryItem->availableStock + $oldQuantity;
                             }
 
-                            $inventoryManager->isSync = false;
-                            $inventoryManager->save();
+                            $inventoryItem->isSync = false;
+                            $inventoryItem->save();
                             $transactionItem->delete();
                         }else {
                             if(empty($item['id'])){
@@ -114,11 +112,11 @@ class AccountTransactionController extends Controller
                             
                             if($request->transactionType == 'purchase') {
                                 if($item['amount'] > 0) {
-                                    $inventoryManager->lastPurchasedPrice = $item['amount'];
+                                    $inventoryItem->lastPurchasedPrice = $item['amount'];
                                 }
-                                $inventoryManager->availableStock = $inventoryManager->availableStock + $newlyNeededQuantity;
+                                $inventoryItem->availableStock = $inventoryItem->availableStock + $newlyNeededQuantity;
                             }else if($request->transactionType == 'sales') {
-                                $inventoryManager->availableStock = $inventoryManager->availableStock - $newlyNeededQuantity;
+                                $inventoryItem->availableStock = $inventoryItem->availableStock - $newlyNeededQuantity;
                             }
 
                             $transactionItem->transactionId = $transaction->id;
@@ -130,8 +128,8 @@ class AccountTransactionController extends Controller
                             $transactionItem->isSync = false;
                             $transactionItem->save();
 
-                            $inventoryManager->isSync = false;
-                            $inventoryManager->save();
+                            $inventoryItem->isSync = false;
+                            $inventoryItem->save();
                         }
                     }
                 }
@@ -150,7 +148,7 @@ class AccountTransactionController extends Controller
                             $transactionJournal = TransactionAccountJournal::where('transactionAccountId', $transactionAccount->id)->first();
 
                             if($transactionAccount->accountId != $account['accountId']) {
-                                $this->handleEndingBalanceOdAccount($transactionJournal, 0);
+                                $this->handleEndingBalanceOdAccount($transactionJournal, 0, 'inverse');
                             }
                         }
 
@@ -229,28 +227,64 @@ class AccountTransactionController extends Controller
         }
     }
 
-    public function handleEndingBalanceOdAccount(TransactionAccountJournal $journal, $transactionAccount) {
-        $previousTransaction = TransactionAccountJournal::where('accountId', $journal->accountId)->where('transactionDate', '<=' ,$journal->transactionDate)->where('id', '<' ,$journal->id)->orderBy('transactionDate', 'DESC')->orderBy('id', 'DESC')->first();
+    public function handleEndingBalanceOdAccount(TransactionAccountJournal $journal, $totalCurretTransAmmount, $transferType = "straight") {
+        $previousTransaction = TransactionAccountJournal::where('accountId', $journal->accountId)
+                                            ->where('transactionDate', '<=' ,$journal->transactionDate)
+                                            ->where('id', '<>', $journal->id)
+                                            ->orderBy('transactionDate', 'DESC')
+                                            ->orderBy('id', 'DESC')
+                                            ->first();
         // \Debugger::dump($previousTransaction);
         // throw new \Exception("Resdd");
         $lastEndingBalance=0;
         if($previousTransaction instanceof TransactionAccountJournal) {
             $lastEndingBalance = $previousTransaction->endingBalance;
         }
+        
         $transaction = Transaction::find($journal->transactionId);
-        if($transaction->transactionType == 'sales' || $transaction->transactionType == 'receipt') {
-            $journal->endingBalance = $lastEndingBalance + $transactionAccount;
-        }else if($transaction->transactionType == 'payment' || $transaction->transactionType == 'purchase') {
-            $journal->endingBalance = $lastEndingBalance - $transactionAccount;
+        if($transaction->transactionType == 'sales') {
+            $journal->endingBalance = $lastEndingBalance + $totalCurretTransAmmount;
+        } if($transaction->transactionType == 'receipt') {
+            if($transaction->accountId != $journal->accountId) {
+                $journal->endingBalance = $lastEndingBalance - $totalCurretTransAmmount;
+            }else {
+                $journal->endingBalance = $lastEndingBalance + $totalCurretTransAmmount;
+            }
+        }else if($transaction->transactionType == 'payment') {
+            if($transaction->accountId != $journal->accountId) {
+                $journal->endingBalance = $lastEndingBalance + $totalCurretTransAmmount;
+            }else {
+                $journal->endingBalance = $lastEndingBalance - $totalCurretTransAmmount;
+            }
+        } if($transaction->transactionType == 'purchase') {
+            $journal->endingBalance = $lastEndingBalance - $totalCurretTransAmmount;
         }
         $lastEndingBalance = $journal->endingBalance;
         $journal->save();
-        $nextEntries = TransactionAccountJournal::where('accountId', $journal->accountId)->where('transactionDate', '>=' ,$journal->transactionDate)->where('id', '>' ,$journal->id)->orderBy('transactionDate', 'ASC')->orderBy('id', 'ASC')->get();
+        $nextEntries = TransactionAccountJournal::where('accountId', $journal->accountId)
+                                        ->where('transactionDate', '>' ,$journal->transactionDate)
+                                        ->where('id', '<>' ,$journal->id)
+                                        ->orderBy('transactionDate', 'ASC')
+                                        ->orderBy('id', 'ASC')
+                                        ->get();
+
         foreach($nextEntries as $journal) {
             $transaction = Transaction::find($journal->transactionId);
-            if($transaction->transactionType == 'sales' || $transaction->transactionType == 'receipt') {
+            if($transaction->transactionType == 'sales') {
                 $journal->endingBalance = $lastEndingBalance + $journal->transactionAmount;
-            }else if($transaction->transactionType == 'payment' || $transaction->transactionType == 'purchase') {
+            } if($transaction->transactionType == 'receipt') {
+                if($transaction->accountId != $journal->accountId) {
+                    $journal->endingBalance = $lastEndingBalance - $totalCurretTransAmmount;
+                }else {
+                    $journal->endingBalance = $lastEndingBalance + $totalCurretTransAmmount;
+                }
+            }else if($transaction->transactionType == 'payment') {
+                if($transaction->accountId != $journal->accountId) {
+                    $journal->endingBalance = $lastEndingBalance + $totalCurretTransAmmount;
+                }else {
+                    $journal->endingBalance = $lastEndingBalance - $totalCurretTransAmmount;
+                }
+            } if ($transaction->transactionType == 'purchase') {
                 $journal->endingBalance = $lastEndingBalance - $journal->transactionAmount;
             }
             $lastEndingBalance = $journal->endingBalance;

@@ -34,7 +34,7 @@ class TransactionAccountJournal extends Model
     
     protected $casts = [
         'isSync' => 'boolean',
-        'endingBalance' => 'double',
+        'endingBalance' => 'decimal:2' ,
         'transactionAmount'=>'double'
     ];
 

@@ -23,6 +23,8 @@ class InventoryItem extends Model
         'unitId', 
         'description', 
         'pricePerUnit', 
+        'availableStock', 
+        'lastPurchasedPrice', 
         'isActive', 
         'branch_id',
         'isSync'
@@ -33,6 +35,8 @@ class InventoryItem extends Model
         'isActive' => 'boolean',
         'isSync' => 'boolean',
         'pricePerUnit' => 'double',
+        'availableStock' => 'double',
+        'lastPurchasedPrice' => 'double',
     ];
 
     public function unit() {
