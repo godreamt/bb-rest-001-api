@@ -54,7 +54,7 @@ class MeasureUnit extends Model
         
         static::creating(function ($item) {
             $loggedUser = \Auth::user();
-            if($loggedUser->roles != 'Super Admin' && $user->roles != 'Company Admin') {
+            if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin') {
                 $item->branch_id = $loggedUser->branch_id;
             }
             $prefix = Config::get('app.hosted')  . substr(($loggedUser->branch_id ?? ""), -3);

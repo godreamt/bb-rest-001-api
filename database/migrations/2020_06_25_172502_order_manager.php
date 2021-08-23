@@ -31,7 +31,7 @@ class OrderManager extends Migration
         
         Schema::create('categories', function (Blueprint $table) {
             $table->string('id')->primary();
-            $table->string('categoryName')->unique();
+            $table->string('categoryName');
             $table->text('description')->nullable();
             $table->string('featuredImage')->nullable();
             $table->boolean('isActive')->default(true);
@@ -39,6 +39,7 @@ class OrderManager extends Migration
             $table->foreign('company_id')->references('id')->on('companies'); 
             $table->string('branch_id');
             $table->foreign('branch_id')->references('id')->on('branches');  
+            $table->unique(['categoryName', 'company_id', 'branch_id']);
             $table->timestamps();
             $table->boolean('isSync')->default(false);
         });
@@ -56,6 +57,7 @@ class OrderManager extends Migration
             $table->foreign('company_id')->references('id')->on('companies'); 
             $table->string('branch_id');
             $table->foreign('branch_id')->references('id')->on('branches');  
+            $table->unique(['tableId', 'company_id', 'branch_id']);
             $table->timestamps();
             $table->boolean('isSync')->default(false);
         });
@@ -65,7 +67,7 @@ class OrderManager extends Migration
             $table->string('id')->primary();
             $table->string('productNumber');
             $table->string('productName');
-            $table->string('productSlug')->unique();
+            $table->string('productSlug');
             $table->text('description')->nullable();
             $table->string('featuredImage')->nullable();
             $table->string('price')->nullable();
@@ -81,6 +83,7 @@ class OrderManager extends Migration
             $table->foreign('branch_id')->references('id')->on('branches');  
             $table->string('kitchen_id');
             $table->foreign('kitchen_id')->references('id')->on('branch_kitchens');  
+            $table->unique(['productSlug', 'company_id', 'branch_id']);
             $table->timestamps();
             $table->boolean('isSync')->default(false);
         });

@@ -16,7 +16,7 @@ class ProductController extends Controller
         if($fields != '*'){
             $fields = explode(',',$fields);
         }
-        $categories = Category::select($fields)->with('branch');
+        $categories = Category::select($fields)->with('branch')->with('company');
 
         if(!empty($request->searchString)) {
             $categories = $categories->where('categoryName', 'LIKE', '%'.$request->searchString.'%');
@@ -35,7 +35,14 @@ class ProductController extends Controller
         }
 
         if(!empty($request->orderCol) && !empty($request->orderType)) {
-            $categories = $categories->orderBy($request->orderCol, $request->orderType);
+
+            if($request->orderCol === 'branch') {
+                $categories = $categories->orderBy('branch.branchTitle', $request->orderType);
+            }else if($request->orderCol === 'company') {
+                $categories = $categories->orderBy('company.companyName', $request->orderType);
+            }else {
+                $categories = $categories->orderBy($request->orderCol, $request->orderType);
+            }
         }
 
         $currentPage = $request->pageNumber;
@@ -148,6 +155,9 @@ class ProductController extends Controller
         }
         $currentPage = $request->pageNumber;
         if(!empty($currentPage)){
+
+            $products = $products->with('categories');
+
             Paginator::currentPageResolver(function () use ($currentPage) {
                 return $currentPage;
             });

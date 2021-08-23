@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Branch;
+use App\Company;
 use App\BranchKitchen;
 use App\BranchOrderType;
 use Illuminate\Http\Request;
@@ -53,6 +54,12 @@ class BranchController extends Controller
             try {
                 if(empty($request->id)) {
                     $branch = new Branch();
+
+                    $company = Company::find($request->company_id);
+                    $previousBranches = Branch::where('company_id', $request->company_id)->get();
+                    if(sizeof($previousBranches) >= $company->numberOfBranchesAllowed) {
+                        return response()->json(['msg' => 'Branch limit exceeded.'], 400);
+                    }
                 }else {
                     $branch = Branch::find($request->id);
                 }
@@ -140,7 +147,7 @@ class BranchController extends Controller
 
                 return $branch;
             }catch(\Exception $e) {
-                return response()->json(['msg' => ' Can not able to create branch', 'error'=>$e], 404);
+                return response()->json(['msg' => ' Can not able to create branch', 'error'=> $e->getMessage()], 404);
             }
         });
     }

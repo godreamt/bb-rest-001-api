@@ -97,6 +97,11 @@ class Category extends Model
         return $this->belongsTo('App\Branch', 'branch_id');
     }
 
+    public function company()
+    {
+        return $this->belongsTo('App\Company', 'company_id');
+    }
+
     public function products()
     {
         return $this->belongsToMany('App\Product', 'product_categories');
