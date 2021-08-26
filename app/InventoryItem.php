@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\helper\Helper;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -67,8 +68,7 @@ class InventoryItem extends Model
                 $item->branch_id = $loggedUser->branch_id;
             }
             if(empty($item->id)) {
-                $prefix = Config::get('app.hosted')  . substr(($loggedUser->branch_id ?? ""), -3);
-                $item->id = IdGenerator::generate(['table' => 'inventory_items', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+                $item->id = Helper::GenerateId($loggedUser, 'inventory_items');
             }
         });
 

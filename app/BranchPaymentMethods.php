@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\helper\Helper;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Model;
 use Haruncpi\LaravelIdGenerator\IdGenerator;
@@ -32,8 +33,7 @@ class BranchPaymentMethods extends Model
         static::creating(function ($method) {
             if(empty($method->id)) {
                 $loggedUser = \Auth::user();
-                $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
-                $method->id = IdGenerator::generate(['table' => 'branch_payment_methods', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+                $method->id = Helper::GenerateId($loggedUser, 'branch_payment_methods');
             }
         });
     }

@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\helper\Helper;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Model;
 use Haruncpi\LaravelIdGenerator\IdGenerator;
@@ -45,8 +46,7 @@ class InventoryItemJournal extends Model
         static::creating(function ($journal) {
             $loggedUser = \Auth::user();
             $journal->updatedBy = $loggedUser->id;
-            $prefix = Config::get('app.hosted')  . substr(($loggedUser->branch_id ?? ""), -3);
-            $journal->id = IdGenerator::generate(['table' => 'inventory_item_journals', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+            $journal->id = Helper::GenerateId($loggedUser, 'inventory_item_journals');
         });
     }
 }

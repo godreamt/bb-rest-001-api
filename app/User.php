@@ -3,6 +3,7 @@
 namespace App;
 
 use App\User;
+use App\helper\Helper;
 use Panoscape\History\HasOperations;
 use Illuminate\Support\Facades\Config;
 use Tymon\JWTAuth\Contracts\JWTSubject;
@@ -123,8 +124,7 @@ class User extends Authenticatable implements JWTSubject
             }
             // \Debugger::dump(Config::get('app.hosted'));
             if(empty($user->id)) {
-                $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
-                $user->id = IdGenerator::generate(['table' => 'users', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+                $user->id = Helper::GenerateId($loggedUser, 'users');
             }
         });
         
@@ -152,6 +152,11 @@ class User extends Authenticatable implements JWTSubject
         'isSync' => 'boolean',
         'attendaceRequired' => 'boolean',
     ];
+
+    public function company()
+    {
+        return $this->belongsTo('App\Company', 'company_id');
+    }
 
     public function branch()
     {

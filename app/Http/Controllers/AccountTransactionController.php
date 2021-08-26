@@ -418,15 +418,13 @@ class AccountTransactionController extends Controller
                 $transactions = $transactions->whereIn('transactionType', $types);
             }
 
-                $startDate = new \Datetime($request->startDate);
-                $endDate = (new \Datetime($request->endDate))->modify('1 day');
-                $transactions = $transactions->whereBetween('transactionDate', [$startDate, $endDate]);
+            $startDate = new \Datetime($request->startDate);
+            $endDate = (new \Datetime($request->endDate))->modify('1 day');
+            $transactions = $transactions->whereBetween('transactionDate', [$startDate, $endDate]);
 
             $transactions = $transactions->get();
             if(empty(!$request->includeOrders) && $request->includeOrders) {
                 $orders = Order::with('orderType')->where('orderStatus', 'completed');
-                $startDate = new \Datetime($request->startDate);
-                $endDate = (new \Datetime($request->endDate))->modify('1 day');
                 $orders = $orders->whereBetween('created_at', [$startDate, $endDate]);
                 $orders = $orders->get();
             }

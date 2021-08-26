@@ -47,7 +47,7 @@ class OrderManager extends Migration
         
         Schema::create('table_managers', function (Blueprint $table) {
             $table->string('id')->primary();
-            $table->string('tableId')->unique();
+            $table->string('tableId');
             $table->string('noOfChair');
             $table->string('bookedChairs')->nullable();
             $table->text('description')->nullable();
@@ -83,7 +83,7 @@ class OrderManager extends Migration
             $table->foreign('branch_id')->references('id')->on('branches');  
             $table->string('kitchen_id');
             $table->foreign('kitchen_id')->references('id')->on('branch_kitchens');  
-            $table->unique(['productSlug', 'company_id', 'branch_id']);
+            $table->unique(['productName', 'company_id', 'branch_id']);
             $table->timestamps();
             $table->boolean('isSync')->default(false);
         });

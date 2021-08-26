@@ -4,6 +4,7 @@ namespace App;
 
 use App\User;
 use App\Branch;
+use App\helper\Helper;
 use Panoscape\History\HasHistories;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Model;
@@ -55,7 +56,8 @@ class Order extends Model
         'taxDisabled' => 'boolean',
         'isSync' => 'boolean',
         'taxPercent' => 'float',
-        'roundOfAmount' => 'float'
+        'roundOfAmount' => 'float',
+        'orderAmount' => 'float'
     ];
     // protected $appends = ['order_ready_count'];
 
@@ -113,8 +115,7 @@ class Order extends Model
                 $order->company_id = $branch->company_id;
                 $order->takenBy = $loggedUser->id;
                 if(empty($order->id)) {
-                    $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
-                    $order->id = IdGenerator::generate(['table' => 'orders', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+                    $order->id = Helper::GenerateId($loggedUser, 'orders');
                 }
             }
         });

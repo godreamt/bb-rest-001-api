@@ -4,6 +4,7 @@ namespace App;
 
 use App\User;
 use App\Branch;
+use App\helper\Helper;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -67,14 +68,9 @@ class YearlySheet extends Model
                     $yearlySheet->branch_id = $loggedUser->branch_id;
                 }
             }
-            
-            $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
-            if(!empty($loggedUser->branch_id)) {
-                $prefix = $prefix . $loggedUser->branch->branchCode;
-            }else {
-                Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3);
+            if(empty($yearlySheet->id)) {
+                $yearlySheet->id = Helper::GenerateId($loggedUser, 'yearly_sheets');
             }
-            $yearlySheet->id = IdGenerator::generate(['table' => 'yearly_sheets', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
         });
     }
 }

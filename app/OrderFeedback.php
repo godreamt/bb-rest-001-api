@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\helper\Helper;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Model;
 use Haruncpi\LaravelIdGenerator\IdGenerator;
@@ -32,8 +33,7 @@ class OrderFeedback extends Model
 
         static::creating(function ($feedback) {
             $loggedUser = \Auth::user();
-            $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
-            $feedback->id = IdGenerator::generate(['table' => 'order_feedbacks', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+            $feedback->id = Helper::GenerateId($loggedUser, 'order_feedbacks');
         });
     }
 }

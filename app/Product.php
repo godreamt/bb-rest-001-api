@@ -3,6 +3,7 @@
 namespace App;
 
 use App\User;
+use App\helper\Helper;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Model;
@@ -125,8 +126,7 @@ class Product extends Model
             $product->productSlug = $count ? "{$slug}-{$count}" : $slug;
 
             if(empty($product->id)) {
-                $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
-                $product->id = IdGenerator::generate(['table' => 'products', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+                $product->id = Helper::GenerateId($loggedUser, 'products');
             }
            
         });

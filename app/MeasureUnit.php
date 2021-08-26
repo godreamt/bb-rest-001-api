@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\helper\Helper;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -57,8 +58,7 @@ class MeasureUnit extends Model
             if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin') {
                 $item->branch_id = $loggedUser->branch_id;
             }
-            $prefix = Config::get('app.hosted')  . substr(($loggedUser->branch_id ?? ""), -3);
-            $item->id = IdGenerator::generate(['table' => 'measure_units', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+            $item->id = Helper::GenerateId($loggedUser, 'measure_units');
         });
 
         

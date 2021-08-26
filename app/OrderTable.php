@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\helper\Helper;
 use Panoscape\History\HasHistories;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Model;
@@ -40,8 +41,7 @@ class OrderTable extends Model
         static::creating(function ($item) {
             if(empty($item->id)) {
                 $loggedUser = \Auth::user();
-                $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
-                $item->id = IdGenerator::generate(['table' => 'order_tables', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+                $item->id = Helper::GenerateId($loggedUser, 'order_tables');
             }
         });
     }

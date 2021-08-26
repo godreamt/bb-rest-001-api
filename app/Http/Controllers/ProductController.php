@@ -12,11 +12,13 @@ use Illuminate\Pagination\Paginator;
 class ProductController extends Controller
 {
     public function getCategories(Request $request) {
-        $fields = $request->get('fields', '*');
-        if($fields != '*'){
+        $fields = $request->get('fields', 'categories.*');
+        if($fields != 'categories.*'){
             $fields = explode(',',$fields);
         }
-        $categories = Category::select($fields)->with('branch')->with('company');
+        $categories = Category::select($fields)->with('branch')->with('company')
+                            ->leftJoin('companies', 'categories.company_id', 'companies.id')
+                            ->leftJoin('branches', 'categories.branch_id', 'branches.id');
 
         if(!empty($request->searchString)) {
             $categories = $categories->where('categoryName', 'LIKE', '%'.$request->searchString.'%');
@@ -37,9 +39,9 @@ class ProductController extends Controller
         if(!empty($request->orderCol) && !empty($request->orderType)) {
 
             if($request->orderCol === 'branch') {
-                $categories = $categories->orderBy('branch.branchTitle', $request->orderType);
+                $categories = $categories->orderBy('branches.branchTitle', $request->orderType);
             }else if($request->orderCol === 'company') {
-                $categories = $categories->orderBy('company.companyName', $request->orderType);
+                $categories = $categories->orderBy('companies.companyName', $request->orderType);
             }else {
                 $categories = $categories->orderBy($request->orderCol, $request->orderType);
             }
@@ -231,7 +233,7 @@ class ProductController extends Controller
                 $product->categories()->sync($categories);
                 return ['data' => $product, 'msg'=> "Product updated successfully"];
             }catch(\Exception $e) {
-                return response()->json(['msg' => 'Can not update product data', 'error' => $e->getMessage()], 404);
+                return response()->json(['msg' => 'Can not update product data, please check for duplicates', 'error' => $e->getMessage()], 404);
             }
         });
     }

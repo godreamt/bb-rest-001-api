@@ -8,7 +8,6 @@ use App\InventoryItem;
 use App\TransactionItem;
 use Illuminate\Http\Request;
 use App\InventoryItemJournal;
-use App\InventoryItemManager;
 use Illuminate\Pagination\Paginator;
 
 class InventoryManagementController extends Controller
@@ -121,13 +120,13 @@ class InventoryManagementController extends Controller
     }
 
 
-    public function getInventoryTrackings(Request $request, $invenotoryId) {
+    public function getInventoryTrackings(Request $request, $inventoryId) {
         $transactions = TransactionItem::leftJoin('transactions', 'transactions.id', 'transaction_items.transactionId') 
                                         ->leftJoin('users as updateUser', 'updateUser.id', 'transactions.updatedBy')
                                         ->selectRaw("transactions.transactionType, transactions.description")
                                         ->addSelect('transactions.id', 'transaction_items.quantity', 'transaction_items.amount as pricePerUnit', 'transaction_items.total as totalAmount', 'transactions.transactionDate', 'updateUser.id as userId', 'updateUser.firstName', 'updateUser.lastName')
-                                        ->where('itemId', $invenotoryId);
-        $journalEntries = InventoryItemJournal::where('inventoryId', $invenotoryId)
+                                        ->where('itemId', $inventoryId);
+        $journalEntries = InventoryItemJournal::where('inventoryId', $inventoryId)
                                                 ->leftJoin('users as updateUser', 'updateUser.id', 'inventory_item_journals.updatedBy')
                                                 ->select('transactionType', 'description', 'inventory_item_journals.id', 'quantity', 'pricePerUnit', 'totalAmount', 'inventory_item_journals.created_at as transactionDate', 'updateUser.id as userId', 'updateUser.firstName', 'updateUser.lastName')
                                                 ->union($transactions)
@@ -149,30 +148,26 @@ class InventoryManagementController extends Controller
     public function updateInventoryStock(Request $request) {
         return \DB::transaction(function() use ($request) {
             try {
-                if(empty($request->managerId)) {
-                    return response()->json(['msg' => 'Inventory has no transaction tracks.'], 400);
-                }
-                $invenotory = InventoryItem::find($request->inventoryId);
-                $invenotoryManager = InventoryItemManager::find($request->managerId);
-                if($request->quantity > $invenotoryManager->availableStock) {
-                    return response()->json(['msg' => $invenotory->itemName.' does not have enough storage'], 400);
+                $inventory = InventoryItem::find($request->inventoryId);
+                if($request->quantity > $inventory->availableStock) {
+                    return response()->json(['msg' => $inventory->itemName.' does not have enough storage'], 400);
                 }
                 $latestUpdate = new InventoryItemJournal();
                 $latestUpdate->inventoryId = $request->inventoryId;
                 $latestUpdate->description = $request->description;
                 $latestUpdate->transactionType = $request->transactionType;
                 $latestUpdate->quantity = $request->quantity;
-                if($invenotoryManager->lastPurchasedPrice <= 0) {
-                    $latestUpdate->pricePerUnit = $invenotory->pricePerUnit;
+                if($inventory->lastPurchasedPrice <= 0) {
+                    $latestUpdate->pricePerUnit = $inventory->pricePerUnit;
                 }else {
-                    $latestUpdate->pricePerUnit = $invenotoryManager->lastPurchasedPrice;
+                    $latestUpdate->pricePerUnit = $inventory->lastPurchasedPrice;
                 }
                 $latestUpdate->totalAmount = $request->quantity * $latestUpdate->pricePerUnit;
-                $invenotoryManager->availableStock=$invenotoryManager->availableStock-$request->quantity;
+                $inventory->availableStock=$inventory->availableStock-$request->quantity;
                 $latestUpdate->isSync = false;
                 $latestUpdate->save();
-                $invenotoryManager->isSync = false;
-                $invenotoryManager->save();
+                $inventory->isSync = false;
+                $inventory->save();
                 return $latestUpdate;
             }catch(\Exception $e) {
                 return response()->json(['msg' => 'Can not update inventory', 'error'=>$e->getMessage()], 400);

@@ -3,6 +3,7 @@
 namespace App;
 
 use App\Branch;
+use App\helper\Helper;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -82,8 +83,7 @@ class TableManager extends Model
             $tableManager->company_id = $branch->company_id;
 
             if(empty($tableManager->id)) {
-                $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
-                $tableManager->id = IdGenerator::generate(['table' => 'table_managers', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+                $tableManager->id = Helper::GenerateId($loggedUser, 'table_managers');
             }
         });
         

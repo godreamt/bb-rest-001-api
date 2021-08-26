@@ -3,6 +3,7 @@
 namespace App;
 
 use App\Branch;
+use App\helper\Helper;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -88,8 +89,7 @@ class Customer extends Model
             $customer->company_id = $customer->company_id;
 
             if(empty($customer->id )) {
-                $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
-                $customer->id = IdGenerator::generate(['table' => 'customers', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+                $customer->id = Helper::GenerateId($loggedUser, 'customers');
             }
         });
     }

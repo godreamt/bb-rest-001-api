@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\helper\Helper;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -78,8 +79,7 @@ class Transaction extends Model
                 $count = static::count();
                 $transaction->transactionRefNumber = $count ? $ref + $count : $ref;
             }
-            $prefix = Config::get('app.hosted') . substr(($loggedUser->branch_id ?? ""), -3);
-            $transaction->id = IdGenerator::generate(['table' => 'transactions', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+            $transaction->id = Helper::GenerateId($loggedUser, 'transactions');
         });
     }
 

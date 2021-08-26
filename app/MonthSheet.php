@@ -4,6 +4,7 @@ namespace App;
 
 use App\User;
 use App\Branch;
+use App\helper\Helper;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -73,8 +74,7 @@ class MonthSheet extends Model
                     $monthlySheet->branch_id = $loggedUser->branch_id;
                 }
             }
-            $prefix = Config::get('app.hosted') . substr(($loggedUser->branch_id ?? ""), -3);
-            $monthlySheet->id = IdGenerator::generate(['table' => 'month_sheets', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+            $monthlySheet->id = Helper::GenerateId($loggedUser, 'month_sheets');
         });
     }
 }

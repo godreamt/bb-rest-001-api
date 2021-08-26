@@ -4,6 +4,7 @@ namespace App;
 
 use App\User;
 use App\Branch;
+use App\helper\Helper;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -34,7 +35,7 @@ class TransactionAccountJournal extends Model
     
     protected $casts = [
         'isSync' => 'boolean',
-        'endingBalance' => 'decimal:2' ,
+        'endingBalance' => 'double' ,
         'transactionAmount'=>'double'
     ];
 
@@ -81,10 +82,9 @@ class TransactionAccountJournal extends Model
                 
                 if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin' ) {
                     $item->branch_id = $loggedUser->branch_id;
-                }
+                } 
                 if(empty($item->id)) {
-                    $prefix = Config::get('app.hosted') . substr(($loggedUser->branch_id ?? ""), -3);
-                    $item->id = IdGenerator::generate(['table' => 'transaction_account_journals', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+                    $item->id = Helper::GenerateId($loggedUser, 'transaction_account_journals');
                 }
             }
         });

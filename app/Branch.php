@@ -3,6 +3,7 @@
 namespace App;
 
 use App\User;
+use App\helper\Helper;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Model;
@@ -108,8 +109,7 @@ class Branch extends Model
         static::creating(function ($branch) {
             if(empty($branch->id)) {
                 $loggedUser = \Auth::user();
-                $prefix = Config::get('app.hosted') . substr(($loggedUser->company_id ?? ""), -3) . substr(($loggedUser->branch_id ?? ""), -3);
-                $branch->id = IdGenerator::generate(['table' => 'branches', 'length' => 20, 'prefix' => $prefix, 'reset_on_prefix_change' => true]);
+                $branch->id = Helper::GenerateId($loggedUser, 'branches');
             }
         });
     }

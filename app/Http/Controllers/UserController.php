@@ -13,11 +13,13 @@ class UserController extends Controller
     public function getUsers(Request $request) {
         $loggedUser = Auth::user();
         
-        $fields = $request->get('fields', '*');
-        if($fields != '*'){
+        $fields = $request->get('fields', 'users.*');
+        if($fields != 'users.*'){
             $fields = explode(',',$fields);
         }
-        $users = User::select($fields)->with('branch');
+        $users = User::select($fields)->with('branch')->with('company')
+                        ->leftJoin('companies', 'users.company_id', 'companies.id')
+                        ->leftJoin('branches', 'users.branch_id', 'branches.id');
 
         if(!empty($request->searchString)) {
             $users = $users->where('firstName', 'LIKE', '%'.$request->searchString.'%');
@@ -32,7 +34,14 @@ class UserController extends Controller
         }
 
         if(!empty($request->orderCol) && !empty($request->orderType)) {
-            $users = $users->orderBy($request->orderCol, $request->orderType);
+            
+            if($request->orderCol === 'branch') {
+                $users = $users->orderBy('branches.branchTitle', $request->orderType);
+            }else if($request->orderCol === 'company') {
+                $users = $users->orderBy('companies.companyName', $request->orderType);
+            }else {
+                $users = $users->orderBy($request->orderCol, $request->orderType);
+            }
         }
 
         // if($loggedUser->roles != 'Super Admin') {
@@ -61,7 +70,7 @@ class UserController extends Controller
     public function getUser(Request $request, $id) {
         $loggedUser = Auth::user();
 
-        $user = User::with('branch')->where('users.id', $id);
+        $user = User::with('branch')->with('company')->where('users.id', $id);
 
         if($loggedUser->roles != 'Super Admin') {
             $user = $user->where('branch_id', $loggedUser->branch_id);

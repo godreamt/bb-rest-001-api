@@ -66,7 +66,7 @@ class OrderController extends Controller
                 $t1->tableId = $request->tableId;
                 $t1->description = $request->description;
                 $t1->noOfChair = $request->noOfChair;
-                $request->isActive = $request->isActive ?? false;
+                $t1->isActive = $request->isActive ?? false;
                 $t1->isSync = false;
                 $t1->save();
                 return $t1;
