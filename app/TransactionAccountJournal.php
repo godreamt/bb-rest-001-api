@@ -54,11 +54,11 @@ class TransactionAccountJournal extends Model
 
         static::addGlobalScope('role_handler', function (Builder $builder) {
             $user = \Auth::user();
-            if($user instanceof User) {                
-                if($user->roles != 'Super Admin' && $user->roles != 'Company Admin') {
-                    $builder->where('transaction_account_journals.branch_id',  $user->branch_id);
-                }
-            }
+            // if($user instanceof User) {                
+            //     if($user->roles != 'Super Admin' && $user->roles != 'Company Admin') {
+            //         $builder->where('transaction_account_journals.branch_id',  $user->branch_id);
+            //     }
+            // }
         });
 
         
@@ -84,7 +84,8 @@ class TransactionAccountJournal extends Model
                     $item->branch_id = $loggedUser->branch_id;
                 } 
                 if(empty($item->id)) {
-                    $item->id = Helper::GenerateId($loggedUser, 'transaction_account_journals');
+                    $branch = Branch::find($item->branch_id);
+                    $item->id = Helper::GenerateId($loggedUser, 'transaction_account_journals', $branch->branchCode);
                 }
             }
         });

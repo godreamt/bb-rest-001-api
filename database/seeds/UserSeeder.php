@@ -35,6 +35,18 @@ class UserSeeder extends Seeder
             'taxPercent' => 5,
             'company_id' => 1
         ]);
+
+        
+        DB::table('users')->insert([
+            'id' => 'SD000000000000000002',
+            'firstname' => 'Giri',
+            'email' => 'giri@gmail.com',
+            'mobileNumber' => '1111111111',
+            'password' => Hash::make('Giri@123'),
+            'company_id' => '1',
+            'branch_id' => '1',
+            'roles' => 'Branch Admin',
+        ]);
         
         DB::table('measure_units')->insert([
             'id' => '1',

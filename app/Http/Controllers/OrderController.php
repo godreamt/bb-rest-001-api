@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Order;
+use App\Branch;
 use App\Product;
 use App\Category;
 use App\Customer;
@@ -41,6 +42,8 @@ class OrderController extends Controller
         }
         if(!empty($request->orderCol) && !empty($request->orderType)) {
             $tables = $tables->orderBy($request->orderCol, $request->orderType);
+        }else {
+            $tables = $tables->orderBy('tableId', 'ASC');
         }
         $currentPage = $request->pageNumber;
         if(!empty($currentPage)){
@@ -228,39 +231,60 @@ class OrderController extends Controller
     }
 
     public function getOrderTypeWithTableOccupy(Request $request) {        
-        
+        $companyId = $request->get('company_id');
+        $user = \Auth::user();
+        if($user->roles != 'Super Admin') {
+            $companyId = $user->company_id;
+        }
         $orderTables = OrderTable::leftJoin('orders', 'orders.id', 'order_tables.orderId')
             ->where(function($q) use ($request) {
                 $q->where('orders.orderStatus', 'new')
                     ->orWhere('orders.orderStatus', 'prepairing')
                     ->orWhere('orders.id',$request->orderId);
             })
+            ->where('orders.company_id', $companyId)
             ->select('order_tables.selectedChairs', 'order_tables.orderId', 'order_tables.tableId')
             ->distinct()->get();
 
-        $tables = TableManager::where('isActive', true)->get();
-                
-        foreach($tables as $table) {
-            $runningOrderIdList = [];   
-            $selectedChairs="";
-            $orderSelectedChairs="";
-            foreach($orderTables as $ot) {
-                if($ot->tableId == $table->id) {
-                    if($ot->orderId == $request->orderId) {
-                        $orderSelectedChairs = $orderSelectedChairs.$ot->selectedChairs.",";
+        $tables = TableManager::select('table_managers.id', 'table_managers.isActive', 'isReserved', 'noOfChair', 'tableId', 'table_managers.branch_id')
+                            ->leftJoin('branches', 'table_managers.branch_id', 'branches.id')
+                            ->where('branches.isActive', true)
+                            ->where('branches.company_id', $companyId)
+                            ->orderBy('tableId', 'ASC') 
+                            ->get();
+        $tables = $tables->groupBy('branch_id');
+        $result = [];
+        foreach($tables as $tableGp) {
+            foreach($tableGp as $table) {
+                $runningOrderIdList = [];   
+                $selectedChairs="";
+                $orderSelectedChairs="";
+                foreach($orderTables as $ot) {
+                    if($ot->tableId == $table->id) {
+                        if($ot->orderId == $request->orderId) {
+                            $orderSelectedChairs = $orderSelectedChairs.$ot->selectedChairs.",";
+                        }
+    
+                        $selectedChairs = $selectedChairs.$ot->selectedChairs.",";
+                        $runningOrderIdList[] = $ot->orderId;
                     }
-
-                    $selectedChairs = $selectedChairs.$ot->selectedChairs.",";
-                    $runningOrderIdList[] = $ot->orderId;
                 }
+    
+                $table['orderSelectedChairs']=$orderSelectedChairs;
+                $table['selectedChairs']=$selectedChairs;
+                $table['runningOrderIds']=array_unique($runningOrderIdList);
             }
-
-            $table['orderSelectedChairs']=$orderSelectedChairs;
-            $table['selectedChairs']=$selectedChairs;
-            $table['runningOrderIds']=array_unique($runningOrderIdList);
+            $result[] = [
+                'branch'=> Branch::with('company')->find($tableGp[0]->branch_id),
+                'tables' => $tableGp
+            ];
         }
 
-        return $tables;
+        if(!empty($request->orderId)) {
+            $result = $result[0]['tables'];
+        }
+
+        return $result;
     }
 
     public function handleTableOccupy($orderId=null) {

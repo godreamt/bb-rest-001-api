@@ -49,10 +49,10 @@ class UserController extends Controller
         // }
         // if($loggedUser instanceof User) {
         if($loggedUser->roles != 'Super Admin') {
-            $users = $users->where('company_id',  $loggedUser->company_id);
+            $users = $users->where('users.company_id',  $loggedUser->company_id);
         }
         if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin' && $loggedUser->roles != 'Company Accountant') {
-            $users = $users->where('branch_id',  $loggedUser->branch_id);
+            $users = $users->where('users.branch_id',  $loggedUser->branch_id);
         }
         // }
         $currentPage = $request->pageNumber;

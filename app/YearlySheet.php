@@ -39,13 +39,13 @@ class YearlySheet extends Model
     protected static function boot() {
         parent::boot();
 
-        static::addGlobalScope('role_handler', function (Builder $builder) {
-            $user = \Auth::user();
+        // static::addGlobalScope('role_handler', function (Builder $builder) {
+        //     $user = \Auth::user();
            
-            if($user->roles != 'Super Admin' && $user->roles != 'Company Admin' ) {
-                $builder->where('yearly_sheets.branch_id',  $user->branch_id);
-            }
-        });
+        //     if($user->roles != 'Super Admin' && $user->roles != 'Company Admin' ) {
+        //         $builder->where('yearly_sheets.branch_id',  $user->branch_id);
+        //     }
+        // });
 
         
         static::updating(function ($yearlySheet) {

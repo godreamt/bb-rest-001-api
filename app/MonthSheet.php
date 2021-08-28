@@ -70,7 +70,7 @@ class MonthSheet extends Model
 
             $loggedUser = \Auth::user();
             if($loggedUser instanceof User) {
-                if($loggedUser->roles != 'Super Admin' && $user->roles != 'Company Admin') {
+                if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin') {
                     $monthlySheet->branch_id = $loggedUser->branch_id;
                 }
             }

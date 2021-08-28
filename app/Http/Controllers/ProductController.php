@@ -29,11 +29,11 @@ class ProductController extends Controller
         }
 
         if(!empty($request->companyId)) {
-            $branches = $branches->where('company_id', $request->companyId);
+            $categories = $categories->where('company_id', $request->companyId);
         }
 
         if(!empty($request->branchId)) {
-            $branches = $branches->where('branch_id', $request->branchId);
+            $categories = $categories->where('branch_id', $request->branchId);
         }
 
         if(!empty($request->orderCol) && !empty($request->orderType)) {

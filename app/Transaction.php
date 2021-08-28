@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Branch;
 use App\helper\Helper;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Model;
@@ -79,7 +80,8 @@ class Transaction extends Model
                 $count = static::count();
                 $transaction->transactionRefNumber = $count ? $ref + $count : $ref;
             }
-            $transaction->id = Helper::GenerateId($loggedUser, 'transactions');
+            $branch = Branch::find($transaction->branch_id);
+            $transaction->id = Helper::GenerateId($loggedUser, 'transactions', $branch->branchCode);
         });
     }
 

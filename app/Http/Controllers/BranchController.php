@@ -54,6 +54,7 @@ class BranchController extends Controller
             try {
                 if(empty($request->id)) {
                     $branch = new Branch();
+                    $branch->branchCode = $request->branchCode;
 
                     $company = Company::find($request->company_id);
                     $previousBranches = Branch::where('company_id', $request->company_id)->get();
@@ -67,7 +68,6 @@ class BranchController extends Controller
                 $branch->description = $request->description;
                 $branch->branchAddress = $request->branchAddress;
                 $branch->gstNumber = $request->gstNumber ?? null;
-                $branch->branchCode = $request->branchCode;
                 $branch->isActive = $request->isActive;
                 $branch->taxPercent = $request->taxPercent;
                 $branch->company_id = $request->company_id;

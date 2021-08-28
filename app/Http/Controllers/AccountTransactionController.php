@@ -25,20 +25,21 @@ class AccountTransactionController extends Controller
                 $date = new \Datetime();
                 $before3days = $date->modify('-3 days');
                 $transactionDate = new \Datetime($request->transactionDate);
+                $branchId = $request->branch_id;
+                $loggedUser = \Auth::user();
+                if($loggedUser instanceof User) {
+                    if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin') {
+                        $branchId = $loggedUser->branch_id;
+                    }
+                }
 
                 $ledgerAccount = LedgerAccount::find($request->accountId);
                 if(empty($request->id)) {
                     $transaction = new Transaction();
                     $mainTransactionJournal = new TransactionAccountJournal();
                     $transaction->transactionType = strtolower($request->transactionType);
-                    $transaction->branch_id = $request->branch_id;
-
-                    $loggedUser = \Auth::user();
-                    if($loggedUser instanceof User) {
-                        if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin') {
-                            $transaction->branch_id = $loggedUser->branch_id;
-                        }
-                    }
+                    $transaction->branch_id = $branchId;
+                    $mainTransactionJournal->branch_id = $branchId;
                 }else {
                     $transaction = Transaction::find($request->id);
                     $mainTransactionJournal = TransactionAccountJournal::where('transactionId', $transaction->id) ->where('transactionAccountId', null)->first();
@@ -143,6 +144,7 @@ class AccountTransactionController extends Controller
                         if(empty($account['id'])){
                             $transactionAccount = new TransactionOnAccount();
                             $transactionJournal = new TransactionAccountJournal();
+                            $transactionJournal->branch_id = $branchId;
                         }else {
                             $transactionAccount = TransactionOnAccount::find($account['id']);
                             $transactionJournal = TransactionAccountJournal::where('transactionAccountId', $transactionAccount->id)->first();
@@ -353,12 +355,13 @@ class AccountTransactionController extends Controller
         if($fields != '*'){
             $fields = explode(',',$fields);
         }
-        $transactions = Transaction::select($fields)->with('branch')->with('ledgerAccount');
+        $transactions = Transaction::select($fields)->with('branch')->with('ledgerAccount')
+                                    ->leftJoin('ledger_accounts as main_account', 'main_account.id', 'transactions.accountId');
 
         if(!empty($request->searchString)) {
             $transactions = $transactions->where(function($query) use ($request) {
                 $query->where('transactionRefNumber', 'LIKE', '%'.$request->searchString.'%')
-                    ->orWhere('description', 'LIKE', '%'.$request->searchString.'%');
+                    ->orWhere('transactions.description', 'LIKE', '%'.$request->searchString.'%');
             });
         }
 
@@ -370,6 +373,10 @@ class AccountTransactionController extends Controller
 
         if(!empty($request->transactionType)) {
             $transactions = $transactions->where('transactionType', $request->transactionType);
+        }
+
+        if(!empty($request->accountType)) {
+            $transactions = $transactions->where('main_account.accountType', $request->accountType);
         }
 
         if(!empty($request->branchId)) {
