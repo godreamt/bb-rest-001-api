@@ -704,7 +704,7 @@ class OrderController extends Controller
         $orderItems = OrderItem::leftJoin('orders', 'orders.id', 'order_items.orderId')
                                 ->leftJoin('products', 'products.id', 'order_items.productId')
                                 ->leftJoin('product_advanced_pricings', 'product_advanced_pricings.id', 'order_items.advancedPriceId')
-                                ->select('order_items.productId', 'order_items.advancedPriceId', \DB::raw('count(*) as total'), 'products.productName', 'products.isAdvancedPricing', 'product_advanced_pricings.title')
+                                ->select('order_items.productId', 'order_items.advancedPriceId', \DB::raw('sum(order_items.quantity) as total'), 'products.productName', 'products.isAdvancedPricing', 'product_advanced_pricings.title')
                                 ->where('orders.orderStatus', 'completed');
 
 
