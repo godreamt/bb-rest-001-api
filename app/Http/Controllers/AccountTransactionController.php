@@ -42,6 +42,12 @@ class AccountTransactionController extends Controller
                     $mainTransactionJournal->branch_id = $branchId;
                 }else {
                     $transaction = Transaction::find($request->id);
+                    
+                    if($transaction->transactionDate < $before3days) {
+                        return response()->json(['Can not update now, transaction update can be done for last 3 days'], 400);
+                    }
+
+
                     $mainTransactionJournal = TransactionAccountJournal::where('transactionId', $transaction->id) ->where('transactionAccountId', null)->first();
 
                     
@@ -50,9 +56,6 @@ class AccountTransactionController extends Controller
                     }
 
 
-                    if($transaction->transactionDate < $before3days) {
-                        return response()->json(['Can not update now, transaction update can be done for last 3 days'], 400);
-                    }
 
                     // handle previous records month sheet and yearly sheet deductions
                     $previousTransactionDate = new \Datetime($transaction->transactionDate);
@@ -139,6 +142,8 @@ class AccountTransactionController extends Controller
                 foreach($request->accounts as $account) {
                     if(!empty($account['deletedFlag']) && $account['deletedFlag'] == 'true') {
                         $transactionAccount = TransactionOnAccount::find($account['id']);
+                        $transactionJournal = TransactionAccountJournal::where('transactionAccountId', $transactionAccount->id)->first();
+                        $this->handleEndingBalanceOdAccount($transactionJournal, 0, 'inverse');
                         $transactionAccount->delete();
                     }else {
                         if(empty($account['id'])){
@@ -351,11 +356,9 @@ class AccountTransactionController extends Controller
 
 
     public function getAllTransactions(Request $request) {
-        $fields = $request->get('fields', '*');
-        if($fields != '*'){
-            $fields = explode(',',$fields);
-        }
-        $transactions = Transaction::select($fields)->with('branch')->with('ledgerAccount')
+        $transactions = Transaction::select('transactions.*')
+                                    ->with('branch')
+                                    ->with('ledgerAccount')
                                     ->leftJoin('ledger_accounts as main_account', 'main_account.id', 'transactions.accountId');
 
         if(!empty($request->searchString)) {
