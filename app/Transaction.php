@@ -77,7 +77,7 @@ class Transaction extends Model
             
             if(empty($transaction->transactionRefNumber)) {
                 $ref = 1000000;
-                $count = static::count();
+                $count = static::where('branch_id', $transaction->branch_id)->count();
                 $transaction->transactionRefNumber = $count ? $ref + $count : $ref;
             }
             $branch = Branch::find($transaction->branch_id);

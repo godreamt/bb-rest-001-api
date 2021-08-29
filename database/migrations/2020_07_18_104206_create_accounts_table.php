@@ -125,7 +125,7 @@ class CreateAccountsTable extends Migration
         Schema::create('transactions', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->dateTimeTz('transactionDate');
-            $table->string('transactionRefNumber')->nullable(true);
+            $table->string('transactionRefNumber');
             $table->enum('transactionType', [
                 'purchase',
                 'sales',
@@ -142,6 +142,7 @@ class CreateAccountsTable extends Migration
             $table->foreign('monthly_sheet_id')->references('id')->on('month_sheets'); 
             $table->string('updatedBy')->nullable(true);
             $table->foreign('updatedBy')->references('id')->on('users'); 
+            $table->unique('branch_id', 'transactionRefNumber');
             $table->timestamps();
             $table->boolean('isSync')->default(false);
         });
