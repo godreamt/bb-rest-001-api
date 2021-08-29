@@ -246,12 +246,14 @@ class OrderController extends Controller
             ->select('order_tables.selectedChairs', 'order_tables.orderId', 'order_tables.tableId')
             ->distinct()->get();
 
-        $tables = TableManager::select('table_managers.id', 'table_managers.isActive', 'isReserved', 'noOfChair', 'tableId', 'table_managers.branch_id')
+        $tables = TableManager::select('table_managers.id', 'table_managers.isActive', 'table_managers.description', 'isReserved', 'noOfChair', 'tableId', 'table_managers.branch_id')
                             ->leftJoin('branches', 'table_managers.branch_id', 'branches.id')
-                            ->where('branches.isActive', true)
-                            ->where('branches.company_id', $companyId)
-                            ->orderBy('tableId', 'ASC') 
-                            ->get();
+                            ->where('branches.company_id', $companyId);
+        
+        if(!empty($request->showActive)) {
+            $tables = $tables->where('table_managers.isActive', true);
+        }
+        $tables = $tables->orderBy('tableId', 'ASC') ->get();
         $tables = $tables->groupBy('branch_id');
         $result = [];
         foreach($tables as $tableGp) {
