@@ -48,10 +48,13 @@ class UserAttendanceController extends Controller
             $users = $users->where('branch_id',  $loggedUser->branch_id);
         }
         $users = $users->get();
-
+        $result = [];
         foreach($users as $user) {
             $user['attendance'] = UserAttendance::select('user_attendances.*')->whereBetween('effectedDate', [$startDate, $endDate])->where('user_id', $user->id)->get();
+            if(!$user->isActive && sizeof($user['attendance']) > 0) {
+                $result[] = $user;
+            }
         }
-        return $users;
+        return $result;
     }
 }
