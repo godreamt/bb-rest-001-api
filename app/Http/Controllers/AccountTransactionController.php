@@ -144,6 +144,7 @@ class AccountTransactionController extends Controller
                         $transactionAccount = TransactionOnAccount::find($account['id']);
                         $transactionJournal = TransactionAccountJournal::where('transactionAccountId', $transactionAccount->id)->first();
                         $this->handleEndingBalanceOdAccount($transactionJournal, 0, 'inverse');
+                        $transactionJournal->delete();
                         $transactionAccount->delete();
                     }else {
                         if(empty($account['id'])){
