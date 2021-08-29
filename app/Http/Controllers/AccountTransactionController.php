@@ -48,7 +48,8 @@ class AccountTransactionController extends Controller
                     }
 
 
-                    $mainTransactionJournal = TransactionAccountJournal::where('transactionId', $transaction->id) ->where('transactionAccountId', null)->first();
+                    $mainTransactionJournal = TransactionAccountJournal::where('transactionId', $transaction->id) 
+                                                                        ->where('transactionAccountId', null)->first();
 
                     
                     if($mainTransactionJournal->accountId != $ledgerAccount->id) {
@@ -239,10 +240,12 @@ class AccountTransactionController extends Controller
         $previousTransaction = TransactionAccountJournal::where('accountId', $journal->accountId)
                                             ->where('transactionDate', '<=' ,$journal->transactionDate)
                                             ->where('id', '<>', $journal->id)
+                                            ->where('id', '<', $journal->id)
                                             ->orderBy('transactionDate', 'DESC')
                                             ->orderBy('id', 'DESC')
                                             ->first();
-        // \Debugger::dump($previousTransaction);
+                                            
+        // \Debugger::dump($previousTransaction, "test");
         // throw new \Exception("Resdd");
         $lastEndingBalance=0;
         if($previousTransaction instanceof TransactionAccountJournal) {
