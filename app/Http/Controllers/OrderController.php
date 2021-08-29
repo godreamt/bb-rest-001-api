@@ -351,6 +351,10 @@ class OrderController extends Controller
             $orders = $orders->where('isActive', $request->status);
         }
 
+        if(!empty($request->company_id)) {
+            $orders = $orders->where('orders.company_id', $request->company_id);
+        }
+
         if(!empty($request->branch_id)) {
             $orders = $orders->where('orders.branch_id', $request->branch_id);
         }
@@ -708,6 +712,15 @@ class OrderController extends Controller
             $orderItems = $orderItems->where(function($q) use ($request) {
                 $q->where('products.productName', 'LIKE', '%'.$request->searchString.'%');
             });
+        }
+
+
+        if(!empty($request->company_id)) {
+            $orderItems = $orderItems->where('orders.company_id', $request->company_id);
+        }
+
+        if(!empty($request->branch_id)) {
+            $orderItems = $orderItems->where('orders.branch_id', $request->branch_id);
         }
 
         
