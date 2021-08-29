@@ -23,83 +23,91 @@ class UserSeeder extends Seeder
             'roles' => 'Super Admin',
         ]);
 
+        $this->generateRecords(1);
+        $this->generateRecords(2);
+        
+    }
+
+    public function generateRecords($index) {
+        
+
         DB::table('companies')->insert([
-            'id' => '1',
-            'companyName' => 'Black Bamboo'
+            'id' => $index,
+            'companyName' => 'Black Bamboo '. $index
         ]);
 
         DB::table('branches')->insert([
-            'id' => '1',
-            'branchTitle' => 'Mukka',
-            'branchCode' => 'MK',
+            'id' => $index,
+            'branchTitle' => 'Mukka '. $index,
+            'branchCode' => 'MK'. $index,
             'taxPercent' => 5,
             'company_id' => 1
         ]);
 
         
         DB::table('users')->insert([
-            'id' => 'SD000000000000000002',
+            'id' => 'SD00000000000000000'.$index."2",
             'firstname' => 'Giri',
-            'email' => 'giri@gmail.com',
-            'mobileNumber' => '1111111111',
+            'email' => 'giri'.$index.'@gmail.com',
+            'mobileNumber' => '111111111' . $index,
             'password' => Hash::make('Giri@123'),
-            'company_id' => '1',
-            'branch_id' => '1',
+            'company_id' => $index,
+            'branch_id' => $index,
             'roles' => 'Branch Admin',
         ]);
         
         DB::table('measure_units')->insert([
-            'id' => '1',
+            'id' => $index,
             'unitLabel' => 'Pc',
-            'branch_id' => 1
+            'branch_id' => $index
         ]);
 
         DB::table('ledger_accounts')->insert([
-            "id" => "1",
+            "id" => $index,
             "ledgerName" => "Cash Account",
             "accountType" => "Cash Account",
             "description" => "",
             "isActive" => true,
-            "branch_id" => "1"
+            "branch_id" => $index
         ]);;
 
         DB::table('ledger_accounts')->insert([
-            "id" => "2",
+            "id" => $index."2",
             "ledgerName" => "Abhi Account",
             "accountType" => "Others Account",
             "description" => "",
             "isActive" => true,
-            "branch_id" => "1"
+            "branch_id" => $index
         ]);
 
         DB::table('inventory_items')->insert([
-            "id" => "OFL00000000000000001",
+            "id" => "OFL0000000000000000" . $index . "1",
             "itemName" => "Pen",
             "pricePerUnit" => 10,
-            "unitId" => "1",
+            "unitId" => $index,
             "description" => null,
             "isActive" => true,
-            "branch_id" => "1"
+            "branch_id" => $index
         ]);
 
         DB::table('inventory_items')->insert([
-            "id" => "OFL00000000000000002",
+            "id" => "OFL0000000000000000" . $index . "2",
             "itemName" => "Book",
             "pricePerUnit" => 50,
-            "unitId" => "1",
+            "unitId" => $index,
             "description" => null,
             "isActive" => true,
-            "branch_id" => "1"
+            "branch_id" => $index
         ]);
 
         DB::table('inventory_items')->insert([
-            "id" => "OFL00000000000000003",
+            "id" => "OFL0000000000000000" . $index . "3",
             "itemName" => "Chock",
             "pricePerUnit" => 5,
-            "unitId" => "1",
+            "unitId" => $index,
             "description" => null,
             "isActive" => true,
-            "branch_id" => "1"
+            "branch_id" => $index
         ]);
     }
 }
