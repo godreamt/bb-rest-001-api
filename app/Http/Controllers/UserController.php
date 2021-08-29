@@ -50,10 +50,16 @@ class UserController extends Controller
         // if($loggedUser instanceof User) {
         if($loggedUser->roles != 'Super Admin') {
             $users = $users->where('users.company_id',  $loggedUser->company_id);
+        }else if(!empty($request->company_id)) {
+            $users = $users->where('company_id', $request->company_id);
         }
-        if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin' && $loggedUser->roles != 'Company Accountant') {
+        if($loggedUser->roles != 'Super Admin' && $loggedUser->roles != 'Company Admin') {
             $users = $users->where('users.branch_id',  $loggedUser->branch_id);
+        }else if(!empty($request->branch_id)) {
+            $users = $users->where('branch_id', $request->branch_id);
         }
+        
+        
         // }
         $currentPage = $request->pageNumber;
         if(!empty($currentPage)){
