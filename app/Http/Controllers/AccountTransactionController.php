@@ -245,7 +245,6 @@ class AccountTransactionController extends Controller
                                             ->orderBy('id', 'DESC')
                                             ->first();
                                             
-        // \Debugger::dump($previousTransaction, "test");
         // throw new \Exception("Resdd");
         $lastEndingBalance=0;
         if($previousTransaction instanceof TransactionAccountJournal) {
@@ -273,12 +272,14 @@ class AccountTransactionController extends Controller
         $lastEndingBalance = $journal->endingBalance;
         $journal->save();
         $nextEntries = TransactionAccountJournal::where('accountId', $journal->accountId)
-                                        ->where('transactionDate', '>' ,$journal->transactionDate)
+                                        ->where('transactionDate', '>=' ,$journal->transactionDate)
                                         ->where('id', '<>' ,$journal->id)
+                                        ->where('id', '>' ,$journal->id)
                                         ->orderBy('transactionDate', 'ASC')
                                         ->orderBy('id', 'ASC')
                                         ->get();
 
+        // \Debugger::dump($nextEntries, "test");
         foreach($nextEntries as $journal) {
             $transaction = Transaction::find($journal->transactionId);
             if($transaction->transactionType == 'sales') {
