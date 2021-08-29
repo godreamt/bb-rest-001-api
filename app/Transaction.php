@@ -78,7 +78,13 @@ class Transaction extends Model
             if(empty($transaction->transactionRefNumber)) {
                 $ref = 1000000;
                 $count = static::where('branch_id', $transaction->branch_id)->count();
-                $transaction->transactionRefNumber = $count ? $ref + $count : $ref;
+                if(($count > 0)) {
+                    $transaction->transactionRefNumber = $ref + $count;
+                }else {
+                    
+                    $transaction->transactionRefNumber =  $ref;
+                }
+                // \Debugger::dump($transaction->transactionRefNumber);
             }
             $branch = Branch::find($transaction->branch_id);
             $transaction->id = Helper::GenerateId($loggedUser, 'transactions', $branch->branchCode);

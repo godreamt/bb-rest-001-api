@@ -142,7 +142,7 @@ class CreateAccountsTable extends Migration
             $table->foreign('monthly_sheet_id')->references('id')->on('month_sheets'); 
             $table->string('updatedBy')->nullable(true);
             $table->foreign('updatedBy')->references('id')->on('users'); 
-            $table->unique('branch_id', 'transactionRefNumber');
+            $table->unique(['branch_id', 'transactionRefNumber']);
             $table->timestamps();
             $table->boolean('isSync')->default(false);
         });
