@@ -41,7 +41,7 @@ class UserSeeder extends Seeder
             'branchTitle' => 'Mukka '. $index,
             'branchCode' => 'MK'. $index,
             'taxPercent' => 5,
-            'company_id' => 1
+            'company_id' => $index
         ]);
 
         
