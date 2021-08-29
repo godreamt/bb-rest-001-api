@@ -380,7 +380,7 @@ class AccountTransactionController extends Controller
         }
 
         if(!empty($request->branchId)) {
-            $transactions = $transactions->where('branch_id', $request->branchId);
+            $transactions = $transactions->where('transactions.branch_id', $request->branchId);
         }
 
         if(!empty($request->orderCol) && !empty($request->orderType)) {

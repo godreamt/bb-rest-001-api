@@ -149,6 +149,14 @@ class ProductController extends Controller
         if(!empty($request->status)) {
             $products = $products->where('isActive', ($request->status == 'in-active')?false:true);
         }
+
+        if(!empty($request->branch_id)) {
+            $products = $products->where('products.branch_id', $request->branch_id);
+        }
+
+        if(!empty($request->company_id)) {
+            $products = $products->where('products.company_id', $request->company_id);
+        }
         if(!empty($request->stockStatus)) {
             $products = $products->where('isOutOfStock', ($request->stockStatus == 'in-stock')?false:true);
         }

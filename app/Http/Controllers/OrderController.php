@@ -351,6 +351,10 @@ class OrderController extends Controller
             $orders = $orders->where('isActive', $request->status);
         }
 
+        if(!empty($request->branch_id)) {
+            $orders = $orders->where('orders.branch_id', $request->branch_id);
+        }
+
         if(!empty($request->typeOfOrder)) {
             $typeOfOrder = \explode(",",$request->typeOfOrder);
             $orders = $orders->whereIn('orders.orderType', $typeOfOrder);
