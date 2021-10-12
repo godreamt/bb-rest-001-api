@@ -292,7 +292,7 @@ class ProductController extends Controller
         }
 
 
-        $otherProducts = Product::join('product_categories', 'product_categories.product_id', '=', 'products.id', 'left outer')->with('advancedPricing')->where('product_categories.product_id', NULL)->get();
+        $otherProducts = Product::join('product_categories', 'product_categories.product_id', '=', 'products.id', 'left outer')->with('advancedPricing')->where('product_categories.product_id', NULL)->where('isActive', true)->get();
         $categories[] = [
             'id' => 'other',
             'categoryName' => 'Others',

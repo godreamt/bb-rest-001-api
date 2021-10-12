@@ -234,32 +234,49 @@ class OrderController extends Controller
 
     public function getOrderTypeWithTableOccupy(Request $request) {
         $companyId = $request->get('company_id');
+        $branchId = $request->get('branch_id');
         $user = \Auth::user();
         if($user->roles != 'Super Admin') {
             $companyId = $user->company_id;
-        }
-        $orderTables = OrderTable::leftJoin('orders', 'orders.id', 'order_tables.orderId')
-            ->where(function($q) use ($request) {
-                $q->where('orders.orderStatus', 'new')
-                    ->orWhere('orders.orderStatus', 'prepairing')
-                    ->orWhere('orders.id',$request->orderId);
-            })
-            ->where('orders.company_id', $companyId)
-            ->select('order_tables.selectedChairs', 'order_tables.orderId', 'order_tables.tableId')
-            ->distinct()->get();
 
-        $tables = TableManager::select('table_managers.id', 'table_managers.isActive', 'table_managers.description', 'isReserved', 'noOfChair', 'tableId', 'table_managers.branch_id')
-                            ->leftJoin('branches', 'table_managers.branch_id', 'branches.id')
-                            ->where('branches.company_id', $companyId);
-
-        if(!empty($request->showActive)) {
-            $tables = $tables->where('table_managers.isActive', true);
+            if($user->roles != 'Company Admin') {
+                $branchId = $user->branch_id;
+            }
         }
-        $tables = $tables->orderBy('tableId', 'ASC') ->get();
-        $tables = $tables->groupBy('branch_id');
+
+        $branches = Branch::select('branches.id', 'branches.branchTitle', 'branches.isActive', 'branches.company_id')->with('company')
+            ->leftJoin('branch_order_types', 'branches.id', '=', 'branch_order_types.branch_id')
+            ->where('branch_order_types.tableRequired', true)
+            ->where('branches.company_id', $companyId)
+            ->where('branches.isActive', true);
+
+        if(!empty($branchId)) {
+            $branches = $branches->where('branches.id', $branchId);
+        }
+        $branches = $branches->distinct()->get();
+
         $result = [];
-        foreach($tables as $tableGp) {
-            foreach($tableGp as $table) {
+        foreach($branches as $branch) {
+
+            $orderTables = OrderTable::leftJoin('orders', 'orders.id', 'order_tables.orderId')
+                ->where(function($q) use ($request) {
+                    $q->where('orders.orderStatus', 'new')
+                        ->orWhere('orders.orderStatus', 'prepairing')
+                        ->orWhere('orders.id',$request->orderId);
+                })
+                ->where('orders.branch_id', $branch->id)
+                ->select('order_tables.selectedChairs', 'order_tables.orderId', 'order_tables.tableId')
+                ->distinct()->get();
+    
+            $tables = TableManager::select('table_managers.id', 'table_managers.isActive', 'table_managers.description', 'isReserved', 'noOfChair', 'tableId', 'table_managers.branch_id')
+                                ->leftJoin('branches', 'table_managers.branch_id', 'branches.id')
+                                ->where('branches.id', $branch->id);
+    
+            if(!empty($request->showActive)) {
+                $tables = $tables->where('table_managers.isActive', true);
+            }
+            $tables = $tables->orderBy('tableId', 'ASC') ->get();
+            foreach($tables as $table) {
                 $runningOrderIdList = [];
                 $selectedChairs="";
                 $orderSelectedChairs="";
@@ -279,13 +296,13 @@ class OrderController extends Controller
                 $table['runningOrderIds']=array_unique($runningOrderIdList);
             }
             $result[] = [
-                'branch'=> Branch::with('company')->find($tableGp[0]->branch_id),
-                'tables' => $tableGp
+                'branch'=> $branch,
+                'tables' => $tables
             ];
-        }
-
-        if(!empty($request->orderId)) {
-            $result = $result[0]['tables'];
+    
+            if(!empty($request->orderId)) {
+                $result = $result[0]['tables'];
+            }
         }
 
         return $result;
