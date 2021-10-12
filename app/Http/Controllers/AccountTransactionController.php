@@ -253,7 +253,12 @@ class AccountTransactionController extends Controller
         
         $transaction = Transaction::find($journal->transactionId);
         if($transaction->transactionType == 'sales') {
-            $journal->endingBalance = $lastEndingBalance + $totalCurretTransAmmount;
+            if($transaction->accountId != $journal->accountId) {
+                $journal->endingBalance = $lastEndingBalance - $totalCurretTransAmmount;
+            }else {
+                $journal->endingBalance = $lastEndingBalance + $totalCurretTransAmmount;
+            }
+            // $journal->endingBalance = $lastEndingBalance + $totalCurretTransAmmount;
         } if($transaction->transactionType == 'receipt') {
             if($transaction->accountId != $journal->accountId) {
                 $journal->endingBalance = $lastEndingBalance - $totalCurretTransAmmount;
@@ -267,7 +272,13 @@ class AccountTransactionController extends Controller
                 $journal->endingBalance = $lastEndingBalance - $totalCurretTransAmmount;
             }
         } if($transaction->transactionType == 'purchase') {
-            $journal->endingBalance = $lastEndingBalance - $totalCurretTransAmmount;
+            
+            if($transaction->accountId != $journal->accountId) {
+                $journal->endingBalance = $lastEndingBalance + $totalCurretTransAmmount;
+            }else {
+                $journal->endingBalance = $lastEndingBalance - $totalCurretTransAmmount;
+            }
+            // $journal->endingBalance = $lastEndingBalance - $totalCurretTransAmmount;
         }
         $lastEndingBalance = $journal->endingBalance;
         $journal->save();
@@ -463,5 +474,105 @@ class AccountTransactionController extends Controller
                                                 ->get();
         }
         return $monthlySheets;
+    }
+
+    public function getMonthlyProfitAndLoss(Request $request) {
+        $result = [
+            'ammountBalance' => [
+                'totalAmount' => 0,
+                'cashAccount' => 0,
+                'bankAccount' => 0,
+            ],
+            'amountPayables' => [
+                'totalAmount' => 0,
+                'accounts' => []
+            ],
+            'amountReceivables' => [
+                'totalAmount' => 0,
+                'accounts' => []
+            ],
+            'taxPayable' => [
+                'totalAmount' => 0,
+                'taxPaid' => 0,
+                'taxReceived' => 0
+            ],
+            'inventoryBalance' => [
+                'totalAmount' => 0,
+                'inventories' => []
+            ],
+            'summaryAmount' => 0,
+        ];
+        if(empty($request->startDate) || empty($request->endDate)) {
+            return $result;
+        }
+        $startDate = new \Datetime($request->startDate);
+        $endDate = (new \Datetime($request->endDate))->modify('1 day');
+        $user = \Auth::user();
+        $branchId = $request->branch_id;
+        if($user->roles != 'Super Admin' && $user->roles != 'Company Admin'){
+            $branchId = $user->branchId;
+        }else if(empty($branchId)) {
+            return $result;
+        }
+
+        $ledgerAccounts = LedgerAccount::where('branch_id', $branchId)->get();
+        foreach($ledgerAccounts as $account) {
+            $account['previousEntry'] = TransactionAccountJournal::where('transactionDate', '<', $startDate)
+                ->where('transaction_account_journals.accountId', $account->id)
+                ->orderBy('transactionDate', 'ASC')
+                ->orderBy('id', 'ASC')
+                ->first();
+            $account['termLastEntry'] = TransactionAccountJournal::whereBetween('transactionDate', [$startDate, $endDate])
+                ->where('transaction_account_journals.accountId', $account->id)
+                ->orderBy('transactionDate', 'DESC')
+                ->orderBy('id', 'DESC')
+                ->first();
+            $preiousBalance = 0;
+            if($account['previousEntry'] instanceof TransactionAccountJournal) {
+                $preiousBalance = $account['previousEntry']->endingBalance;
+            }
+            $currentBalance = 0;
+            if($account['termLastEntry'] instanceof TransactionAccountJournal) {
+                $currentBalance = $account['termLastEntry']->endingBalance;
+            }
+            $account['termTransactionAmount'] = $currentBalance -  $preiousBalance;
+            $account['trend'] = 'flat';
+            if($account['termTransactionAmount'] != 0) {
+                if(
+                    $account->accountType == 'Cash Account' ||
+                    $account->accountType == 'Bank Account' ||
+                    $account->accountType == 'Sales Account' ||
+                    $account->accountType == 'Incomes' ||
+                    $account->accountType == 'Duties and Taxes'
+                ) {
+                    if($account['termTransactionAmount'] > 0) {
+                        $account['trend'] = 'up';
+                    }else {
+                        $account['trend'] = 'down';
+                    }
+                }else {
+                    if($account['termTransactionAmount'] > 0) {
+                        $account['trend'] = 'down';
+                    }else {
+                        $account['trend'] = 'up';
+                    }
+                }
+            }
+
+        }
+        $transactions = [];
+
+        // $transactionAccounts = TransactionAccountJournal::select('transaction_account_journals.*', 'ledger_accounts.ledgerName')
+        //                         ->leftJoin('ledger_accounts', 'ledger_accounts.id', 'transaction_account_journals.accountId')
+        //                         ->whereBetween('transactionDate', [$startDate, $endDate])
+        //                         ->orderBy('transactionDate', 'DESC')
+        //                         ->orderBy('id', 'DESC')
+        //                         ->get();
+
+        
+
+        return [
+            'ledgers' => $ledgerAccounts
+        ];
     }
 }

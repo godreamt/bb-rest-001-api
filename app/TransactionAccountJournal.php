@@ -39,6 +39,8 @@ class TransactionAccountJournal extends Model
         'transactionAmount'=>'double'
     ];
 
+    protected $hidden = ['isSync'];
+
     public function transaction() {
         return $this->belongsTo('App\Transaction', 'transactionId');
     }

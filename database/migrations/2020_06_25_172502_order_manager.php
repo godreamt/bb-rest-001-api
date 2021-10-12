@@ -13,22 +13,22 @@ class OrderManager extends Migration
      */
     public function up()
     {
-        
-        
+
+
         Schema::create('customers', function (Blueprint $table) {
             $table->string('id')->primary();
-            $table->string('customerName')->nullable();  
-            $table->string('mobileNumber')->unique();  
-            $table->string('emailId')->nullable();  
+            $table->string('customerName')->nullable();
+            $table->string('mobileNumber')->unique();
+            $table->string('emailId')->nullable();
             $table->string('company_id');
-            $table->foreign('company_id')->references('id')->on('companies'); 
+            $table->foreign('company_id')->references('id')->on('companies');
             $table->string('branch_id');
-            $table->foreign('branch_id')->references('id')->on('branches'); 
+            $table->foreign('branch_id')->references('id')->on('branches');
             $table->timestamps();
             $table->boolean('isSync')->default(false);
         });
 
-        
+
         Schema::create('categories', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->string('categoryName');
@@ -36,15 +36,15 @@ class OrderManager extends Migration
             $table->string('featuredImage')->nullable();
             $table->boolean('isActive')->default(true);
             $table->string('company_id');
-            $table->foreign('company_id')->references('id')->on('companies'); 
+            $table->foreign('company_id')->references('id')->on('companies');
             $table->string('branch_id');
-            $table->foreign('branch_id')->references('id')->on('branches');  
+            $table->foreign('branch_id')->references('id')->on('branches');
             $table->unique(['categoryName', 'company_id', 'branch_id']);
             $table->timestamps();
             $table->boolean('isSync')->default(false);
         });
 
-        
+
         Schema::create('table_managers', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->string('tableId');
@@ -54,15 +54,15 @@ class OrderManager extends Migration
             $table->boolean('isReserved')->default(false);
             $table->boolean('isActive')->default(true);
             $table->string('company_id');
-            $table->foreign('company_id')->references('id')->on('companies'); 
+            $table->foreign('company_id')->references('id')->on('companies');
             $table->string('branch_id');
-            $table->foreign('branch_id')->references('id')->on('branches');  
+            $table->foreign('branch_id')->references('id')->on('branches');
             $table->unique(['tableId', 'company_id', 'branch_id']);
             $table->timestamps();
             $table->boolean('isSync')->default(false);
         });
-        
-        
+
+
         Schema::create('products', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->string('productNumber');
@@ -78,23 +78,23 @@ class OrderManager extends Migration
             $table->boolean('isOutOfStock')->default(true);
             $table->boolean('isAdvancedPricing')->default(false);
             $table->string('company_id');
-            $table->foreign('company_id')->references('id')->on('companies'); 
+            $table->foreign('company_id')->references('id')->on('companies');
             $table->string('branch_id');
-            $table->foreign('branch_id')->references('id')->on('branches');  
+            $table->foreign('branch_id')->references('id')->on('branches');
             $table->string('kitchen_id');
-            $table->foreign('kitchen_id')->references('id')->on('branch_kitchens');  
+            $table->foreign('kitchen_id')->references('id')->on('branch_kitchens');
             $table->unique(['productName', 'company_id', 'branch_id']);
             $table->timestamps();
             $table->boolean('isSync')->default(false);
         });
 
-        
+
         Schema::create('product_addons', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->string('addonTitle');
             $table->string('price');
             $table->string('productId');
-            $table->foreign('productId')->references('id')->on('products')->onDelete('cascade');  
+            $table->foreign('productId')->references('id')->on('products')->onDelete('cascade');
             $table->unique(['addonTitle', 'productId']);
             $table->timestamps();
             $table->boolean('isSync')->default(false);
@@ -104,8 +104,8 @@ class OrderManager extends Migration
         Schema::create('product_advanced_pricings', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->string('productId');
-            $table->foreign('productId')->references('id')->on('products')->onDelete('cascade');  
-            $table->string('title'); 
+            $table->foreign('productId')->references('id')->on('products')->onDelete('cascade');
+            $table->string('title');
             $table->string('price')->deafult('0');
             $table->boolean('isSync')->default(false);
             $table->unique(['productId', 'title']);
@@ -113,38 +113,71 @@ class OrderManager extends Migration
         });
 
 
-        
+
         Schema::create('product_categories', function (Blueprint $table) {
             $table->string('product_id');
-            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');  
+            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
             $table->string('category_id')->nullable(true);
-            $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');  
+            $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
             $table->boolean('isSync')->default(false);
         });
 
-        
+        Schema::create('product_combos', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->string('comboTitle');
+            $table->text('description')->nullable();
+            $table->string('featuredImage')->nullable();
+            $table->string('packagingCharges')->nullable();
+            $table->string('company_id');
+            $table->foreign('company_id')->references('id')->on('companies');
+            $table->string('branch_id');
+            $table->foreign('branch_id')->references('id')->on('branches');
+            $table->string('comboTotal')->default('0');
+            $table->boolean('isActive')->default(false);
+            $table->boolean('isSync')->default(false);
+            $table->unique(['branch_id', 'comboTitle']);
+            $table->timestamps();
+        });
+
+        Schema::create('product_combo_items', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->string('combo_id');
+            $table->foreign('combo_id')->references('id')->on('product_combos')->onDelete('cascade');
+            $table->string('product_id');
+            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
+            $table->string('advancedPriceTitle')->nullable(true);
+            $table->string('advancedPriceId')->nullable(true);
+            $table->foreign('advancedPriceId')->references('id')->on('product_advanced_pricings')->onDelete('set null');
+            $table->string('price')->deafult('0');
+            $table->string('quantity')->nullable();
+            $table->string('subTotal')->nullable();
+            $table->boolean('isSync')->default(false);
+            $table->timestamps();
+        });
+
         Schema::create('orders', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->string('customerId')->nullable(true);
-            $table->foreign('customerId')->references('id')->on('customers');  
+            $table->foreign('customerId')->references('id')->on('customers');
             $table->string('company_id');
-            $table->foreign('company_id')->references('id')->on('companies'); 
+            $table->foreign('company_id')->references('id')->on('companies');
             $table->string('branch_id');//nneds to add order type enum
-            $table->foreign('branch_id')->references('id')->on('branches'); 
+            $table->foreign('branch_id')->references('id')->on('branches');
             $table->string('takenBy');
-            $table->foreign('takenBy')->references('id')->on('users');  
+            $table->foreign('takenBy')->references('id')->on('users');
             $table->string('cgst')->nullable();
             $table->text('relatedInfo')->nullable();
             $table->text('customerAddress')->nullable();
             $table->string('sgst')->nullable();
             $table->string('igst')->nullable();
             $table->string('orderItemTotal')->default('0');
+            $table->string('orderComboTotal')->default('0');
             $table->string('orderAmount')->default('0');
             $table->string('packingCharge')->nullable();
             $table->string('discountReason')->nullable(true);
             $table->string('discountValue')->default('0');
             $table->string('finalisedBy')->nullable(true);
-            $table->foreign('finalisedBy')->references('id')->on('users'); 
+            $table->foreign('finalisedBy')->references('id')->on('users');
             $table->dateTimeTz('finalisedDate')->nullable(true);
             $table->float('taxPercent')->default(0.0);
             $table->float('roundOfAmount')->default(0.0);
@@ -152,16 +185,16 @@ class OrderManager extends Migration
             $table->string('deliverCharge')->nullable();
             $table->enum('orderStatus', ['new', 'accepted', 'prepairing', 'packing', 'dispatched', 'delivered', 'completed', 'cancelled'])->default('new');
             $table->string('orderType');
-            $table->foreign('orderType')->references('id')->on('branch_order_types'); 
-            $table->boolean('isPaid')->default(false); 
+            $table->foreign('orderType')->references('id')->on('branch_order_types');
+            $table->boolean('isPaid')->default(false);
             $table->string('paymentMethod')->nullable(true);
-            $table->foreign('paymentMethod')->references('id')->on('branch_payment_methods'); 
+            $table->foreign('paymentMethod')->references('id')->on('branch_payment_methods');
             $table->timestamps();
             $table->boolean('isSync')->default(false);
         });
 
 
-        
+
         Schema::create('order_items', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->string('price');
@@ -175,35 +208,55 @@ class OrderManager extends Migration
             $table->string('packagingCharges')->nullable();
             $table->string('totalPrice')->nullable();
             $table->string('orderId');
-            $table->foreign('orderId')->references('id')->on('orders')->onDelete('cascade');  
+            $table->foreign('orderId')->references('id')->on('orders')->onDelete('cascade');
             $table->string('productId');
-            $table->foreign('productId')->references('id')->on('products');  
+            $table->foreign('productId')->references('id')->on('products');
             $table->string('advancedPriceId')->nullable(true);
-            $table->foreign('advancedPriceId')->references('id')->on('product_advanced_pricings')->onDelete('set null');  
+            $table->foreign('advancedPriceId')->references('id')->on('product_advanced_pricings')->onDelete('set null');
             $table->boolean('isParcel')->default(false);
             $table->timestamps();
             $table->boolean('isSync')->default(false);
         });
-        
+
+        Schema::create('order_item_combos', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->string('price');
+            $table->string('quantity')->nullable();
+            $table->integer('servedQuantity')->default(0);
+            $table->integer('productionAcceptedQuantity')->default(0);
+            $table->integer('productionReadyQuantity')->default(0);
+            $table->integer('productionRejectedQuantity')->default(0);
+            $table->integer('kotPrintedQuantity')->default(0);
+            $table->string('packagingCharges')->nullable();
+            $table->string('totalPrice')->nullable();
+            $table->string('orderId');
+            $table->foreign('orderId')->references('id')->on('orders')->onDelete('cascade');
+            $table->string('comboProductId');
+            $table->foreign('comboProductId')->references('id')->on('product_combos');
+            $table->boolean('isParcel')->default(false);
+            $table->timestamps();
+            $table->boolean('isSync')->default(false);
+        });
+
         Schema::create('order_tables', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->string('selectedChairs')->nullable();
             $table->string('orderId');
-            $table->foreign('orderId')->references('id')->on('orders')->onDelete('cascade'); 
+            $table->foreign('orderId')->references('id')->on('orders')->onDelete('cascade');
             $table->string('tableId');
-            $table->foreign('tableId')->references('id')->on('table_managers');  
+            $table->foreign('tableId')->references('id')->on('table_managers');
             $table->timestamps();
             $table->boolean('isSync')->default(false);
         });
-        
+
         Schema::create('order_feedbacks', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->string('rating');
             $table->string('comments')->nullable();
             $table->string('orderId');
-            $table->foreign('orderId')->references('id')->on('orders')->onDelete('cascade');  
+            $table->foreign('orderId')->references('id')->on('orders')->onDelete('cascade');
             $table->string('customerId');
-            $table->foreign('customerId')->references('id')->on('customers');  
+            $table->foreign('customerId')->references('id')->on('customers');
             $table->timestamps();
             $table->boolean('isSync')->default(false);
         });

@@ -14,7 +14,7 @@ use Haruncpi\LaravelIdGenerator\IdGenerator;
 class Order extends Model
 {
     use HasHistories;
-    
+
     protected $primaryKey = 'id'; // or null
 
     public $incrementing = false;
@@ -24,30 +24,31 @@ class Order extends Model
 
     protected $fillable = [
         'id',
-        'customerId', 
-        'relatedInfo', 
+        'customerId',
+        'relatedInfo',
         'customerAddress',
         'company_id',
-        'branch_id', 
-        'cgst', 
-        'sgst', 
-        'igst', 
-        'orderAmount', 
-        'packingCharge', 
-        'discountReason', 
-        'discountValue', 
-        'finalisedBy', 
+        'branch_id',
+        'cgst',
+        'sgst',
+        'igst',
+        'orderAmount',
+        'packingCharge',
+        'discountReason',
+        'discountValue',
+        'finalisedBy',
         'finalisedDate',
-        'excludeFromReport', 
-        'deliverCharge', 
-        'orderStatus', 
-        'takenBy', 
-        'taxDisabled', 
+        'excludeFromReport',
+        'deliverCharge',
+        'orderStatus',
+        'takenBy',
+        'taxDisabled',
         'taxPercent',
         'orderType',
         'paymentMethod',
         'isPaid',
         'roundOfAmount',
+        'orderComboTotal',
         'isSync'
     ];
 
@@ -69,7 +70,7 @@ class Order extends Model
     protected static function boot()
     {
         parent::boot();
-        
+
 
         static::addGlobalScope('role_handler', function (Builder $builder) {
             $user = \Auth::user();
@@ -83,7 +84,7 @@ class Order extends Model
             }
         });
 
-        
+
         static::updating(function ($order) {
 
             $loggedUser = \Auth::user();
@@ -125,32 +126,37 @@ class Order extends Model
     {
         return $this->belongsTo('App\Customer', 'customerId');
     }
-    
+
     public function branch()
     {
         return $this->belongsTo('App\Branch', 'branch_id');
     }
-    
+
     public function orderitems()
     {
         return $this->hasMany('App\OrderItem', 'orderId');
     }
-    
+
+    public function orderItemCombos()
+    {
+        return $this->hasMany('App\OrderItemCombo', 'orderId');
+    }
+
     public function orderTables()
     {
         return $this->hasMany('App\OrderTable', 'orderId');
     }
-    
+
     public function orderType()
     {
         return $this->belongsTo('App\BranchOrderType', 'orderType');
     }
-    
+
     public function paymentMethod()
     {
         return $this->belongsTo('App\BranchPaymentMethods', 'paymentMethod');
     }
-    
+
     public function bearer()
     {
         return $this->belongsTo('App\User', 'takenBy');

@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Order;
 use App\Branch;
+use App\OrderItemCombo;
 use App\Product;
 use App\Category;
 use App\Customer;
 use App\OrderItem;
 use App\OrderTable;
+use App\ProductCombo;
 use App\TableManager;
 use Illuminate\Http\Request;
 use App\ProductAdvancedPricing;
@@ -18,7 +20,7 @@ use Illuminate\Pagination\Paginator;
 class OrderController extends Controller
 {
     public function getTableManger(Request $request) {
-        
+
         $fields = $request->get('fields', '*');
         if($fields != '*'){
             $fields = explode(',',$fields);
@@ -230,7 +232,7 @@ class OrderController extends Controller
         });
     }
 
-    public function getOrderTypeWithTableOccupy(Request $request) {        
+    public function getOrderTypeWithTableOccupy(Request $request) {
         $companyId = $request->get('company_id');
         $user = \Auth::user();
         if($user->roles != 'Super Admin') {
@@ -249,7 +251,7 @@ class OrderController extends Controller
         $tables = TableManager::select('table_managers.id', 'table_managers.isActive', 'table_managers.description', 'isReserved', 'noOfChair', 'tableId', 'table_managers.branch_id')
                             ->leftJoin('branches', 'table_managers.branch_id', 'branches.id')
                             ->where('branches.company_id', $companyId);
-        
+
         if(!empty($request->showActive)) {
             $tables = $tables->where('table_managers.isActive', true);
         }
@@ -258,7 +260,7 @@ class OrderController extends Controller
         $result = [];
         foreach($tables as $tableGp) {
             foreach($tableGp as $table) {
-                $runningOrderIdList = [];   
+                $runningOrderIdList = [];
                 $selectedChairs="";
                 $orderSelectedChairs="";
                 foreach($orderTables as $ot) {
@@ -266,12 +268,12 @@ class OrderController extends Controller
                         if($ot->orderId == $request->orderId) {
                             $orderSelectedChairs = $orderSelectedChairs.$ot->selectedChairs.",";
                         }
-    
+
                         $selectedChairs = $selectedChairs.$ot->selectedChairs.",";
                         $runningOrderIdList[] = $ot->orderId;
                     }
                 }
-    
+
                 $table['orderSelectedChairs']=$orderSelectedChairs;
                 $table['selectedChairs']=$selectedChairs;
                 $table['runningOrderIds']=array_unique($runningOrderIdList);
@@ -289,40 +291,40 @@ class OrderController extends Controller
         return $result;
     }
 
-    public function handleTableOccupy($orderId=null) {
-        
-        $orderTables = OrderTable::leftJoin('orders', 'orders.id', 'order_tables.orderId')
-            ->where(function($q) use ($orderId) {
-                $q->where('orders.orderStatus', 'new')
-                    ->orWhere('orders.orderStatus', 'prepairing')
-                    ->orWhere('orders.id', $orderId);
-            })
-            ->select('order_tables.selectedChairs', 'order_tables.orderId', 'order_tables.tableId')
-            ->distinct()->get();
-
-        $tables = TableManager::where('isActive', true)->get();
-        $runningOrderIdList = [];        
-        foreach($tables as $table) {
-            $selectedChairs="";
-            $orderSelectedChairs="";
-            foreach($orderTables as $ot) {
-                if($ot->tableId == $table->id) {
-                    if($ot->orderId == $orderId) {
-                        $orderSelectedChairs = $orderSelectedChairs.$ot->selectedChairs.",";
-                    }
-
-                    $selectedChairs = $selectedChairs.$ot->selectedChairs.",";
-                    $runningOrderIdList[] = $ot->orderId;
-                }
-            }
-
-            $table['orderSelectedChairs']=$orderSelectedChairs;
-            $table['selectedChairs']=$selectedChairs;
-            $table['runningOrderIds']=$runningOrderIdList;
-        }
-
-        return $tables;
-    }
+//    public function handleTableOccupy($orderId=null) {
+//
+//        $orderTables = OrderTable::leftJoin('orders', 'orders.id', 'order_tables.orderId')
+//            ->where(function($q) use ($orderId) {
+//                $q->where('orders.orderStatus', 'new')
+//                    ->orWhere('orders.orderStatus', 'prepairing')
+//                    ->orWhere('orders.id', $orderId);
+//            })
+//            ->select('order_tables.selectedChairs', 'order_tables.orderId', 'order_tables.tableId')
+//            ->distinct()->get();
+//
+//        $tables = TableManager::where('isActive', true)->get();
+//        $runningOrderIdList = [];
+//        foreach($tables as $table) {
+//            $selectedChairs="";
+//            $orderSelectedChairs="";
+//            foreach($orderTables as $ot) {
+//                if($ot->tableId == $table->id) {
+//                    if($ot->orderId == $orderId) {
+//                        $orderSelectedChairs = $orderSelectedChairs.$ot->selectedChairs.",";
+//                    }
+//
+//                    $selectedChairs = $selectedChairs.$ot->selectedChairs.",";
+//                    $runningOrderIdList[] = $ot->orderId;
+//                }
+//            }
+//
+//            $table['orderSelectedChairs']=$orderSelectedChairs;
+//            $table['selectedChairs']=$selectedChairs;
+//            $table['runningOrderIds']=$runningOrderIdList;
+//        }
+//
+//        return $tables;
+//    }
 
     public function getOrderList(Request $request) {
         $currentUser = \Auth::user();
@@ -332,7 +334,7 @@ class OrderController extends Controller
         }
         $orders = Order::with('customer')->select($fields)->with('branch')->with('orderitems')->with('bearer')->with('orderTables')->with('orderTables.table')->with('orderType')->with('paymentMethod')
                         ->leftJoin('users as bearer', 'orders.takenBy', 'bearer.id');
- 
+
         if(!empty($request->searchString)) {
             $orders = $orders->where(function($q) use ($request) {
                 $q->where('orders.id', 'LIKE', '%'.$request->searchString.'%');
@@ -404,7 +406,7 @@ class OrderController extends Controller
     }
 
     public function handleOrderDerivedData($order) {
-        
+
         $rejectedCount = 0;
         $readyCount = 0;
         foreach($order['orderitems'] as $item) {
@@ -419,7 +421,7 @@ class OrderController extends Controller
     }
 
     public function getOrderDetails(Request $request, $id) {
-        $order =  Order::with('branch')->with('customer')->with('orderTables')->with('orderItems')->with('orderItems.product')->with('branch')->with('bearer')->with('orderType')->with('paymentMethod')
+        $order =  Order::with('branch')->with('customer')->with('orderTables')->with('orderItems')->with('orderItems.product')->with('orderItemCombos')->with('orderItemCombos.productCombo')->with('branch')->with('bearer')->with('orderType')->with('paymentMethod')
                     ->where('id', $id)->first();
         $this->handleOrderDerivedData($order);
 
@@ -443,7 +445,7 @@ class OrderController extends Controller
     //                     $order->packingCharge = $request->packingCharge;
     //                     $order->deliverCharge = $request->deliverCharge;
     //                     $order->orderStatus = $request->orderStatus;
-    //                     $order->orderItemTotal = $request->orderItemTotal ?? '0'; 
+    //                     $order->orderItemTotal = $request->orderItemTotal ?? '0';
     //                     $order->orderAmount = $request->orderAmount ?? '0';
 
 
@@ -508,23 +510,22 @@ class OrderController extends Controller
                     $order->taxPercent = (float)$request->taxPercent;
                     $order->isPaid = $request->isPaid == true ? 1:0;
                     $order->taxDisabled = $request->taxDisabled == true ? 1:0;
-                    
+
                     if($request->orderStatus != $order->orderStatus && ($request->orderStatus == 'completed' || $request->orderStatus == 'cancelled')) {
                         $order->finalisedBy = $loggedUser->id;
-                        $order->finalisedDate = new \Datetime(); 
+                        $order->finalisedDate = new \Datetime();
                         $order->isPaid = 1;
                     }
-                    
+
                     $order->orderStatus = $request->orderStatus;
 
                     if(empty($request->id)) {
                         $order->isSync = 0;
                         $order->save();
                     }
-                        
-                       
+
+
                     $totalOrderAmount=0;
-                    
                     foreach($request->items as $item) {
                         if($item['deletedFlag']) {
                             $orderItem = OrderItem::find($item['id']);
@@ -568,7 +569,44 @@ class OrderController extends Controller
                         }
                     }
                     $order->orderItemTotal = $totalOrderAmount;
-                    
+
+
+
+
+                    $totalComboAmount=0;
+                    foreach($request->comboItems as $item) {
+                        if($item['deletedFlag']) {
+                            $orderItemCombo = OrderItemCombo::find($item['id']);
+                            $orderItemCombo->delete();
+                        }
+                        else if(!empty($item['quantity']) && !empty($item['comboProductId'])){
+                            if(empty($item['id'])) {
+                                $orderItemCombo = new OrderItemCombo();
+                            }else {
+                                $orderItemCombo = OrderItemCombo::find($item['id']);
+                            }
+                            $comboProduct = ProductCombo::find( $item['comboProductId']);
+                            $orderItemCombo->quantity = (int)$item['quantity'];
+                            $orderItemCombo->servedQuantity = $item['servedItems'];
+                            $orderItemCombo->comboProductId = $comboProduct->id;
+                            $orderItemCombo->orderId = $order->id;
+                            $orderItemCombo->isParcel = $item['isParcel'] == true ? 1:0;
+                            $orderItemCombo->price = (float)$item['price'];
+                            $orderItemCombo->packagingCharges = $comboProduct->packagingCharges;
+                            $totalPrice = $orderItemCombo->quantity * $orderItemCombo->price;
+                            if($orderItemCombo->isParcel) {
+                                $totalPrice = $totalPrice + ($orderItemCombo->quantity * $orderItemCombo->packagingCharges);
+                            }else {
+                                $orderItemCombo->packagingCharges = 0;
+                            }
+                            $orderItemCombo->totalPrice = $totalPrice;
+                            $totalComboAmount = $totalComboAmount + $totalPrice;
+                            $orderItemCombo->isSync = false;
+                            $orderItemCombo->save();
+                        }
+                    }
+                    $order->orderComboTotal = $totalComboAmount;
+
                     if(!empty($request->deliverCharge)) {
                         $order->deliverCharge = (float)$request->deliverCharge;
                     }else {
@@ -599,12 +637,13 @@ class OrderController extends Controller
 
     public function handleFinalCalculationOrder($order) {
         $totalOrderAmount = $order->orderItemTotal;
-        
+        $totalOrderAmount = $totalOrderAmount + $order->orderComboTotal;
+
         $order->igst = 0;
         if(!empty($order->deliverCharge)) {
             $totalOrderAmount = $totalOrderAmount + $order->deliverCharge;
         }
-        
+
         $taxAmount = ($totalOrderAmount * $order->taxPercent / 100);
         if(!$order->taxDisabled && $taxAmount > 0) {
             $order->cgst = $taxAmount / 2;
@@ -725,12 +764,12 @@ class OrderController extends Controller
             $orderItems = $orderItems->where('orders.branch_id', $request->branch_id);
         }
 
-        
+
         if(!empty($request->startDate) && !empty($request->endDate)) {
             $endDate = (new \Datetime($request->endDate))->modify('+1 day');
             $orderItems = $orderItems->whereBetween('orders.created_at', [new \Datetime($request->startDate), $endDate]);
         }
-        
+
         $orderItems = $orderItems->groupBy('order_items.productId', 'order_items.advancedPriceId')
                                 ->get();
 
@@ -739,7 +778,7 @@ class OrderController extends Controller
 
 
     public function deleteBulkOrders(Request $request) {
-        try { 
+        try {
             $orderIds = explode(',', $request->orderIds);
             Order::whereIn('id', $orderIds)->delete();
             return response()->json(['msg'=>'Deleted successfully'], 200);

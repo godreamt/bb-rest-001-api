@@ -33,9 +33,9 @@ Route::group(['middleware' => ['jwt.verify']], function() {
     Route::post('execute', 'MigrationController@syncExecute');
     Route::post('online-execute', 'MigrationController@finalOnlineExecute');
 
-    
+
     Route::group(['prefix'=>'order-manager'], function(){
-        
+
         Route::group(['prefix'=>'user'], function(){
             Route::get('', 'UserController@getUsers');
             Route::get('{id}', 'UserController@getUser');
@@ -59,7 +59,7 @@ Route::group(['middleware' => ['jwt.verify']], function() {
             Route::put('status/{id}', 'ProductController@changeCategoryStatus');//->middleware(['role:Super Admin,Admin']);
         });
 
-        
+
         Route::group(['prefix'=>'company'], function(){
             Route::get('', 'CompanyController@getAllCompanies');
             Route::get('{id}', 'CompanyController@getCompanyDetails');
@@ -68,7 +68,7 @@ Route::group(['middleware' => ['jwt.verify']], function() {
             Route::put('status/{id}', 'CompanyController@changeCompanyStatus');//->middleware(['role:Super Admin']);
         });
 
-        
+
         Route::group(['prefix'=>'branch'], function(){
             Route::get('', 'BranchController@getBranches');
             Route::get('{id}', 'BranchController@getBranchDetails');
@@ -78,7 +78,7 @@ Route::group(['middleware' => ['jwt.verify']], function() {
             Route::put('status/{id}', 'BranchController@changeBranchStatus');//->middleware(['role:Super Admin']);
         });
 
-        
+
         Route::group(['prefix'=>'table-manager'], function(){
             Route::get('', 'OrderController@getTableManger'); //done
             Route::post('table', 'OrderController@updateTable'); //done
@@ -99,7 +99,7 @@ Route::group(['middleware' => ['jwt.verify']], function() {
             Route::get('', 'KitchenController@getKitchenData');
             Route::post('', 'KitchenController@updateKitchenStatus');
         });
-        
+
         Route::group(['prefix'=>'product'], function(){
             Route::get('', 'ProductController@getProducts');
             Route::get('category-based-product', 'ProductController@getCategoryGroupedProduct');
@@ -107,6 +107,15 @@ Route::group(['middleware' => ['jwt.verify']], function() {
             Route::post('', 'ProductController@updateProduct');//->middleware(['role:Super Admin,Admin']);
             Route::delete('{id}', 'ProductController@deleteProduct');//->middleware(['role:Super Admin,Admin']);
             Route::put('status/{id}', 'ProductController@changeProductStatus');//->middleware(['role:Super Admin,Admin']);
+        });
+
+
+        Route::group(['prefix'=>'product-combo'], function(){
+            Route::get('', 'ProductController@getProductCombos');
+            Route::get('{id}', 'ProductController@getProductComboDetail');
+            Route::post('', 'ProductController@updateProductCombo');//->middleware(['role:Super Admin,Admin']);
+            Route::delete('{id}', 'ProductController@deleteProductCombo');//->middleware(['role:Super Admin,Admin']);
+            Route::put('status/{id}', 'ProductController@changeProductComboStatus');//->middleware(['role:Super Admin,Admin']);
         });
 
         Route::group(['prefix'=>'order'], function(){
@@ -122,7 +131,7 @@ Route::group(['middleware' => ['jwt.verify']], function() {
         });
     });
 
-    
+
     Route::group(['prefix'=>'account-manager'], function(){
         Route::group(['prefix'=>'ledger'], function(){
             Route::get('', 'AccountMasterController@getLedgers');
@@ -130,14 +139,14 @@ Route::group(['middleware' => ['jwt.verify']], function() {
             Route::post('', 'AccountMasterController@updateLedger');
             Route::delete('{id}', 'AccountMasterController@deleteLedger');
         });
-        
+
         Route::group(['prefix'=>'unit'], function(){
             Route::get('', 'AccountMasterController@getUnits');
             Route::get('{id}', 'AccountMasterController@getUnit');
             Route::post('', 'AccountMasterController@updateUnit');
             Route::delete('{id}', 'AccountMasterController@deleteUnit');
         });
-        
+
         Route::group(['prefix'=>'inventory'], function(){
             Route::get('', 'InventoryManagementController@getInventoryItems');
             Route::get('{id}', 'InventoryManagementController@getInventoryItem');
@@ -147,13 +156,14 @@ Route::group(['middleware' => ['jwt.verify']], function() {
             Route::get('inventory-history/{invenotoryId}', 'InventoryManagementController@getInventoryTrackings');
             Route::post('stock-update', 'InventoryManagementController@updateInventoryStock');
         });
-        
+
         Route::group(['prefix'=>'transaction'], function(){
             Route::get('', 'AccountTransactionController@getAllTransactions');
             Route::get('consolidated-report', 'AccountTransactionController@getConsolidatedReport');
             Route::get('{id}', 'AccountTransactionController@getTransactionDetails');
             Route::post('', 'AccountTransactionController@updateTransaction');
             Route::get('report-dash/monthly', 'AccountTransactionController@monthlyDashStats');
+            Route::get('reports/profit-top-loss', 'AccountTransactionController@getMonthlyProfitAndLoss');
             // Route::put('{id}', 'AccountTransactionController@updateTransaction');
             // Route::delete('{id}', 'AccountTransactionController@deleteInventoryItem');
         });

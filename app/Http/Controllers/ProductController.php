@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Product;
 use App\Category;
+use App\ProductCombo;
+use App\ProductComboItem;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\ProductAdvancedPricing;
@@ -71,7 +73,7 @@ class ProductController extends Controller
                 }else {
                     $category = Category::find($request->id);
                 }
-                $category->categoryName = $request->categoryName; 
+                $category->categoryName = $request->categoryName;
                 $category->description = $request->description;
                 $category->branch_id = $request->branch_id;
                 $category->isActive = $request->isActive ?? false;
@@ -212,7 +214,7 @@ class ProductController extends Controller
                 $product->kitchen_id = $request->kitchen_id;
                 $product->isAdvancedPricing = $request->isAdvancedPricing ?? false;
                 $categories = ($request->categories == "")?[]:$request->categories;
-                
+
                 $product->isSync = false;
                 $product->save();
 
@@ -235,9 +237,9 @@ class ProductController extends Controller
                                 $pricing->save();
                             }
                         }
-                    } 
+                    }
                 }
-                
+
                 $product->categories()->sync($categories);
                 return ['data' => $product, 'msg'=> "Product updated successfully"];
             }catch(\Exception $e) {
@@ -288,7 +290,7 @@ class ProductController extends Controller
                     ->where('isActive', true)
                     ->where('product_categories.category_id', $category->id)->distinct()->get();
         }
-        
+
 
         $otherProducts = Product::join('product_categories', 'product_categories.product_id', '=', 'products.id', 'left outer')->with('advancedPricing')->where('product_categories.product_id', NULL)->get();
         $categories[] = [
@@ -298,5 +300,163 @@ class ProductController extends Controller
             'products' => $otherProducts
         ];
         return $categories;
+    }
+
+
+    //product combos
+
+    public function getProductCombos(Request $request) {
+        $fields = $request->get('fields', '*');
+        if($fields != '*'){
+            $fields = explode(',',$fields);
+        }
+        $productCombos = ProductCombo::select($fields)->with('branch');
+
+
+
+        if(!empty($request->searchString)) {
+            $productCombos = $productCombos->where(function($q) use ($request) {
+                $q->where('comboTitle', 'LIKE', '%'.$request->searchString.'%')
+                    ->orWhere('description', 'LIKE', '%'.$request->searchString.'%');
+            });
+        }
+        if(!empty($request->status)) {
+            $productCombos = $productCombos->where('isActive', ($request->status == 'in-active')?false:true);
+        }
+
+        if(!empty($request->branch_id)) {
+            $productCombos = $productCombos->where('product_combos.branch_id', $request->branch_id);
+        }
+
+        if(!empty($request->company_id)) {
+            $productCombos = $productCombos->where('product_combos.company_id', $request->company_id);
+        }
+        if(!empty($request->orderCol) && !empty($request->orderType)) {
+            $productCombos = $productCombos->orderBy($request->orderCol, $request->orderType);
+        }
+        $currentPage = $request->pageNumber;
+        if(!empty($currentPage)){
+
+
+            Paginator::currentPageResolver(function () use ($currentPage) {
+                return $currentPage;
+            });
+
+            return $productCombos->paginate(10);
+        }else {
+            return $productCombos->get();
+        }
+    }
+
+    public function getProductComboDetail(Request $request, $id) {
+        return ProductCombo::with('branch')->with('items')->find($id);
+    }
+    public function updateProductCombo(Request $request) {
+
+        return \DB::transaction(function() use($request) {
+            try {
+                if(!empty($request->id)) {
+                    $productCombo = ProductCombo::find($request->id);
+                }else {
+                    $productCombo = new ProductCombo();
+                }
+                if(!empty($request->image)) {
+                    $data = $request->image;
+                    $base64_str = substr($data, strpos($data, ",")+1);
+                    $image = base64_decode($base64_str);
+                    $png_url = "user-".time().".png";
+                    $path = '/img/product-combos/' . $png_url;
+                    \Storage::disk('public')->put($path, $image);
+                    $productCombo->featuredImage = '/uploads'.$path;
+                }
+                $productCombo->isActive = $request->isActive ?? true;
+                $productCombo->comboTitle = $request->comboTitle;
+                $productCombo->description = $request->description;
+                $productCombo->packagingCharges = $request->packagingCharges;
+                $productCombo->branch_id = $request->branch_id;
+
+
+                $productCombo->isSync = false;
+                $productCombo->save();
+
+
+                $totalComboAmount=0;
+
+                foreach($request->items as $item) {
+                    if($item['deletedFlag']) {
+                        $comboItem = ProductComboItem::find($item['id']);
+                        $comboItem->delete();
+                    }
+                    else if(!empty($item['quantity']) && !empty($item['productId'])){
+                        if(empty($item['id'])) {
+                            $comboItem = new ProductComboItem();
+                        }else {
+                            $comboItem = ProductComboItem::find($item['id']);
+                        }
+                        $product = Product::find( $item['productId']);
+                        $comboItem->quantity = (int)$item['quantity'];
+                        $comboItem->product_id = $product->id;
+                        $comboItem->combo_id = $productCombo->id;
+                        $comboItem->price = (float)$item['price'];
+
+                        if($product->isAdvancedPricing) {
+                            $pricing = ProductAdvancedPricing::find($item['advancedPriceId']);
+                            if($pricing instanceof ProductAdvancedPricing) {
+                                $comboItem->advancedPriceId = $pricing->id;
+                                $comboItem->advancedPriceTitle = $pricing->title;
+                            }
+                        }else {
+                            $comboItem->advancedPriceId = null;
+                            $comboItem->advancedPriceTitle = null;
+                        }
+                        $totalPrice = $comboItem->quantity * $comboItem->price;
+                        $comboItem->subTotal = $totalPrice;
+                        $totalComboAmount = $totalComboAmount + $totalPrice;
+                        $comboItem->isSync = false;
+                        $comboItem->save();
+                    }
+                }
+                $productCombo->comboTotal = $totalComboAmount;
+                $productCombo->save();
+
+                return ['data' => $productCombo, 'msg'=> "Product Combo updated successfully"];
+            }catch(\Exception $e) {
+                return response()->json(['msg' => 'Can not update product data, please check for duplicates', 'error' => $e->getMessage()], 404);
+            }
+        });
+    }
+
+    public function changeProductComboStatus(Request $request, $id) {
+        return \DB::transaction(function() use($request, $id) {
+            try {
+                $productCombo = ProductCombo::find($id);
+                if($productCombo instanceof ProductCombo) {
+                    $productCombo->isActive = $request->isActive;
+                    $productCombo->isSync = false;
+                    $productCombo->save();
+                    return ['data' => $productCombo, 'msg'=> "Product combo status updated successfully"];
+                }else {
+                    return response()->json(['msg' => 'Product combo Does not exist'], 404);
+                }
+            }catch(\Exception $e) {
+                return response()->json(['msg' => 'Product combo status can not changed'], 500);
+            }
+        });
+    }
+
+    public function deleteProductCombo(Request $request, $id) {
+        return \DB::transaction(function() use($request, $id) {
+            try {
+                $productCombo = ProductCombo::find($id);
+                if($productCombo instanceof ProductCombo) {
+                    $productCombo->delete();
+                    return ['data' => $productCombo, 'msg'=> "Product combo deleted successfully"];
+                }else {
+                    return response()->json(['msg' => 'Product combo Does not exist'], 400);
+                }
+            }catch(\Exception $e) {
+                return response()->json(['msg' => 'Can not delete product combo', 'error'=> $e], 400);
+            }
+        });
     }
 }
