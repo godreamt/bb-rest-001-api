@@ -477,44 +477,48 @@ class AccountTransactionController extends Controller
     }
 
     public function getMonthlyProfitAndLoss(Request $request) {
-        $result = [
-            'ammountBalance' => [
-                'totalAmount' => 0,
-                'cashAccount' => 0,
-                'bankAccount' => 0,
-            ],
-            'amountPayables' => [
-                'totalAmount' => 0,
-                'accounts' => []
-            ],
-            'amountReceivables' => [
-                'totalAmount' => 0,
-                'accounts' => []
-            ],
-            'taxPayable' => [
-                'totalAmount' => 0,
-                'taxPaid' => 0,
-                'taxReceived' => 0
-            ],
-            'inventoryBalance' => [
-                'totalAmount' => 0,
-                'inventories' => []
-            ],
-            'summaryAmount' => 0,
-        ];
+        // $result = [
+        //     'ammountBalance' => [
+        //         'totalAmount' => 0,
+        //         'cashAccount' => 0,
+        //         'bankAccount' => 0,
+        //     ],
+        //     'amountPayables' => [
+        //         'totalAmount' => 0,
+        //         'accounts' => []
+        //     ],
+        //     'amountReceivables' => [
+        //         'totalAmount' => 0,
+        //         'accounts' => []
+        //     ],
+        //     'taxPayable' => [
+        //         'totalAmount' => 0,
+        //         'taxPaid' => 0,
+        //         'taxReceived' => 0
+        //     ],
+        //     'inventoryBalance' => [
+        //         'totalAmount' => 0,
+        //         'inventories' => []
+        //     ],
+        //     'summaryAmount' => 0,
+        // ];
         if(empty($request->startDate) || empty($request->endDate)) {
-            return $result;
+            return [
+                'ledgers' => []
+            ];
         }
         $startDate = new \Datetime($request->startDate);
         $endDate = (new \Datetime($request->endDate))->modify('1 day');
         $user = \Auth::user();
         $branchId = $request->branch_id;
         if($user->roles != 'Super Admin' && $user->roles != 'Company Admin'){
-            $branchId = $user->branchId;
-        }else if(empty($branchId)) {
-            return $result;
+            $branchId = $user->branch_id;
         }
-
+        if(empty($branchId)) {
+            return [
+                'ledgers' => []
+            ];
+        }
         $ledgerAccounts = LedgerAccount::where('branch_id', $branchId)->get();
         foreach($ledgerAccounts as $account) {
             $account['previousEntry'] = TransactionAccountJournal::where('transactionDate', '<', $startDate)
