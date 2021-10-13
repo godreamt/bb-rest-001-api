@@ -25,7 +25,7 @@ class OrderController extends Controller
         if($fields != '*'){
             $fields = explode(',',$fields);
         }
-        $tables = TableManager::select($fields)->with('branch');
+        $tables = TableManager::select($fields)->with('branch')->with('room');
 
         if(!empty($request->searchString)) {
             $tables = $tables->where('tableId', 'LIKE', '%'.$request->searchString.'%');
@@ -37,6 +37,10 @@ class OrderController extends Controller
 
         if(!empty($request->branchId)) {
             $tables = $tables->where('branch_id', $request->branchId);
+        }
+
+        if(!empty($request->room_id)) {
+            $tables = $tables->where('room_id', $request->room_id);
         }
 
         if(!empty($request->status)) {
@@ -68,6 +72,7 @@ class OrderController extends Controller
                     $t1 = TableManager::find($request->id);
                 }
                 $t1->branch_id = $request->branch_id;
+                $t1->room_id = $request->room_id;
                 $t1->tableId = $request->tableId;
                 $t1->description = $request->description;
                 $t1->noOfChair = $request->noOfChair;
@@ -300,9 +305,9 @@ class OrderController extends Controller
                 'tables' => $tables
             ];
     
-            if(!empty($request->orderId)) {
-                $result = $result[0]['tables'];
-            }
+            // if(!empty($request->orderId)) {
+            //     $result = $result[0]['tables'];
+            // }
         }
 
         return $result;

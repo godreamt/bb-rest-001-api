@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Branch;
 use App\Company;
+use App\BranchRoom;
 use App\BranchKitchen;
 use App\BranchOrderType;
 use Illuminate\Http\Request;
@@ -46,7 +47,7 @@ class BranchController extends Controller
     }
 
     public function getBranchDetails(Request $request, $id) {
-        return Branch::with('kitchens')->with('orderTypes')->with('paymentMethods')->where('id', $id)->first();
+        return Branch::with('kitchens')->with('rooms')->with('orderTypes')->with('paymentMethods')->where('id', $id)->first();
     }
 
     public function updateBranch(Request $request) {
@@ -68,7 +69,7 @@ class BranchController extends Controller
                 $branch->description = $request->description;
                 $branch->branchAddress = $request->branchAddress;
                 $branch->gstNumber = $request->gstNumber ?? null;
-                $branch->isActive = $request->isActive;
+                $branch->isActive = $request->isActive ?? false;
                 $branch->taxPercent = $request->taxPercent;
                 $branch->company_id = $request->company_id;
                 $branch->appDefaultOrderType = $request->appDefaultOrderType ?? null;
@@ -102,6 +103,27 @@ class BranchController extends Controller
                         $kitchenObj->branch_id = $branch->id;
                         $kitchenObj->isSync = false;
                         $kitchenObj->save();
+                    }
+                }
+
+                $rooms = $request->rooms ?? [];
+                foreach($rooms as $room) {
+                    if(!empty($room['deletedFlag'])) {
+                        $room = BranchRoom::find($room['id']);
+                        $room->delete();
+                    }else {
+                        if(empty($room['id'])) {
+                            $roomObj = new BranchRoom();
+                        }else {
+                            $roomObj = BranchRoom::find($room['id']);
+                        }
+                        $roomObj->roomName = $room['roomName'];
+                        $roomObj->withAc = $room['withAc'] ?? false;
+                        $roomObj->serveLiquor = $room['serveLiquor'] ?? false;
+                        $roomObj->isActive = $room['isActive'] ?? false;
+                        $roomObj->branch_id = $branch->id;
+                        $roomObj->isSync = false;
+                        $roomObj->save();
                     }
                 }
 

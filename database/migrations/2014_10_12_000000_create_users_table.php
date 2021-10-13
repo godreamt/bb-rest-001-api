@@ -118,6 +118,19 @@ class CreateUsersTable extends Migration
             $table->boolean('isSync')->default(false);
         });
 
+        Schema::create('branch_rooms', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->string('roomName');
+            $table->boolean('withAc')->default(false);
+            $table->boolean('serveLiquor')->default(false);
+            $table->boolean('isActive')->default(true);
+            $table->string('branch_id')->nullable(true);
+            $table->foreign('branch_id')->references('id')->on('branches');  
+            $table->unique(['roomName', 'branch_id']);
+            $table->boolean('isSync')->default(false);
+            $table->timestamps();
+        });
+
         Schema::table('users', function(Blueprint $table) {
             $table->string('branch_id')->nullable(true);
             $table->foreign('branch_id')->references('id')->on('branches');  

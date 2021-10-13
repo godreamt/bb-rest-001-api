@@ -50,6 +50,11 @@ class TableManager extends Model
     {
         return $this->belongsTo('App\Branch', 'branch_id');
     }
+    
+    public function room()
+    {
+        return $this->belongsTo('App\BranchRoom', 'room_id');
+    }
 
     protected static function boot()
     {

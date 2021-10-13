@@ -64,6 +64,11 @@ class Branch extends Model
         return $this->hasMany('App\BranchKitchen', 'branch_id');
     }
     
+    public function rooms()
+    {
+        return $this->hasMany('App\BranchRoom', 'branch_id');
+    }
+    
     public function paymentMethods()
     {
         return $this->hasMany('App\BranchPaymentMethods', 'branch_id');

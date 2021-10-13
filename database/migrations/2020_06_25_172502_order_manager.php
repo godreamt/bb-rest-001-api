@@ -57,7 +57,9 @@ class OrderManager extends Migration
             $table->foreign('company_id')->references('id')->on('companies');
             $table->string('branch_id');
             $table->foreign('branch_id')->references('id')->on('branches');
-            $table->unique(['tableId', 'company_id', 'branch_id']);
+            $table->string('room_id');
+            $table->foreign('room_id')->references('id')->on('branch_rooms');
+            $table->unique(['tableId', 'company_id', 'branch_id', 'room_id']);
             $table->timestamps();
             $table->boolean('isSync')->default(false);
         });
