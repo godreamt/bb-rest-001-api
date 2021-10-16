@@ -31,6 +31,8 @@ class Branch extends Model
         'taxPercent', 
         'appDefaultOrderType', 
         'adminDefaultOrderType',
+        'billPrinter',
+        'kotPrinter',
         'company_id',
         'isSync'
     ];

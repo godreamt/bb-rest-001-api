@@ -71,6 +71,8 @@ class BranchController extends Controller
                 $branch->gstNumber = $request->gstNumber ?? null;
                 $branch->isActive = $request->isActive ?? false;
                 $branch->taxPercent = $request->taxPercent;
+                $branch->billPrinter = $request->billPrinter;
+                $branch->kotPrinter = $request->kotPrinter;
                 $branch->company_id = $request->company_id;
                 $branch->appDefaultOrderType = $request->appDefaultOrderType ?? null;
                 $branch->adminDefaultOrderType = $request->adminDefaultOrderType ?? null;

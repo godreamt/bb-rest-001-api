@@ -78,6 +78,8 @@ class CreateUsersTable extends Migration
             $table->boolean('isActive')->default(true);
             $table->string('branchCode')->unique();
             $table->float('taxPercent');
+            $table->string('billPrinter')->nullable();
+            $table->string('kotPrinter')->nullable();
             $table->string('company_id');
             $table->foreign('company_id')->references('id')->on('companies');
             $table->timestamps();

@@ -43,6 +43,18 @@ class Transaction extends Model
         // 'updatedBy' => 'int'
     ];
 
+    protected $appends = [
+        'inventory_string'
+    ];
+
+    public function getInventoryStringAttribute() {
+        $inventoryName = [];
+        foreach( $this->items as $item) {
+            $inventoryName[] = $item->item->itemName;
+        }
+        return join(", ", $inventoryName);
+    }
+
     protected static function boot() {
         parent::boot();
 
