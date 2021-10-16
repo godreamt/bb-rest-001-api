@@ -273,7 +273,7 @@ class OrderController extends Controller
                 ->select('order_tables.selectedChairs', 'order_tables.orderId', 'order_tables.tableId')
                 ->distinct()->get();
     
-            $tables = TableManager::select('table_managers.id', 'table_managers.isActive', 'table_managers.description', 'isReserved', 'noOfChair', 'tableId', 'table_managers.branch_id')
+            $tables = TableManager::select('table_managers.id', 'table_managers.isActive', 'table_managers.description', 'isReserved', 'noOfChair', 'tableId', 'room_id', 'table_managers.branch_id')
                                 ->leftJoin('branches', 'table_managers.branch_id', 'branches.id')
                                 ->where('branches.id', $branch->id);
     
