@@ -21,83 +21,90 @@ class Branch extends Model
 
     protected $fillable = [
         'id',
-        'branchLogo', 
-        'branchCode', 
-        'branchTitle', 
-        'branchAddress', 
+        'branchLogo',
+        'branchCode',
+        'branchTitle',
+        'branchAddress',
         'gstNumber',
-        'description', 
-        'isActive', 
-        'taxPercent', 
-        'appDefaultOrderType', 
+        'description',
+        'isActive',
+        'taxPercent',
+        'appDefaultOrderType',
         'adminDefaultOrderType',
         'billPrinter',
         'kotPrinter',
         'company_id',
+        'completeConfirmation',
+        'cancelConfirmation',
+        'onSaveOrder',
+        'onCompleteCancelOrder',
+        'afterCompleteKot',
         'isSync'
     ];
 
     protected $casts = [
         'isActive' => 'boolean',
+        'completeConfirmation' => 'boolean',
+        'cancelConfirmation' => 'boolean',
         'isSync' => 'boolean',
         // 'company_id' => 'int'
     ];
 
         //we can also use hasManyThrough https://www.itsolutionstuff.com/post/laravel-has-many-through-eloquent-relationship-tutorialexample.html to get orders
-        
+
     public function users()
     {
         return $this->hasMany('App\User');
     }
 
-    
+
     public function company()
     {
         return $this->belongsTo('App\Company', 'company_id');
     }
-    
+
     public function orderTypes()
     {
         return $this->hasMany('App\BranchOrderType', 'branch_id');
     }
-    
+
     public function kitchens()
     {
         return $this->hasMany('App\BranchKitchen', 'branch_id');
     }
-    
+
     public function rooms()
     {
         return $this->hasMany('App\BranchRoom', 'branch_id');
     }
-    
+
     public function paymentMethods()
     {
         return $this->hasMany('App\BranchPaymentMethods', 'branch_id');
     }
 
-    
+
     public function categories()
     {
         return $this->hasMany('App\Category', 'branch_id');
     }
-    
+
     public function products()
     {
         return $this->hasMany('App\Product', 'branch_id');
     }
-    
+
     public function orders()
     {
         return $this->hasMany('App\Order', 'branch_id');
     }
-    
+
     public function tables()
     {
         return $this->hasMany('App\TableManager', 'branch_id');
     }
 
-    
+
     protected static function boot()
     {
         parent::boot();

@@ -70,13 +70,18 @@ class BranchController extends Controller
                 $branch->branchAddress = $request->branchAddress;
                 $branch->gstNumber = $request->gstNumber ?? null;
                 $branch->isActive = $request->isActive ?? false;
+                $branch->cancelConfirmation = $request->cancelConfirmation ?? false;
+                $branch->completeConfirmation = $request->completeConfirmation ?? false;
+                $branch->afterCompleteKot = $request->afterCompleteKot ?? false;
                 $branch->taxPercent = $request->taxPercent;
+                $branch->onCompleteCancelOrder = $request->onCompleteCancelOrder;
+                $branch->onSaveOrder = $request->onSaveOrder;
                 $branch->billPrinter = $request->billPrinter;
                 $branch->kotPrinter = $request->kotPrinter;
                 $branch->company_id = $request->company_id;
                 $branch->appDefaultOrderType = $request->appDefaultOrderType ?? null;
                 $branch->adminDefaultOrderType = $request->adminDefaultOrderType ?? null;
-                
+
                 if(!empty($request->image)) {
                     $data = $request->image;
                     $base64_str = substr($data, strpos($data, ",")+1);
@@ -176,6 +181,27 @@ class BranchController extends Controller
         });
     }
 
+    public function branchConfiguration(Request $request) {
+        return \DB::transaction(function() use($request) {
+            try {
+                $branch = Branch::find($request->id);
+                $branch->cancelConfirmation = $request->cancelConfirmation ?? false;
+                $branch->completeConfirmation = $request->completeConfirmation ?? false;
+                $branch->onCompleteCancelOrder = $request->onCompleteCancelOrder;
+                $branch->onSaveOrder = $request->onSaveOrder;
+                $branch->billPrinter = $request->billPrinter;
+                $branch->kotPrinter = $request->kotPrinter;
+                $branch->afterCompleteKot = $request->afterCompleteKot ?? false;
+
+                $branch->isSync = false;
+                $branch->save();
+                return $branch;
+            }catch(\Exception $e) {
+        return response()->json(['msg' => ' Can not able to create branch', 'error'=> $e->getMessage()], 404);
+        }
+        });
+    }
+
     public function deleteBranch(Request $request, $id) {
         return \DB::transaction(function() use($request, $id) {
             try {
@@ -189,7 +215,7 @@ class BranchController extends Controller
             }catch(\Exception $e) {
                 return response()->json(['msg' => 'Can not delete branch', 'error'=>$e], 404);
             }
-        }); 
+        });
     }
 
     public function changeBranchStatus(Request $request, $id) {

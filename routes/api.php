@@ -72,6 +72,7 @@ Route::group(['middleware' => ['jwt.verify']], function() {
         Route::group(['prefix'=>'branch'], function(){
             Route::get('', 'BranchController@getBranches');
             Route::get('{id}', 'BranchController@getBranchDetails');
+            Route::post('configure', 'BranchController@branchConfiguration');//->middleware(['role:Super Admin']);
             Route::post('', 'BranchController@updateBranch');//->middleware(['role:Super Admin']);
             Route::put('{id}', 'BranchController@updateBranch');//->middleware(['role:Super Admin']);
             Route::delete('{id}', 'BranchController@deleteBranch');//->middleware(['role:Super Admin']);
@@ -116,6 +117,15 @@ Route::group(['middleware' => ['jwt.verify']], function() {
             Route::post('', 'ProductController@updateProductCombo');//->middleware(['role:Super Admin,Admin']);
             Route::delete('{id}', 'ProductController@deleteProductCombo');//->middleware(['role:Super Admin,Admin']);
             Route::put('status/{id}', 'ProductController@changeProductComboStatus');//->middleware(['role:Super Admin,Admin']);
+        });
+
+
+        Route::group(['prefix'=>'favorite-menu'], function(){
+            Route::get('', 'ProductController@getFavoriteItems');
+            Route::get('{id}', 'ProductController@getFavoriteMenuDetails');
+            Route::post('', 'ProductController@updateFavoriteMenu');//->middleware(['role:Super Admin,Admin']);
+            Route::delete('{id}', 'ProductController@deleteFavoriteMenu');//->middleware(['role:Super Admin,Admin']);
+            Route::put('status/{id}', 'ProductController@changeFavoriteMenuStatus');//->middleware(['role:Super Admin,Admin']);
         });
 
         Route::group(['prefix'=>'order'], function(){

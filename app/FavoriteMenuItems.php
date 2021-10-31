@@ -3,12 +3,11 @@
 namespace App;
 
 use App\helper\Helper;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\Model;
-use Haruncpi\LaravelIdGenerator\IdGenerator;
 
-class ProductAddon extends Model
+class FavoriteMenuItems extends Model
 {
+
     protected $primaryKey = 'id'; // or null
 
     public $incrementing = false;
@@ -17,18 +16,16 @@ class ProductAddon extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'addonId',
-        'price',
-        'canPriceAltered',
+        'id',
+        'menu_id',
         'productId',
         'isSync'
     ];
 
-
     protected $casts = [
         'isSync' => 'boolean',
-        'canPriceAltered' => 'boolean'
     ];
+
 
     protected static function boot()
     {
@@ -36,15 +33,14 @@ class ProductAddon extends Model
 
         static::creating(function ($item) {
             $loggedUser = \Auth::user();
-            $item->id = Helper::GenerateId($loggedUser, 'product_addons');
+            if(empty($item->id)) {
+                $item->id = Helper::GenerateId($loggedUser, 'favorite_menu_items');
+            }
         });
+
     }
 
     public function product() {
         return $this->belongsTo('App\Product', 'productId');
-    }
-
-    public function addon() {
-        return $this->belongsTo('App\Addon', 'addonId');
     }
 }

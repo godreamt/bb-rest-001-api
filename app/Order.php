@@ -13,8 +13,6 @@ use Haruncpi\LaravelIdGenerator\IdGenerator;
 
 class Order extends Model
 {
-    use HasHistories;
-
     protected $primaryKey = 'id'; // or null
 
     public $incrementing = false;

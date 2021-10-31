@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\FavoriteMenu;
+use App\FavoriteMenuComboItem;
+use App\FavoriteMenuItems;
 use App\Product;
 use App\Category;
 use App\ProductCombo;
@@ -208,6 +211,7 @@ class ProductController extends Controller
                 $product->taxPercent = $request->taxPercent;
                 $product->packagingCharges = $request->packagingCharges;
                 $product->isActive = $request->isActive ?? true;
+                $product->canPriceAltered = $request->canPriceAltered ?? false;
                 $product->isOutOfStock = $request->isOutOfStock ?? true;
                 $product->isVeg = $request->isVeg ?? true;
                 $product->branch_id = $request->branch_id;
@@ -369,6 +373,7 @@ class ProductController extends Controller
                     \Storage::disk('public')->put($path, $image);
                     $productCombo->featuredImage = '/uploads'.$path;
                 }
+                $productCombo->canPriceAltered = $request->canPriceAltered ?? true;
                 $productCombo->isActive = $request->isActive ?? true;
                 $productCombo->comboTitle = $request->comboTitle;
                 $productCombo->description = $request->description;
@@ -456,6 +461,173 @@ class ProductController extends Controller
                 }
             }catch(\Exception $e) {
                 return response()->json(['msg' => 'Can not delete product combo', 'error'=> $e], 400);
+            }
+        });
+    }
+
+
+    public function getFavoriteItems(Request $request) {
+        $fields = $request->get('fields', 'favorite_menus.*');
+        if($fields != 'favorite_menus.*'){
+            $fields = explode(',',$fields);
+        }
+        $menu = FavoriteMenu::select($fields)->with('branch')->with('company')
+            ->leftJoin('companies', 'favorite_menus.company_id', 'companies.id')
+            ->leftJoin('branches', 'favorite_menus.branch_id', 'branches.id');
+
+        if(!empty($request->items)) {
+            $menu = $menu->with('favoriteItems')->with('favoriteItems.product')->with('favoriteItems.product.advancedPricing')->with('favoriteComboItems')->with('favoriteComboItems.product');
+        }
+        if(!empty($request->searchString)) {
+            $menu = $menu->where('favorite_menus.menuTitle', 'LIKE', '%'.$request->searchString.'%');
+        }
+
+        if(!empty($request->status)) {
+            $menu = $menu->where('favorite_menus.isActive', ($request->status == 'in-active')?false:true);
+        }
+
+        if(!empty($request->timBased)) {
+            $menu = $menu->where(function($query) {
+                return $query->where(function($q) {
+                    return $q->where('favorite_menus.startTime', NULL)->orWhere('favorite_menus.endTime', NULL)->orWhere('favorite_menus.startTime', '')->orWhere('favorite_menus.endTime', '');
+                })->orWhere(function($q) {
+                    $currentTime = (new \Datetime())->format('H:m:s');
+                    return $q->where('favorite_menus.startTime', '<=', $currentTime)->where('favorite_menus.endTime', '>=', $currentTime);
+                });
+            });
+        }
+
+        if(!empty($request->companyId)) {
+            $menu = $menu->where('favorite_menus.company_id', $request->companyId);
+        }
+
+        if(!empty($request->branchId)) {
+            $menu = $menu->where('favorite_menus.branch_id', $request->branchId);
+        }
+
+        if(!empty($request->orderCol) && !empty($request->orderType)) {
+
+            if($request->orderCol === 'branch') {
+                $menu = $menu->orderBy('branches.branchTitle', $request->orderType);
+            }else if($request->orderCol === 'company') {
+                $menu = $menu->orderBy('companies.companyName', $request->orderType);
+            }else {
+                $menu = $menu->orderBy($request->orderCol, $request->orderType);
+            }
+        }
+
+        $currentPage = $request->pageNumber;
+        if(!empty($currentPage)){
+            Paginator::currentPageResolver(function () use ($currentPage) {
+                return $currentPage;
+            });
+
+            return $menu->paginate(10);
+        }else {
+            return $menu->get();
+        }
+    }
+
+    public function getFavoriteMenuDetails(Request $request, $id) {
+        return FavoriteMenu::with('favoriteItems')->with('favoriteComboItems')->where('id', $id)->first();
+    }
+
+    public function updateFavoriteMenu(Request $request) {
+
+        return \DB::transaction(function() use($request) {
+            try {
+                if(!empty($request->id)) {
+                    $menu = FavoriteMenu::find($request->id);
+                }else {
+                    $menu = new FavoriteMenu();
+                }
+                $menu->isActive = $request->isActive ?? true;
+                $menu->menuTitle = $request->menuTitle;
+                $menu->description = $request->description;
+                $menu->startTime = $request->startTime;
+                $menu->endTime = $request->endTime;
+                $menu->branch_id = $request->branch_id;
+
+
+                $menu->isSync = false;
+                $menu->save();
+
+
+
+                foreach($request->items as $item) {
+                    if($item['deletedFlag']) {
+                        $menuItem = FavoriteMenuItems::find($item['id']);
+                        $menuItem->delete();
+                    }
+                    else if(!empty($item['productId'])){
+                        if(empty($item['id'])) {
+                            $menuItem = new FavoriteMenuItems();
+                        }else {
+                            $menuItem = FavoriteMenuItems::find($item['id']);
+                        }
+                        $product = Product::find( $item['productId']);
+                        $menuItem->productId = $product->id;
+                        $menuItem->menu_id = $menu->id;
+                        $menuItem->isSync = false;
+                        $menuItem->save();
+                    }
+                }
+                foreach($request->comboItems as $item) {
+                    if($item['deletedFlag']) {
+                        $menuItem = FavoriteMenuComboItem::find($item['id']);
+                        $menuItem->delete();
+                    }
+                    else if(!empty($item['comboId'])){
+                        if(empty($item['id'])) {
+                            $menuItem = new FavoriteMenuComboItem();
+                        }else {
+                            $menuItem = FavoriteMenuComboItem::find($item['id']);
+                        }
+                        $combo = ProductCombo::find( $item['comboId']);
+                        $menuItem->comboId = $combo->id;
+                        $menuItem->menu_id = $menu->id;
+                        $menuItem->isSync = false;
+                        $menuItem->save();
+                    }
+                }
+
+                return ['data' => $menu, 'msg'=> "Favorite updated successfully"];
+            }catch(\Exception $e) {
+                return response()->json(['msg' => 'Can not update favorite data, please check for duplicates', 'error' => $e->getMessage()], 404);
+            }
+        });
+    }
+
+    public function changeFavoriteMenuStatus(Request $request, $id) {
+        return \DB::transaction(function() use($request, $id) {
+            try {
+                $menu = FavoriteMenu::find($id);
+                if($menu instanceof FavoriteMenu) {
+                    $menu->isActive = $request->isActive;
+                    $menu->isSync = false;
+                    $menu->save();
+                    return ['data' => $menu, 'msg'=> "Favorite status updated successfully"];
+                }else {
+                    return response()->json(['msg' => 'Favorite Does not exist'], 404);
+                }
+            }catch(\Exception $e) {
+                return response()->json(['msg' => 'Favorite status can not changed'], 500);
+            }
+        });
+    }
+
+    public function deleteFavoriteMenu(Request $request, $id) {
+        return \DB::transaction(function() use($request, $id) {
+            try {
+                $menu = FavoriteMenu::find($id);
+                if($menu instanceof FavoriteMenu) {
+                    $menu->delete();
+                    return ['data' => $menu, 'msg'=> "Favorite deleted successfully"];
+                }else {
+                    return response()->json(['msg' => 'Favorite Does not exist'], 400);
+                }
+            }catch(\Exception $e) {
+                return response()->json(['msg' => 'Can not delete Favorite', 'error'=> $e], 400);
             }
         });
     }

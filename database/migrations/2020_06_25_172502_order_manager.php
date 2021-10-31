@@ -79,6 +79,7 @@ class OrderManager extends Migration
             $table->boolean('isActive')->default(true);
             $table->boolean('isOutOfStock')->default(true);
             $table->boolean('isAdvancedPricing')->default(false);
+            $table->boolean('canPriceAltered')->default(false);
             $table->string('company_id');
             $table->foreign('company_id')->references('id')->on('companies');
             $table->string('branch_id');
@@ -90,14 +91,30 @@ class OrderManager extends Migration
             $table->boolean('isSync')->default(false);
         });
 
+        Schema::create('addons', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->string('title');
+            $table->string('description');
+            $table->string('featuredImage')->nullable(true);
+            $table->string('company_id');
+            $table->foreign('company_id')->references('id')->on('companies');
+            $table->string('branch_id');
+            $table->foreign('branch_id')->references('id')->on('branches');
+            $table->unique(['title', 'branch_id']);
+            $table->boolean('isActive')->default(true);
+            $table->boolean('isSync')->default(false);
+            $table->timestamps();
+        });
 
         Schema::create('product_addons', function (Blueprint $table) {
             $table->string('id')->primary();
-            $table->string('addonTitle');
             $table->string('price');
+            $table->boolean('canPriceAltered')->default(false);
             $table->string('productId');
             $table->foreign('productId')->references('id')->on('products')->onDelete('cascade');
-            $table->unique(['addonTitle', 'productId']);
+            $table->string('addonId');
+            $table->foreign('addonId')->references('id')->on('addons')->onDelete('cascade');
+            $table->unique(['addonId', 'productId']);
             $table->timestamps();
             $table->boolean('isSync')->default(false);
         });
@@ -130,6 +147,7 @@ class OrderManager extends Migration
             $table->text('description')->nullable();
             $table->string('featuredImage')->nullable();
             $table->string('packagingCharges')->nullable();
+            $table->boolean('canPriceAltered')->default(false);
             $table->string('company_id');
             $table->foreign('company_id')->references('id')->on('companies');
             $table->string('branch_id');
@@ -263,6 +281,51 @@ class OrderManager extends Migration
             $table->boolean('isSync')->default(false);
         });
 
+        Schema::create('kot_histories', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->string('kotNumber');
+            $table->text('kotMeta');
+            $table->enum('status', ['active', 'cancelled', 'completed'])->default('active');
+            $table->string('orderId');
+            $table->foreign('orderId')->references('id')->on('orders');
+            $table->boolean('isSync')->default(false);
+            $table->timestamps();
+        });
+        Schema::create('favorite_menus', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->string('menuTitle');
+            $table->text('description')->nullable();
+            $table->time('startTime')->nullable(true);
+            $table->time('endTime')->nullable(true);
+            $table->string('company_id');
+            $table->foreign('company_id')->references('id')->on('companies');
+            $table->string('branch_id');
+            $table->foreign('branch_id')->references('id')->on('branches');
+            $table->boolean('isActive')->default(true);
+            $table->boolean('isSync')->default(false);
+            $table->unique(['menuTitle', 'branch_id']);
+            $table->timestamps();
+        });
+        Schema::create('favorite_menu_items', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->string('menu_id');
+            $table->foreign('menu_id')->references('id')->on('favorite_menus')->onDelete('CASCADE');
+            $table->string('productId');
+            $table->foreign('productId')->references('id')->on('products');
+            $table->unique(['menu_id', 'productId']);
+            $table->boolean('isSync')->default(false);
+            $table->timestamps();
+        });
+        Schema::create('favorite_menu_combo_items', function (Blueprint $table) {
+            $table->string('id')->primary();
+            $table->string('menu_id');
+            $table->foreign('menu_id')->references('id')->on('favorite_menus')->onDelete('CASCADE');
+            $table->string('comboId');
+            $table->foreign('comboId')->references('id')->on('product_combos');
+            $table->unique(['menu_id', 'comboId']);
+            $table->boolean('isSync')->default(false);
+            $table->timestamps();
+        });
 
     }
 

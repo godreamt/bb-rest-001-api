@@ -24,11 +24,13 @@ class ProductCombo extends Model
         'branch_id',
         'comboTotal',
         'packagingCharges',
+        'canPriceAltered',
         'isActive',
         'isSync'
     ];
     protected $casts = [
         'isActive' => 'boolean',
+        'canPriceAltered' => 'boolean',
         'isSync' => 'boolean',
     ];
 

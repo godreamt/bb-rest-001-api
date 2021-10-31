@@ -26,37 +26,36 @@ class Product extends Model
      */
     protected $fillable = [
         'id',
-        'productNumber', 
-        'productName', 
-        'productSlug', 
-        'description', 
-        'featuredImage', 
-        'price', 
-        'taxPercent', 
-        'packagingCharges', 
-        'isActive', 
-        'branch_id', 
+        'productNumber',
+        'productName',
+        'productSlug',
+        'description',
+        'featuredImage',
+        'price',
+        'taxPercent',
+        'packagingCharges',
+        'isActive',
+        'branch_id',
         'isVeg',
 
         'kitchen_id',
         'isOutOfStock',
-
+        'canPriceAltered',
         'isAdvancedPricing',
         'isSync'
     ];
 
-    
+
     protected $casts = [
-        // 'branch_id' => 'int',
         'isActive' => 'boolean',
         'isSync' => 'boolean',
         'isVeg' => 'boolean',
         'isOutOfStock' => 'boolean',
         'isAdvancedPricing' => 'boolean',
-        // 'kitchen_id' => 'int'
+        'canPriceAltered' => 'boolean'
     ];
 
-    
+
     public function branch()
     {
         return $this->belongsTo('App\Branch', 'branch_id');
@@ -84,13 +83,13 @@ class Product extends Model
                 if($user->roles != 'Super Admin') {
                     $builder->where('products.company_id',  $user->company_id);
                 }
-                if($user->roles != 'Super Admin' && $user->roles != 'Company Admin' && $user->roles != 'Company Accountant') {
+                if($user->roles != 'Super Admin' && $user->roles != 'Company Admin') {
                     $builder->where('products.branch_id',  $user->branch_id);
                 }
             }
         });
-        
-        
+
+
         static::updating(function ($product) {
 
             $loggedUser = \Auth::user();
@@ -104,7 +103,7 @@ class Product extends Model
                 }
             }
             $branch = Branch::find($product->branch_id);
-            $product->company_id = $product->company_id;
+            $product->company_id = $branch->company_id;
         });
 
         static::creating(function ($product) {
@@ -120,7 +119,7 @@ class Product extends Model
             $branch = Branch::find($product->branch_id);
             $product->company_id = $branch->company_id;
 
-            
+
             $slug = \Str::slug($product->productName);
             $count = static::where("productSlug", "LIKE", $slug . '%')->count();
             $product->productSlug = $count ? "{$slug}-{$count}" : $slug;
@@ -128,7 +127,7 @@ class Product extends Model
             if(empty($product->id)) {
                 $product->id = Helper::GenerateId($loggedUser, 'products');
             }
-           
+
         });
     }
 }

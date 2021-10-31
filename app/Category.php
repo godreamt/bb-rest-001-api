@@ -21,11 +21,11 @@ class Category extends Model
 
     protected $fillable = [
         'id',
-        'categoryName', 
-        'description', 
-        'featuredImage', 
-        'isActive', 
-        'branch_id', 
+        'categoryName',
+        'description',
+        'featuredImage',
+        'isActive',
+        'branch_id',
         'isSync'
     ];
 
@@ -35,7 +35,7 @@ class Category extends Model
         'isActive' => 'boolean',
         'isSync' => 'boolean',
     ];
-    
+
     protected static function boot()
     {
         parent::boot();
@@ -51,8 +51,8 @@ class Category extends Model
                 }
             }
         });
-        
-        
+
+
         static::updating(function ($category) {
 
             $loggedUser = \Auth::user();
@@ -66,7 +66,7 @@ class Category extends Model
                 }
             }
             $branch = Branch::find($category->branch_id);
-            $category->company_id = $category->company_id;
+            $category->company_id = $branch->company_id;
         });
 
         static::creating(function ($category) {
@@ -80,7 +80,7 @@ class Category extends Model
                     $category->branch_id = $loggedUser->branch_id;
                 }
             }
-            
+
             $branch = Branch::find($category->branch_id);
             // throw new ValidationException($branch);
             $category->company_id = $branch->company_id;
@@ -90,7 +90,7 @@ class Category extends Model
             }
         });
     }
-    
+
 
     public function branch()
     {
@@ -105,7 +105,7 @@ class Category extends Model
     public function products()
     {
         return $this->belongsToMany('App\Product', 'product_categories');
- 
+
 // $roleIds = [1, 2];
 // $user->roles()->attach($roleIds);
 

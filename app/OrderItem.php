@@ -10,8 +10,6 @@ use Haruncpi\LaravelIdGenerator\IdGenerator;
 
 class OrderItem extends Model
 {
-    use HasHistories;
-    
     protected $primaryKey = 'id'; // or null
 
     public $incrementing = false;
@@ -21,16 +19,16 @@ class OrderItem extends Model
 
     protected $fillable = [
         'id',
-        'orderId', 
-        'quantity', 
-        'servedQuantity', 
-        'price', 
-        'packagingCharges', 
-        'productId', 
-        'totalPrice', 
-        'isParcel', 
-        'productionAcceptedQuantity', 
-        'productionReadyQuantity', 
+        'orderId',
+        'quantity',
+        'servedQuantity',
+        'price',
+        'packagingCharges',
+        'productId',
+        'totalPrice',
+        'isParcel',
+        'productionAcceptedQuantity',
+        'productionReadyQuantity',
         'productionRejectedQuantity',
         'kotPrintedQuantity',
         'advancedPriceId',
@@ -72,7 +70,7 @@ class OrderItem extends Model
         return $this->belongsTo('App\Product', 'productId');
     }
 
-    
+
     public function getModelLabel()
     {
         return $this->product->productName;
