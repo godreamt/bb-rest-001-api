@@ -13,23 +13,21 @@ class UserSeeder extends Seeder
      */
     public function run()
     {
-        
+
         DB::table('users')->insert([
             'id' => 'SD000000000000000001',
             'firstname' => 'Kiran Shetty',
-            'email' => 'shiningkiru@gmail.com',
+            'email' => 'kiran.shetty@godreamt.com',
             'mobileNumber' => '7899866288',
-            'password' => Hash::make('12345'),
+            'password' => Hash::make('RuNn!ng'),
             'roles' => 'Super Admin',
         ]);
 
-        $this->generateRecords(1);
-        $this->generateRecords(2);
-        
+
     }
 
     public function generateRecords($index) {
-        
+
 
         DB::table('companies')->insert([
             'id' => $index,
@@ -44,7 +42,7 @@ class UserSeeder extends Seeder
             'company_id' => $index
         ]);
 
-        
+
         DB::table('users')->insert([
             'id' => 'SD00000000000000000'.$index."2",
             'firstname' => 'Giri',
@@ -55,7 +53,7 @@ class UserSeeder extends Seeder
             'branch_id' => $index,
             'roles' => 'Branch Admin',
         ]);
-        
+
         DB::table('measure_units')->insert([
             'id' => $index,
             'unitLabel' => 'Pc',
