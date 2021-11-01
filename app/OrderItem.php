@@ -70,6 +70,10 @@ class OrderItem extends Model
         return $this->belongsTo('App\Product', 'productId');
     }
 
+    public function comments() {
+        return $this->hasMany('App\OrderItemComment', 'itemId');
+    }
+
 
     public function getModelLabel()
     {

@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Order;
 use App\Branch;
+use App\OrderComboItemComment;
 use App\OrderItemCombo;
+use App\OrderItemComment;
 use App\Product;
 use App\Category;
 use App\Customer;
@@ -453,7 +455,7 @@ class OrderController extends Controller
 
     public function getOrderDetails(Request $request, $id)
     {
-        $order = Order::with('branch')->with('customer')->with('orderTables')->with('orderTables.table')->with('orderItems')->with('orderItems.product')->with('orderItemCombos')->with('orderItemCombos.productCombo')->with('branch')->with('bearer')->with('orderType')->with('paymentMethod')
+        $order = Order::with('branch')->with('customer')->with('orderTables')->with('orderTables.table')->with('orderItems')->with('orderItems.comments')->with('orderItems.product')->with('orderItemCombos')->with('orderItemCombos.comments')->with('orderItemCombos.productCombo')->with('branch')->with('bearer')->with('orderType')->with('paymentMethod')
             ->where('id', $id)->first();
         $this->handleOrderDerivedData($order);
 
@@ -545,6 +547,26 @@ class OrderController extends Controller
                         $totalOrderAmount = $totalOrderAmount + $totalPrice;
                         $orderItem->isSync = false;
                         $orderItem->save();
+
+                        if (is_array($item['comments'])) {
+
+                            foreach ($item['comments'] as $comment) {
+
+                                if ($comment['deletedFlag']) {
+                                    $orderItemComment = OrderItemComment::find($comment['id']);
+                                    $orderItemComment->delete();
+                                } else if (!empty($comment['description'])) {
+                                    if (empty($comment['id'])) {
+                                        $orderItemComment = new OrderItemComment();
+                                    } else {
+                                        $orderItemComment = OrderItemComment::find($comment['id']);
+                                    }
+                                    $orderItemComment->description = $comment['description'];
+                                    $orderItemComment->itemId = $orderItem->id;
+                                    $orderItemComment->save();
+                                }
+                            }
+                        }
                     }
                 }
                 $order->orderItemTotal = $totalOrderAmount;
@@ -579,6 +601,26 @@ class OrderController extends Controller
                         $totalComboAmount = $totalComboAmount + $totalPrice;
                         $orderItemCombo->isSync = false;
                         $orderItemCombo->save();
+
+                        if (is_array($item['comments'])) {
+
+                            foreach ($item['comments'] as $comment) {
+
+                                if ($comment['deletedFlag']) {
+                                    $orderItemComment = OrderComboItemComment::find($comment['id']);
+                                    $orderItemComment->delete();
+                                } else if (!empty($comment['description'])) {
+                                    if (empty($comment['id'])) {
+                                        $orderItemComment = new OrderComboItemComment();
+                                    } else {
+                                        $orderItemComment = OrderComboItemComment::find($comment['id']);
+                                    }
+                                    $orderItemComment->description = $comment['description'];
+                                    $orderItemComment->itemId = $orderItemCombo->id;
+                                    $orderItemComment->save();
+                                }
+                            }
+                        }
                     }
                 }
                 $order->orderComboTotal = $totalComboAmount;
@@ -714,7 +756,7 @@ class OrderController extends Controller
                 if ($order->orderStatus == 'cancelled' || $order->orderStatus == 'completed') {
                     $order->orderStatus = $request->status;
                     $order->save();
-                    return $this->getOrderDetails($request,$order->id);
+                    return $this->getOrderDetails($request, $order->id);
                 } else {
                     return response()->json(['msg' => 'Order is not closed till now'], 400);
                 }

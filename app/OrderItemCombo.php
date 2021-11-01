@@ -59,6 +59,10 @@ class OrderItemCombo extends Model
         return $this->belongsTo('App\ProductCombo', 'comboProductId');
     }
 
+    public function comments() {
+        return $this->hasMany('App\OrderComboItemComment', 'itemId');
+    }
+
 
     public function getModelLabel()
     {
