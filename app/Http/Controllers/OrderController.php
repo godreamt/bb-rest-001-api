@@ -370,12 +370,13 @@ class OrderController extends Controller
             });
         }
 
+
         if (!empty($request->orderStatus)) {
             $orderStatus = \explode(",", $request->orderStatus);
             $orders = $orders->whereIn('orders.orderStatus', $orderStatus);
         }
 
-        if (!empty($request->startDate) && !empty($request->endDate)) {
+        if (!empty($request->startDate) && !empty($request->endDate) && $request->ongoing != 'true') {
             $endDate = (new \Datetime($request->endDate))->modify('+1 day');
             $orders = $orders->whereBetween('orders.created_at', [new \Datetime($request->startDate), $endDate]);
         }
