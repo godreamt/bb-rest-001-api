@@ -20,18 +20,18 @@ class TableManager extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'id', 
-        'tableId', 
-        'description', 
-        'noOfChair', 
-        'bookedChairs', 
-        'isReserved', 
-        'isActive', 
-        'branch_id', 
+        'id',
+        'tableId',
+        'description',
+        'noOfChair',
+        'bookedChairs',
+        'isReserved',
+        'isActive',
+        'branch_id',
         'isSync'
     ];
 
-    
+
     protected $casts = [
         // 'branch_id' => 'int',
         'isActive' => 'boolean',
@@ -43,14 +43,14 @@ class TableManager extends Model
 
     public function getChairsAttribute()
     {
-        return range(1, $this->noOfChair, 1);
+        return range(1, ($this->noOfChair ?? 4), 1);
     }
-    
+
     public function branch()
     {
         return $this->belongsTo('App\Branch', 'branch_id');
     }
-    
+
     public function room()
     {
         return $this->belongsTo('App\BranchRoom', 'room_id');
@@ -60,7 +60,7 @@ class TableManager extends Model
     {
         parent::boot();
 
-        
+
         static::addGlobalScope('role_handler', function (Builder $builder) {
             $loggedUser = \Auth::user();
             if($loggedUser instanceof User) {
@@ -91,8 +91,8 @@ class TableManager extends Model
                 $tableManager->id = Helper::GenerateId($loggedUser, 'table_managers');
             }
         });
-        
-        
+
+
         static::updating(function ($tableManager) {
 
             $loggedUser = \Auth::user();

@@ -86,7 +86,7 @@ class AuthController extends Controller
 
         $user->firstName =  $request->firstName;
         $user->lastName =  $request->lastName;
-        $user->profilePic =  '';
+        // $user->profilePic =  '';
         $user->email =  $request->email;
         $user->mobileNumber =  $request->mobileNumber;
         $user->password =  Hash::make($request->password);
