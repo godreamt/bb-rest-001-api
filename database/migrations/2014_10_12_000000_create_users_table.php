@@ -83,6 +83,7 @@ class CreateUsersTable extends Migration
             $table->enum('onSaveOrder', ['stayInSame', 'closeOrderWindow', 'closeAndOpenNewWindow'])->default('stayInSame');
             $table->enum('onCompleteCancelOrder', ['stayInSame', 'closeOrderWindow', 'closeAndOpenNewWindow'])->default('stayInSame');
             $table->boolean('afterCompleteKot')->default(false);
+            $table->enum('finalisingOption', ['billWithComplete', 'printCompleteSeparate'])->default('billWithComplete');
             $table->string('company_id');
             $table->foreign('company_id')->references('id')->on('companies');
             $table->boolean('completeConfirmation')->default(false);

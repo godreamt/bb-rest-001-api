@@ -508,6 +508,8 @@ class OrderController extends Controller
 
 
                 $totalOrderAmount = 0;
+                $nonTaxableAmount = 0;
+                $isOnlyNonTaxable = true;
                 foreach ($request->items as $item) {
                     if ($item['deletedFlag']) {
                         $orderItem = OrderItem::find($item['id']);
@@ -545,6 +547,11 @@ class OrderController extends Controller
                         }
                         $orderItem->totalPrice = $totalPrice;
                         $totalOrderAmount = $totalOrderAmount + $totalPrice;
+                        if ($product->inclTax) {
+                            $nonTaxableAmount = $nonTaxableAmount + $totalPrice;
+                        }else {
+                            $isOnlyNonTaxable = false;
+                        }
                         $orderItem->isSync = false;
                         $orderItem->save();
 
@@ -599,6 +606,12 @@ class OrderController extends Controller
                         }
                         $orderItemCombo->totalPrice = $totalPrice;
                         $totalComboAmount = $totalComboAmount + $totalPrice;
+
+                        if ($comboProduct->inclTax) {
+                            $nonTaxableAmount = $nonTaxableAmount + $totalPrice;
+                        } else {
+                            $isOnlyNonTaxable = false;
+                        }
                         $orderItemCombo->isSync = false;
                         $orderItemCombo->save();
 
@@ -624,13 +637,15 @@ class OrderController extends Controller
                     }
                 }
                 $order->orderComboTotal = $totalComboAmount;
-
+                if(!$isOnlyNonTaxable) {
+                    $nonTaxableAmount = 0;
+                }
                 if (!empty($request->deliverCharge)) {
                     $order->deliverCharge = (float)$request->deliverCharge;
                 } else {
                     $order->deliverCharge = 0;
                 }
-                $order = $this->handleFinalCalculationOrder($order);
+                $order = $this->handleFinalCalculationOrder($order, $nonTaxableAmount);
                 $order->isSync = 0;
                 $order->save();
 
@@ -653,7 +668,7 @@ class OrderController extends Controller
         }
     }
 
-    public function handleFinalCalculationOrder($order)
+    public function handleFinalCalculationOrder($order, $nonTaxableAmount = null)
     {
         $totalOrderAmount = $order->orderItemTotal;
         $totalOrderAmount = $totalOrderAmount + $order->orderComboTotal;
@@ -662,8 +677,12 @@ class OrderController extends Controller
         if (!empty($order->deliverCharge)) {
             $totalOrderAmount = $totalOrderAmount + $order->deliverCharge;
         }
-
-        $taxAmount = ($totalOrderAmount * $order->taxPercent / 100);
+        $taxAmount = 0;
+        $taxableAmount = $totalOrderAmount - $nonTaxableAmount;
+        if ($taxableAmount > 0) {
+            $taxAmount = ($totalOrderAmount * $order->taxPercent / 100);
+        }
+        $order->taxableAmount = $taxableAmount;
         if (!$order->taxDisabled && $taxAmount > 0) {
             $order->cgst = $taxAmount / 2;
             $order->sgst = $taxAmount / 2;
@@ -719,7 +738,34 @@ class OrderController extends Controller
                 $orderItem->totalPrice = $orderItem->totalPrice - $totalDeductablePrice;
                 $order = Order::find($orderItem->orderId);
                 $order->orderItemTotal = $order->orderItemTotal - $totalDeductablePrice;
-                $order = $this->handleFinalCalculationOrder($order);
+                $nonTaxableAmount = 0;
+                $isOnlyNonTaxable = true;
+                foreach ($order->orderitems as $item) {
+                    if ($item->product->inclTax) {
+                        if($request->itemType == 'item' && $item->id === $orderItem->id) {
+                            $nonTaxableAmount = $nonTaxableAmount + $orderItem->totalPrice;
+                        }else {
+                            $nonTaxableAmount = $nonTaxableAmount + $item->totalPrice;
+                        }
+                    } else {
+                        $isOnlyNonTaxable = false;
+                    }
+                }
+                foreach ($order->orderItemCombos as $item) {
+                    if ($item->productCombo->inclTax) {
+                        if($request->itemType != 'item' && $item->id === $orderItem->id) {
+                            $nonTaxableAmount = $nonTaxableAmount + $orderItem->totalPrice;
+                        }else {
+                            $nonTaxableAmount = $nonTaxableAmount + $item->totalPrice;
+                        }
+                    } else {
+                        $isOnlyNonTaxable = false;
+                    }
+                }
+                if(!$isOnlyNonTaxable) {
+                    $nonTaxableAmount = 0;
+                }
+                $order = $this->handleFinalCalculationOrder($order, $nonTaxableAmount);
                 $order->isSync = false;
                 $order->save();
                 if ($orderItem->quantity == 0) {

@@ -41,6 +41,7 @@ class Product extends Model
         'kitchen_id',
         'isOutOfStock',
         'canPriceAltered',
+        'inclTax',
         'isAdvancedPricing',
         'isSync'
     ];
@@ -52,7 +53,8 @@ class Product extends Model
         'isVeg' => 'boolean',
         'isOutOfStock' => 'boolean',
         'isAdvancedPricing' => 'boolean',
-        'canPriceAltered' => 'boolean'
+        'canPriceAltered' => 'boolean',
+        'inclTax' => 'boolean',
     ];
 
 

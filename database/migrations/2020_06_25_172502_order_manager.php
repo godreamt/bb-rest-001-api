@@ -80,6 +80,7 @@ class OrderManager extends Migration
             $table->boolean('isOutOfStock')->default(true);
             $table->boolean('isAdvancedPricing')->default(false);
             $table->boolean('canPriceAltered')->default(false);
+            $table->boolean('inclTax')->default(false);
             $table->string('company_id');
             $table->foreign('company_id')->references('id')->on('companies');
             $table->string('branch_id');
@@ -148,6 +149,7 @@ class OrderManager extends Migration
             $table->string('featuredImage')->nullable();
             $table->string('packagingCharges')->nullable();
             $table->boolean('canPriceAltered')->default(false);
+            $table->boolean('inclTax')->default(false);
             $table->string('company_id');
             $table->foreign('company_id')->references('id')->on('companies');
             $table->string('branch_id');
@@ -193,6 +195,7 @@ class OrderManager extends Migration
             $table->string('orderItemTotal')->default('0');
             $table->string('orderComboTotal')->default('0');
             $table->string('orderAmount')->default('0');
+            $table->string('taxableAmount')->default('0');
             $table->string('packingCharge')->nullable();
             $table->string('discountReason')->nullable(true);
             $table->string('discountValue')->default('0');

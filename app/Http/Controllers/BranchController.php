@@ -191,6 +191,7 @@ class BranchController extends Controller
                 $branch->onSaveOrder = $request->onSaveOrder;
                 $branch->billPrinter = $request->billPrinter;
                 $branch->kotPrinter = $request->kotPrinter;
+                $branch->finalisingOption = $request->finalisingOption;
                 $branch->afterCompleteKot = $request->afterCompleteKot ?? false;
 
                 $branch->isSync = false;

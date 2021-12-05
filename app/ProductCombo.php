@@ -25,12 +25,14 @@ class ProductCombo extends Model
         'comboTotal',
         'packagingCharges',
         'canPriceAltered',
+        'inclTax',
         'isActive',
         'isSync'
     ];
     protected $casts = [
         'isActive' => 'boolean',
         'canPriceAltered' => 'boolean',
+        'inclTax' => 'boolean',
         'isSync' => 'boolean',
     ];
 

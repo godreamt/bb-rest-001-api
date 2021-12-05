@@ -36,6 +36,7 @@ class Branch extends Model
         'company_id',
         'completeConfirmation',
         'cancelConfirmation',
+        'finalysingOption',
         'onSaveOrder',
         'onCompleteCancelOrder',
         'afterCompleteKot',

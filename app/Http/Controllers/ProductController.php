@@ -212,6 +212,7 @@ class ProductController extends Controller
                 $product->packagingCharges = $request->packagingCharges;
                 $product->isActive = $request->isActive ?? true;
                 $product->canPriceAltered = $request->canPriceAltered ?? false;
+                $product->inclTax = $request->inclTax ?? false;
                 $product->isOutOfStock = $request->isOutOfStock ?? true;
                 $product->isVeg = $request->isVeg ?? true;
                 $product->branch_id = $request->branch_id;
@@ -374,6 +375,7 @@ class ProductController extends Controller
                     $productCombo->featuredImage = '/uploads'.$path;
                 }
                 $productCombo->canPriceAltered = $request->canPriceAltered ?? true;
+                $productCombo->inclTax = $request->inclTax ?? false;
                 $productCombo->isActive = $request->isActive ?? true;
                 $productCombo->comboTitle = $request->comboTitle;
                 $productCombo->description = $request->description;

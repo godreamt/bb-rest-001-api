@@ -47,6 +47,7 @@ class Order extends Model
         'isPaid',
         'roundOfAmount',
         'orderComboTotal',
+        'taxableAmount',
         'isSync'
     ];
 
@@ -56,7 +57,8 @@ class Order extends Model
         'isSync' => 'boolean',
         'taxPercent' => 'float',
         'roundOfAmount' => 'float',
-        'orderAmount' => 'float'
+        'orderAmount' => 'float',
+        'taxableAmount' => 'float'
     ];
     // protected $appends = ['order_ready_count'];
 
